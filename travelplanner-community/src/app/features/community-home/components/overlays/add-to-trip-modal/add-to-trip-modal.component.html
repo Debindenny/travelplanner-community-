@@ -1,0 +1,36 @@
+<div class="add-to-trip__body">
+  <div class="add-to-trip__spot">
+    <span class="add-to-trip__spot-thumb" [style.background-image]="'url(' + spotImage() + ')'"></span>
+    <span class="add-to-trip__spot-copy">
+      <span class="add-to-trip__spot-title">{{ spot() }}</span>
+      <span class="add-to-trip__spot-meta">{{ spotMeta() }}</span>
+    </span>
+  </div>
+
+  <div class="add-to-trip__section">
+    <span class="add-to-trip__label">ADD TO WHICH TRIP</span>
+    @for (trip of trips(); track trip.id) {
+      <button type="button" class="add-to-trip__trip" [class.is-picked]="tripPick() === trip.id" (click)="pickTrip.emit(trip.id)">
+        <span class="add-to-trip__trip-copy">
+          <span class="add-to-trip__trip-name">{{ trip.name }}</span>
+          <span class="add-to-trip__trip-dates">{{ trip.dates }}</span>
+        </span>
+        <span class="add-to-trip__spacer"></span>
+        @if (tripPick() === trip.id) {
+          <span class="add-to-trip__mark">✓</span>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="add-to-trip__kinds">
+    @for (kind of addKinds(); track kind) {
+      <button type="button" class="chip-pill" [class.is-active]="addKind() === kind" (click)="pickKind.emit(kind)">{{ kind }}</button>
+    }
+  </div>
+</div>
+
+<div class="add-to-trip__footer">
+  <button type="button" class="add-to-trip__cancel" (click)="cancel.emit()">Cancel</button>
+  <button type="button" class="add-to-trip__confirm" (click)="confirm.emit()">Add to itinerary</button>
+</div>

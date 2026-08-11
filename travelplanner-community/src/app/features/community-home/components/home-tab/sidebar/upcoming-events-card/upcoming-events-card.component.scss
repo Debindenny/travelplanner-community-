@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.upcoming-events-card {
+  padding: 16px;
+}
+
+.upcoming-events-card__label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.upcoming-events-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upcoming-events-card__row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.upcoming-events-card__date {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 11px;
+  background: #f2f6fc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.upcoming-events-card__month {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--text-faint);
+}
+
+.upcoming-events-card__day {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.upcoming-events-card__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.upcoming-events-card__name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.upcoming-events-card__meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.upcoming-events-card__join {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+
+  &.is-joined {
+    border-color: var(--border);
+    background: #f2f6fc;
+    color: var(--text-muted);
+  }
+}

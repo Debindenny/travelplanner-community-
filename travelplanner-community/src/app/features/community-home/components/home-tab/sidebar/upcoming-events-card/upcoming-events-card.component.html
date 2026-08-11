@@ -1,0 +1,20 @@
+<section class="surface-card upcoming-events-card">
+  <div class="upcoming-events-card__label">UPCOMING EVENTS</div>
+  <div class="upcoming-events-card__list">
+    @for (event of events(); track event.id) {
+      <div class="upcoming-events-card__row">
+        <span class="upcoming-events-card__date">
+          <span class="upcoming-events-card__month">{{ event.month }}</span>
+          <span class="upcoming-events-card__day">{{ event.day }}</span>
+        </span>
+        <span class="upcoming-events-card__identity">
+          <span class="upcoming-events-card__name">{{ event.name }}</span>
+          <span class="upcoming-events-card__meta">{{ event.meta }}</span>
+        </span>
+        <button type="button" class="upcoming-events-card__join" [class.is-joined]="joinedIds().has(event.id)" (click)="toggleJoin.emit(event)">
+          {{ joinedIds().has(event.id) ? 'Going' : 'Join' }}
+        </button>
+      </div>
+    }
+  </div>
+</section>

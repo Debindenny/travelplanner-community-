@@ -1,0 +1,36 @@
+<button type="button" class="ai-fab" (click)="open.set(!open())">
+  <app-icon name="sparkles" [size]="16" />
+  Ask TRAVL AI
+</button>
+
+@if (open()) {
+  <div class="ai-panel">
+    <div class="ai-panel__header">
+      <app-icon name="sparkles" [size]="16" />
+      <div class="ai-panel__header-copy">
+        <div class="ai-panel__title">TRAVL AI</div>
+        <div class="ai-panel__subtitle">Connected to your Paris trip &amp; saved posts</div>
+      </div>
+      <button type="button" class="ai-panel__close" (click)="open.set(false)" aria-label="Close AI assistant">×</button>
+    </div>
+
+    <div class="ai-panel__body">
+      @for (prompt of prompts(); track prompt.text) {
+        <button type="button" class="ai-panel__prompt" (click)="selectPrompt.emit(prompt)">{{ prompt.text }}</button>
+      }
+
+      <div class="ai-panel__input-row">
+        <input
+          class="ai-panel__input"
+          type="text"
+          [value]="draft()"
+          (input)="draft.set($any($event.target).value)"
+          (keydown.enter)="submit()"
+          placeholder="Ask about your trip or this community…"
+          aria-label="Ask TRAVL AI"
+        />
+        <button type="button" class="ai-panel__submit" (click)="submit()" aria-label="Send">↑</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+.start-circle-card {
+  padding: 18px;
+}
+
+.start-circle-card__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.start-circle-card__icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #eaf1fe, #f3eeff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.start-circle-card__copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.start-circle-card__title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.start-circle-card__sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.start-circle-card__button {
+  width: 100%;
+  height: 38px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 96, 234, 0.22);
+
+  &:hover {
+    background: var(--accent-deep);
+  }
+}

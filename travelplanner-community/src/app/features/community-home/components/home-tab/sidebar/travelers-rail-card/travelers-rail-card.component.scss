@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.travelers-rail-card {
+  padding: 16px;
+}
+
+.travelers-rail-card__label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.travelers-rail-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.travelers-rail-card__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.travelers-rail-card__avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
+.travelers-rail-card__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.travelers-rail-card__name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.travelers-rail-card__line {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.travelers-rail-card__follow {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+
+  &.is-following {
+    border-color: var(--border);
+    background: #f2f6fc;
+    color: var(--text-muted);
+  }
+}

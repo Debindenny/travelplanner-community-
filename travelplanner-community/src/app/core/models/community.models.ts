@@ -1,133 +1,204 @@
 export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Travel Circles' | 'Events' | 'Saved';
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
 export type ViewMode = 'Feed' | 'Map';
-export type ModalType = 'menu' | 'form' | 'add' | 'remix' | 'circle' | 'report';
+export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
+export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
+export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
 
 export interface CommunityStory {
   id: string;
   name: string;
   place: string;
-  status: string;
-  accent: string;
+  status: StoryStatus;
   image: string;
 }
 
-export interface CommunityPost {
+export interface PostComment {
   id: string;
-  kind: 'Tip' | 'Trip' | 'Question' | 'Photo' | 'Poll' | 'Journal' | 'Buddy';
-  title: string;
-  body: string;
   author: string;
-  initials: string;
-  accent: string;
-  meta: string;
-  badge?: string;
-  image?: string;
-  stats?: { label: string; value: string }[];
-  chips?: string[];
+  text: string;
+  when: string;
+  likes: number;
 }
 
-export interface CommunityDestination {
+export interface PollOption {
   id: string;
-  name: string;
-  members: string;
-  live: string;
-  hot?: string;
-  image: string;
-  stats: { label: string; value: string }[];
+  label: string;
+  basePercent: number;
 }
 
-export interface CommunityTrip {
-  id: string;
-  title: string;
-  sub: string;
-  author: string;
-  initials: string;
-  accent: string;
-  updated: string;
-  image: string;
-  saves: string;
-  stats: { label: string; value: string }[];
+export interface TripRouteStop {
+  city: string;
+  nights: string;
+  hasNext: boolean;
 }
 
-export interface CommunityEvent {
-  id: string;
-  name: string;
-  meta: string;
-  dateLabel: string;
-  type: string;
-  image: string;
-  going: string;
-}
-
-export interface CommunityMatch {
-  id: string;
-  name: string;
-  home: string;
-  dates: string;
-  match: string;
-  tags: string[];
-  accent: string;
-  initials: string;
-}
-
-export interface CommunityTraveler {
-  id: string;
-  name: string;
-  line: string;
-  accent: string;
-  initials: string;
-}
-
-export interface CommunityTrendingItem {
-  id: string;
-  title: string;
-  meta: string;
-  image: string;
-}
-
-export interface CommunityJourneyStat {
+export interface TripStat {
   label: string;
   value: string;
 }
 
-export interface CommunitySavedItem {
+export interface MeetupDetails {
+  month: string;
+  day: string;
+  when: string;
+  where: string;
+  going: string;
+}
+
+export interface CommunityPost {
   id: string;
-  kind: string;
+  kind: PostKind;
+  tone: string;
+  tags: FeedFilter[];
+  place: string;
+  author: string;
+  initials: string;
+  avatarGradient: string;
+  meta: string;
+  title: string;
+  body?: string;
+  image?: string;
+  isVideo?: boolean;
+  helpfulBase: number;
+  cta: PostCta;
+  ctaLabel: string;
+  comments: PostComment[];
+  poll?: PollOption[];
+  pollVotesBase?: number;
+  route?: TripRouteStop[];
+  stats?: TripStat[];
+  meetup?: MeetupDetails;
+  authoredByMe?: boolean;
+}
+
+export interface JourneyStat {
+  label: string;
+  value: string;
+}
+
+export interface TravelMatch {
+  id: string;
+  name: string;
+  home: string;
+  dates: string;
+  matchPercent: string;
+  tags: string[];
+  avatarGradient: string;
+}
+
+export interface TravelerRailItem {
+  id: string;
+  name: string;
+  line: string;
+  avatarGradient: string;
+}
+
+export interface TrendingItem {
+  id: string;
   title: string;
   meta: string;
   image: string;
 }
 
-export interface CommunityDiscoverCard {
-  id: string;
-  tag: string;
-  title: string;
-  meta: string;
-  image: string;
-}
-
-export interface CommunityCircle {
+export interface UpcomingEvent {
   id: string;
   name: string;
   meta: string;
-  privacy: 'Public' | 'Invite only';
-  desc: string;
-  active: string;
+  month: string;
+  day: string;
+}
+
+export interface SideCircle {
+  id: string;
+  name: string;
+  live: boolean;
   image: string;
 }
 
-export interface CommunityHomePayload {
+export interface ProfileMenuItem {
+  icon: string;
+  label: string;
+  target: CommunityTab | null;
+}
+
+export interface SearchSuggestion {
+  icon: string;
+  label: string;
+  kind: string;
+  target: CommunityTab;
+}
+
+export interface AiPrompt {
+  text: string;
+  target: CommunityTab;
+}
+
+export interface PostTypeOption {
+  formType: string;
+  icon: string;
+  label: string;
+  hint: string;
+}
+
+export interface ComposerFormField {
+  key: string;
+  label: string;
+  placeholder: string;
+  multiline: boolean;
+}
+
+export interface ComposerFormDef {
+  formType: string;
+  icon: string;
+  hint: string;
+  chipsLabel: string;
+  chips: string[];
+  submitLabel: string;
+  needsMedia: boolean;
+  fields: ComposerFormField[];
+}
+
+export interface TripPickOption {
+  id: string;
+  name: string;
+  dates: string;
+}
+
+export interface PostOptionsMenuItem {
+  label: string;
+  hint: string;
+  message: string;
+}
+
+export interface StoryViewerPayload {
+  name: string;
+  place: string;
+  status: StoryStatus;
+  image: string;
+}
+
+export interface AddToTripPayload {
+  spot: string;
+  meta: string;
+  image: string;
+}
+
+export interface ModalState {
+  kind: ModalKind;
+  formType?: string;
+  story?: StoryViewerPayload;
+  addToTrip?: AddToTripPayload;
+}
+
+export interface CommunityHomeData {
   stories: CommunityStory[];
   posts: CommunityPost[];
-  destinations: CommunityDestination[];
-  trips: CommunityTrip[];
-  events: CommunityEvent[];
-  matches: CommunityMatch[];
-  travelers: CommunityTraveler[];
-  trending: CommunityTrendingItem[];
-  journeyStats: CommunityJourneyStat[];
-  savedItems: CommunitySavedItem[];
-  discoverCards: CommunityDiscoverCard[];
-  circles: CommunityCircle[];
+  journeyStats: JourneyStat[];
+  matches: TravelMatch[];
+  travelersRail: TravelerRailItem[];
+  trending: TrendingItem[];
+  events: UpcomingEvent[];
+  sideCircles: SideCircle[];
 }

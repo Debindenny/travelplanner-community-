@@ -1,0 +1,28 @@
+<section class="surface-card journey-card">
+  <div class="journey-card__header">
+    <span class="journey-card__ring" [style.background]="'conic-gradient(#0060EA 0turn ' + xpPercent() / 100 + 'turn, #EEF1F6 ' + xpPercent() / 100 + 'turn 1turn)'">
+      <span class="journey-card__ring-inner">
+        <span class="journey-card__pct">{{ xpPercent() }}%</span>
+        <span class="journey-card__level-badge">{{ levelBadge() }}</span>
+      </span>
+    </span>
+    <span class="journey-card__copy">
+      <span class="journey-card__label">YOUR JOURNEY</span>
+      <span class="journey-card__title">{{ level() }}</span>
+      <span class="journey-card__sub">{{ xpToNext() }}</span>
+    </span>
+  </div>
+
+  <div class="journey-card__progress">
+    <div class="journey-card__progress-fill" [style.width.%]="xpPercent()"></div>
+  </div>
+
+  <div class="journey-card__stats">
+    @for (stat of stats(); track stat.label) {
+      <span class="journey-card__stat">
+        <span class="journey-card__stat-value">{{ stat.value }}</span>
+        <span class="journey-card__stat-label">{{ stat.label }}</span>
+      </span>
+    }
+  </div>
+</section>
