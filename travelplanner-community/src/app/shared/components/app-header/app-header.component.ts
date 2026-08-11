@@ -17,6 +17,7 @@ export class AppHeaderComponent {
 
   readonly profileOpen = model<boolean>(false);
   readonly selectMenuItem = output<ProfileMenuItem>();
+  readonly toggleTheme = output<void>();
 
   toggleProfile(): void {
     this.profileOpen.set(!this.profileOpen());

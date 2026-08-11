@@ -3,8 +3,20 @@
 }
 
 .page-shell {
+  position: relative;
   min-height: 100vh;
   background: var(--surface-muted);
+}
+
+.page-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(680px circle at var(--aurora-x, 50%) var(--aurora-y, 35%), rgba(0, 96, 234, 0.14), transparent 62%),
+    radial-gradient(760px circle at calc(100% - var(--aurora-x, 50%)) calc(100% - var(--aurora-y, 35%)), rgba(107, 63, 160, 0.12), transparent 62%),
+    var(--surface-muted);
 }
 
 .secondary-bar {

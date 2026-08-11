@@ -1,0 +1,127 @@
+<section
+  class="hero"
+  [style.--hx]="heroX()"
+  [style.--hy]="heroY()"
+  (mousemove)="onHeroMouseMove($event)"
+  (mouseleave)="onHeroMouseLeave()"
+>
+  <svg class="hero__scene" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="tcSkyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#141a3d" />
+        <stop offset="35%" stop-color="#5b3fa0" />
+        <stop offset="65%" stop-color="#c2569b" />
+        <stop offset="100%" stop-color="#ffb37a" />
+      </linearGradient>
+      <radialGradient id="tcSunGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fff6d8" />
+        <stop offset="55%" stop-color="#ffd36e" />
+        <stop offset="100%" stop-color="#ff9a5a" />
+      </radialGradient>
+    </defs>
+
+    <rect x="0" y="0" width="1200" height="400" fill="url(#tcSkyGrad)" />
+
+    <g class="hero__stars">
+      @for (star of stars; track star.x) {
+        <circle
+          [attr.cx]="star.x"
+          [attr.cy]="star.y"
+          [attr.r]="star.r"
+          fill="#fff"
+          class="hero__star"
+          [style.animation-delay.s]="star.delay"
+        />
+      }
+    </g>
+
+    <g class="hero__sun-group">
+      <circle class="hero__sun-glow" cx="860" cy="230" r="90" fill="#ffd36e" />
+      <circle class="hero__sun" cx="860" cy="230" r="46" fill="url(#tcSunGrad)" />
+    </g>
+
+    <path class="hero__mountain hero__mountain--back" d="M0,300 L120,210 L260,290 L400,180 L560,300 L1200,240 L1200,400 L0,400 Z" />
+    <path class="hero__mountain hero__mountain--mid" d="M0,340 L180,250 L340,330 L520,230 L720,340 L900,260 L1200,320 L1200,400 L0,400 Z" />
+    <path class="hero__mountain hero__mountain--front" d="M0,380 L220,300 L460,370 L680,290 L940,375 L1200,320 L1200,400 L0,400 Z" />
+
+    <path class="hero__flight-path" [attr.d]="flightPath" fill="none" />
+    <g class="hero__plane">
+      <path d="M0,-5 L9,0 L0,5 L2,0 Z" fill="#fff" />
+      <animateMotion dur="16s" repeatCount="indefinite" rotate="auto" [attr.path]="flightPath" />
+    </g>
+  </svg>
+
+  <div class="hero__clouds" aria-hidden="true">
+    <div class="hero__cloud-drift hero__cloud-drift--1">
+      <div class="hero__cloud hero__cloud--1"></div>
+    </div>
+    <div class="hero__cloud-drift hero__cloud-drift--2">
+      <div class="hero__cloud hero__cloud--2"></div>
+    </div>
+    <div class="hero__cloud-drift hero__cloud-drift--3">
+      <div class="hero__cloud hero__cloud--3"></div>
+    </div>
+  </div>
+
+  <div class="hero__overlay"></div>
+
+  <div class="hero__content">
+    <div class="breadcrumb">
+      <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">
+        <app-icon name="chevron-right" [size]="14" class="breadcrumb__back-icon" />
+      </button>
+      <span class="breadcrumb__crumb">Community</span>
+      <span class="breadcrumb__divider">/</span>
+      <span class="breadcrumb__current">Travel Circles</span>
+    </div>
+
+    <div class="hero__header">
+      <div class="hero__header-copy">
+        <span class="hero__eyebrow">Travel Circles</span>
+        <h1 class="hero__title">Plan with a small group</h1>
+        <p class="hero__subtitle">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+      </div>
+      <button type="button" class="hero__cta" (click)="onCreateCircle()">Create a circle</button>
+    </div>
+  </div>
+</section>
+
+<div class="circle-grid">
+  @for (card of cards; track card.id) {
+    <article
+      class="circle-card"
+      [style.--accent]="card.accent"
+      [style.--accent2]="card.accent2"
+      [style.--mx.%]="tiltFor(card.id).mx"
+      [style.--my.%]="tiltFor(card.id).my"
+      [style.transform]="cardTransform(card.id)"
+      (mousemove)="onCardMouseMove($event, card)"
+      (mouseleave)="onCardMouseLeave(card)"
+    >
+      <div class="circle-card__top">
+        <div>
+          <h3 class="circle-card__title">{{ card.title }}</h3>
+          <p class="circle-card__meta">{{ card.meta }}</p>
+        </div>
+        <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
+      </div>
+
+      <p class="circle-card__description">{{ card.description }}</p>
+
+      <div class="circle-card__bottom">
+        <span class="circle-card__activity">
+          <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="card.live"></span>
+          {{ card.activity }}
+        </span>
+        <button
+          type="button"
+          class="circle-card__cta"
+          [class.circle-card__cta--active]="isMember(card.id)"
+          (click)="onToggleMembership(card)"
+        >
+          {{ buttonLabel(card) }}
+        </button>
+      </div>
+    </article>
+  }
+</div>
