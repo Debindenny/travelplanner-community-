@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="page">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F5F7FA;font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:#0B1220;-webkit-font-smoothing:antialiased}
+a{color:#0060EA;text-decoration:none}
+a:hover{color:#0049B4}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:#D7DEE8;border-radius:8px}
+@keyframes travlUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes travlFade{from{opacity:0}to{opacity:1}}
+@keyframes travlPulse{0%{box-shadow:0 0 0 0 rgba(15,157,88,.5)}70%{box-shadow:0 0 0 7px rgba(15,157,88,0)}100%{box-shadow:0 0 0 0 rgba(15,157,88,0)}}
+@media (max-width:1100px){#cSearch{display:none!important}}
+@media (max-width:1000px){#cTopNav{display:none!important}}
+@media (max-width:1180px){#cGrid{grid-template-columns:minmax(0,1fr)!important}#cGrid>aside{position:static!important;display:grid!important;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))!important;align-items:start}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#F5F7FA">
+
+  <header style="position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid #E8ECF2">
+    <div style="max-width:1440px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;gap:24px">
+      <div style="display:flex;align-items:center;gap:10px;flex:none">
+        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #0B1220;display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B1220" stroke-width="1.6"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2c3 3.5 3 16.5 0 20M12 2c-3 3.5-3 16.5 0 20"></path></svg>
+        </div>
+        <div style="width:1px;height:20px;background:#D7DEE8"></div>
+        <span style="font-weight:800;letter-spacing:.06em;font-size:14px">TRAVL PLANR</span>
+      </div>
+      <nav id="cTopNav" style="display:flex;align-items:center;gap:22px;min-width:0;overflow-x:auto;white-space:nowrap;font-size:14px;font-weight:600;color:#5A6472">
+        <a href="#" style="color:#5A6472">Home</a>
+        <a href="#" style="color:#5A6472">Explore</a>
+        <a href="#" style="color:#5A6472">Transfers</a>
+        <a href="#" style="color:#5A6472">About Us</a>
+        <a href="#" style="color:#5A6472">Pricing</a>
+        <a href="#" style="color:#0B1220;font-weight:800">Community</a>
+      </nav>
+      <div style="flex:1;min-width:0"></div>
+      <div style="display:flex;align-items:center;gap:14px;flex:none">
+        <div style="display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap;border:1px solid #E2E7EF;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;color:#5A6472">
+          <span>US</span><span style="color:#0060EA">EN</span><span>/ INR</span>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A6472" stroke-width="1.7"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A6472" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-9 8.5 9.7 9.7 0 01-2.8-.4L3 21l1.4-4.2A8.4 8.4 0 0121 11.5z"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A6472" stroke-width="1.7"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 21a2 2 0 01-3.4 0"></path></svg>
+        <div style="position:relative">
+          <button onClick="{{ toggleProfile }}" style="width:34px;height:34px;border-radius:50%;background:#EAF1FE;border:1px solid #DCE3EC;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;font-size:11px;font-weight:800;color:#0060EA" style-hover="border-color:#0060EA">AV</button>
+          <sc-if value="{{ profileOpen }}">
+            <div style="position:absolute;right:0;top:44px;width:264px;background:#fff;border:1px solid #E8ECF2;border-radius:14px;box-shadow:0 20px 48px rgba(11,18,32,.16);padding:8px;animation:travlUp .16s ease">
+              <div style="padding:10px 12px 12px;border-bottom:1px solid #EEF1F6;margin-bottom:6px">
+                <div style="font-size:13.5px;font-weight:800">avena1429</div>
+                <div style="font-size:11.5px;font-weight:600;color:#8B94A3;margin-top:2px">Explorer Â· Lv.1 Wanderer Â· 14 countries</div>
+              </div>
+              <sc-for list="{{ profileMenu }}" as="p" hint-placeholder-count="7">
+                <button onClick="{{ p.go }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left;font-family:inherit;font-size:13px;font-weight:600;color:#1B2637" style-hover="background:#F5F8FC">
+                  <span style="width:16px;text-align:center">{{ p.icon }}</span>{{ p.label }}
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div style="position:sticky;top:64px;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid #E8ECF2">
+    <div style="max-width:1440px;margin:0 auto;padding:0 32px;height:58px;display:flex;align-items:center;gap:24px">
+      <div style="display:flex;align-items:center;gap:2px;min-width:0;flex:1;overflow-x:auto">
+        <sc-for list="{{ subnav }}" as="tab" hint-placeholder-count="7">
+          <button onClick="{{ tab.go }}" style="{{ tab.style }}" style-hover="color:#0B1220">{{ tab.label }}</button>
+        </sc-for>
+      </div>
+      <div id="cSearch" style="position:relative;width:360px;flex:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="2" style="position:absolute;left:14px;top:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.2-3.2"></path></svg>
+        <input value="{{ query }}" onInput="{{ onQuery }}" onFocus="{{ onSearchFocus }}" placeholder="Search destinations, travelers, trips or tips" style="width:100%;height:38px;border:1px solid #E2E7EF;background:#F7F9FC;border-radius:10px;padding:0 14px 0 38px;font-family:inherit;font-size:13px;font-weight:500;color:#0B1220;outline:none" style-focus="border-color:#0060EA;background:#fff;box-shadow:0 0 0 3px rgba(0,96,234,.12)">
+        <sc-if value="{{ searchOpen }}">
+          <div style="position:absolute;top:46px;left:0;right:0;background:#fff;border:1px solid #E8ECF2;border-radius:14px;box-shadow:0 18px 40px rgba(11,18,32,.12);padding:8px;animation:travlUp .16s ease">
+            <div style="padding:8px 10px 6px;font-size:10px;font-weight:800;letter-spacing:.1em;color:#8B94A3">SUGGESTIONS</div>
+            <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="5">
+              <button onClick="{{ s.go }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;background:transparent;border-radius:9px;cursor:pointer;text-align:left;font-family:inherit" style-hover="background:#F2F6FC">
+                <span style="width:26px;height:26px;border-radius:7px;background:#EAF1FE;display:flex;align-items:center;justify-content:center;font-size:12px">{{ s.icon }}</span>
+                <span style="font-size:13px;font-weight:600;color:#0B1220">{{ s.label }}</span>
+                <span style="flex:1"></span>
+                <span style="font-size:11px;font-weight:700;color:#8B94A3">{{ s.kind }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <button onClick="{{ openComposerMenu }}" style="height:38px;padding:0 18px;flex:none;white-space:nowrap;border:0;border-radius:10px;background:#0060EA;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,96,234,.24)" style-hover="background:#0052C8">Share with travelers</button>
+    </div>
+  </div>
+
+  <main style="max-width:1440px;margin:0 auto;padding:28px 32px 120px">
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:0">
+
+    <section style="position:relative;border-radius:22px;overflow:hidden;background:#0B1220">
+      <span style="{{ heroImgStyle }}"></span>
+      <span style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(7,17,35,.94) 0%,rgba(7,17,35,.72) 46%,rgba(7,17,35,.18) 100%)"></span>
+      <div style="position:relative;padding:30px 32px;display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap;min-height:230px">
+        <sc-if value="{{ hasTrip }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;min-width:280px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="width:7px;height:7px;border-radius:50%;background:#5BE3A7"></span>
+              <span style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:rgba(255,255,255,.72)">YOUR NEXT TRIP Â· IN 18 DAYS</span>
+            </div>
+            <h1 style="margin:12px 0 0;font-size:34px;line-height:1.08;font-weight:800;color:#fff;letter-spacing:-.025em">Paris, France</h1>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;font-weight:600;color:rgba(255,255,255,.74)">
+              <span>Jun 03 â Jun 06</span><span style="opacity:.45">Â·</span><span>3 nights</span><span style="opacity:.45">Â·</span><span>4 saved spots</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:22px">
+              <button onClick="{{ openDestination }}" style="height:40px;padding:0 18px;flex:none;white-space:nowrap;border:0;border-radius:11px;background:#fff;color:#0B1220;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer" style-hover="background:#EAF1FE">Explore Paris</button>
+              <button onClick="{{ openTravelers }}" style="height:40px;padding:0 18px;flex:none;white-space:nowrap;border:0;border-radius:11px;background:rgba(255,255,255,.16);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:rgba(255,255,255,.28)">Find travelers</button>
+              <button onClick="{{ openTrip }}" style="height:40px;padding:0 14px;flex:none;white-space:nowrap;border:0;border-radius:11px;background:transparent;color:rgba(255,255,255,.8);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer" style-hover="color:#fff">Open my trip â</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noTrip }}">
+          <div style="flex:1;min-width:280px">
+            <h1 style="margin:0;font-size:32px;line-height:1.1;font-weight:800;color:#fff;letter-spacing:-.025em">Where are you heading next?</h1>
+            <p style="margin:10px 0 20px;font-size:14px;font-weight:500;color:rgba(255,255,255,.74);max-width:420px">Plan a trip and this feed reshapes around your destination.</p>
+            <button onClick="{{ openTrip }}" style="height:42px;padding:0 20px;border:0;border-radius:11px;background:#fff;color:#0B1220;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap">Plan a trip</button>
+          </div>
+        </sc-if>
+
+        <div style="flex:none;width:290px;background:rgba(255,255,255,.1);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:15px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px">â¦</span>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:rgba(255,255,255,.76)">ITINERARY INSPIRATION</span>
+          </div>
+          <input value="{{ planText }}" onInput="{{ onPlanText }}" placeholder="e.g. 5 relaxed days in Bali" style="width:100%;height:40px;margin-top:12px;border:0;border-radius:11px;background:rgba(255,255,255,.16);color:#fff;padding:0 13px;font-family:inherit;font-size:13px;font-weight:600;outline:none">
+          <button onClick="{{ planTrip }}" style="width:100%;height:38px;margin-top:8px;border:0;border-radius:11px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap" style-hover="background:#0052C8">Build my itinerary</button>
+        </div>
+      </div>
+      <button onClick="{{ toggleTrip }}" style="position:absolute;right:16px;top:16px;z-index:3;height:28px;padding:0 12px;white-space:nowrap;border:0;border-radius:999px;background:rgba(11,18,32,.5);backdrop-filter:blur(8px);color:#fff;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer" style-hover="background:rgba(11,18,32,.72)">{{ heroToggleLabel }}</button>
+    </section>
+
+    <section style="margin-top:16px;background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px 18px;display:flex;gap:20px;overflow-x:auto">
+      <button onClick="{{ shareMoment }}" style="flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:transparent;cursor:pointer;font-family:inherit">
+        <span style="width:60px;height:60px;border-radius:50%;background:#F2F6FC;display:flex;align-items:center;justify-content:center;font-size:23px;color:#0060EA;font-weight:500">+</span>
+        <span style="font-size:10.5px;font-weight:700;color:#8B94A3">Your story</span>
+      </button>
+      <sc-for list="{{ stories }}" as="s" hint-placeholder-count="6">
+        <button onClick="{{ s.open }}" style="flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:transparent;cursor:pointer;font-family:inherit">
+          <span style="{{ s.ringStyle }}"><span style="{{ s.thumbStyle }}"></span></span>
+          <span style="font-size:10.5px;font-weight:700;color:#0B1220;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:66px">{{ s.name }}</span>
+          <span style="{{ s.dotStyle }}">{{ s.status }}</span>
+        </button>
+      </sc-for>
+    </section>
+
+    <div id="cGrid" style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;margin-top:28px;align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:#EAF1FE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0060EA">AV</div>
+            <button onClick="{{ openComposerMenu }}" style="flex:1;height:44px;border:1px solid #E2E7EF;background:#F7F9FC;border-radius:12px;text-align:left;padding:0 16px;font-family:inherit;font-size:14px;font-weight:500;color:#8B94A3;cursor:pointer" style-hover="background:#F2F6FC;border-color:#CBD6E4">Share something useful with travelersâ¦</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #F1F3F7;flex-wrap:wrap">
+            <sc-for list="{{ composerActions }}" as="a" hint-placeholder-count="5">
+              <button onClick="{{ a.go }}" style="display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:0;border-radius:10px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;color:#5A6472;cursor:pointer;white-space:nowrap" style-hover="background:#F2F7FF;color:#0060EA">
+                <span style="{{ a.dotStyle }}"></span>{{ a.label }}
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="7">
+            <button onClick="{{ f.go }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+          <span style="flex:1"></span>
+          <button onClick="{{ cycleDest }}" style="display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border:1px solid #E2E7EF;border-radius:999px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer" style-hover="border-color:#CBD6E4">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1116 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Destination: {{ destFilter }}
+          </button>
+          <div style="display:flex;gap:3px;padding:3px;background:#EEF1F6;border-radius:999px">
+            <sc-for list="{{ viewModes }}" as="v" hint-placeholder-count="2">
+              <button onClick="{{ v.go }}" style="{{ v.style }}">{{ v.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ mapMode }}">
+          <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden">
+            <div style="position:relative;height:420px;background:linear-gradient(150deg,#E7EEF7,#DCE7F2 55%,#E9F1EA)">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(11,18,32,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(11,18,32,.05) 1px,transparent 1px);background-size:56px 56px"></div>
+              <sc-for list="{{ pins }}" as="p" hint-placeholder-count="4">
+                <button onClick="{{ p.go }}" style="{{ p.style }}" style-hover="transform:translateY(-2px)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:#fff"></span>{{ p.label }}
+                </button>
+              </sc-for>
+              <div style="position:absolute;left:16px;bottom:16px;background:#fff;border:1px solid #E8ECF2;border-radius:12px;padding:10px 14px;font-size:11.5px;font-weight:700;color:#5A6472;box-shadow:0 8px 22px rgba(11,18,32,.08)">Community posts near your Paris trip Â· destination-level only</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showTip }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden">
+            <div style="padding:16px 18px 0;display:flex;align-items:flex-start;gap:12px">
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(140deg,#F2B872,#D2604B);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">MK</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:7px">
+                  <span style="font-size:14.5px;font-weight:800">Maya Kondo</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px;background:#EAF1FE;color:#0060EA;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px">Local Expert</span>
+                </div>
+                <div style="font-size:12.5px;font-weight:500;color:#8B94A3;margin-top:2px">Lives in Tokyo Â· 41 countries Â· 2h ago</div>
+              </div>
+              <button onClick="{{ followMaya }}" style="{{ followMayaStyle }}">{{ followMayaLabel }}</button>
+              <button onClick="{{ openMenu }}" style="width:32px;height:32px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:#8B94A3;font-size:16px;font-weight:800" style-hover="background:#F2F6FC">Â·Â·Â·</button>
+            </div>
+            <div style="padding:14px 18px 0;display:flex;flex-wrap:wrap;gap:8px">
+              <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:999px;background:#F2F6FC;font-size:12px;font-weight:700;color:#374151">ð¯ðµ Tokyo, Japan</span>
+              <span style="display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:#FFF4E5;color:#B7791F;font-size:12px;font-weight:700">Travel Tip</span>
+              <span style="display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:#F2F6FC;color:#5A6472;font-size:12px;font-weight:700">Visited May 2026</span>
+            </div>
+            <p style="margin:12px 18px 14px;font-size:14.5px;line-height:1.6;color:#1B2637;text-wrap:pretty">Everyone queues at Shibuya Sky for sunset without a reservation and gets turned away. Book the 17:30 slot online about three weeks ahead â you get the daylight skyline, the sunset and the neon city in one visit.</p>
+            <div style="margin:0 18px;height:300px;border-radius:14px;background:center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80')"></div>
+            <div style="margin:14px 18px 0;border:1px solid #E2E7EF;border-radius:12px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#FAFBFD;border-bottom:1px solid #E8ECF2">
+                <span style="font-size:13.5px;font-weight:800">Shibuya Sky</span>
+                <span style="font-size:11.5px;font-weight:700;color:#8B94A3">Observation deck</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+                <div style="padding:12px 14px;border-right:1px solid #EEF1F6"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#8B94A3">BEST TIME</div><div style="font-size:14px;font-weight:700;margin-top:3px">17:30</div></div>
+                <div style="padding:12px 14px;border-right:1px solid #EEF1F6"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#8B94A3">VISIT LENGTH</div><div style="font-size:14px;font-weight:700;margin-top:3px">2 hours</div></div>
+                <div style="padding:12px 14px"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#8B94A3">BUDGET</div><div style="font-size:14px;font-weight:700;margin-top:3px">Â¥2,500</div></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:14px 18px 16px">
+              <button onClick="{{ helpfulTip }}" style="{{ helpfulTipStyle }}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M7 22V10l5-8a2.5 2.5 0 013 3l-1 5h5a2 2 0 012 2.4l-1.6 7A2 2 0 0117 22z"></path></svg>
+                Helpful Â· {{ helpfulTipCount }}
+              </button>
+              <button style="display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer" style-hover="border-color:#CBD6E4;background:#FAFBFD">Comment Â· 34</button>
+              <button onClick="{{ saveTip }}" style="{{ saveTipStyle }}">{{ saveTipLabel }}</button>
+              <button style="display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer" style-hover="border-color:#CBD6E4;background:#FAFBFD">Share</button>
+              <span style="flex:1"></span>
+              <button onClick="{{ addShibuya }}" style="display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 15px;border:0;border-radius:10px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none;box-shadow:0 5px 14px rgba(0,96,234,.22)" style-hover="background:#0052C8">+ Add to trip</button>
+            </div>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ showItin }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden">
+            <div style="padding:16px 18px 0;display:flex;align-items:flex-start;gap:12px">
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(140deg,#0060EA,#4B2A63);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">RS</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:7px">
+                  <span style="font-size:14.5px;font-weight:800">Rhea Sharma</span>
+                  <span style="display:inline-flex;align-items:center;background:#ECFDF3;color:#067647;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px">Top Contributor</span>
+                </div>
+                <div style="font-size:12.5px;font-weight:500;color:#8B94A3;margin-top:2px">Bengaluru, India Â· Shared an itinerary Â· 6h ago</div>
+              </div>
+              <button onClick="{{ followRhea }}" style="{{ followRheaStyle }}">{{ followRheaLabel }}</button>
+            </div>
+            <p style="margin:14px 18px 0;font-size:14.5px;line-height:1.6;color:#1B2637">Finally wrote up the route we did in April â slow mornings, one big thing a day, all trains booked with a JR pass. Works well for a first trip.</p>
+            <div style="margin:14px 18px 0;border:1px solid #E2E7EF;border-radius:14px;overflow:hidden">
+              <div style="height:150px;background:center/cover url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=1200&q=80');display:flex;align-items:center;padding:20px">
+                <div>
+                  <div style="font-size:19px;font-weight:800;color:#fff">7 Days in Japan ð¯ðµ</div>
+                  <div style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.8);margin-top:4px">Cherry-blossom season Â· Mid-range budget Â· Couple</div>
+                </div>
+              </div>
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:0">
+                <sc-for list="{{ route }}" as="r" hint-placeholder-count="3">
+                  <span style="display:flex;align-items:center;gap:10px">
+                    <span style="display:flex;flex-direction:column;align-items:center;gap:5px">
+                      <span style="width:11px;height:11px;border-radius:50%;background:#0060EA;box-shadow:0 0 0 4px rgba(0,96,234,.14)"></span>
+                      <span style="font-size:12.5px;font-weight:800;color:#0B1220">{{ r.city }}</span>
+                      <span style="font-size:11px;font-weight:600;color:#8B94A3">{{ r.nights }}</span>
+                    </span>
+                    <sc-if value="{{ r.hasNext }}"><span style="width:64px;height:2px;background:linear-gradient(90deg,#0060EA,#C3CEDD);margin-bottom:18px"></span></sc-if>
+                  </span>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #EEF1F6">
+                <div style="padding:12px 16px;border-right:1px solid #EEF1F6"><div style="font-size:16px;font-weight:800">7</div><div style="font-size:11px;font-weight:700;color:#8B94A3">Days</div></div>
+                <div style="padding:12px 16px;border-right:1px solid #EEF1F6"><div style="font-size:16px;font-weight:800">3</div><div style="font-size:11px;font-weight:700;color:#8B94A3">Cities</div></div>
+                <div style="padding:12px 16px;border-right:1px solid #EEF1F6"><div style="font-size:16px;font-weight:800">12</div><div style="font-size:11px;font-weight:700;color:#8B94A3">Activities</div></div>
+                <div style="padding:12px 16px"><div style="font-size:16px;font-weight:800">â¹1.4L</div><div style="font-size:11px;font-weight:700;color:#8B94A3">Approx. per person</div></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 18px 16px">
+              <button style="height:38px;padding:0 16px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer" style-hover="border-color:#CBD6E4">View itinerary</button>
+              <button onClick="{{ saveItin }}" style="{{ saveItinStyle }}">{{ saveItinLabel }}</button>
+              <span style="flex:1"></span>
+              <button onClick="{{ openRemix }}" style="display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border:0;border-radius:10px;background:linear-gradient(100deg,#0060EA,#7A4FA3);color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none;box-shadow:0 6px 16px rgba(90,50,150,.24)" style-hover="filter:brightness(1.08)">â¦ Use as inspiration</button>
+            </div>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ showQuestion }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px 18px">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(140deg,#2AA98B,#0A6E7C);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">DL</div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:800">Daniel Lange</div>
+                <div style="font-size:12.5px;font-weight:500;color:#8B94A3;margin-top:2px">Berlin, Germany Â· Going to Paris Jun 12 Â· 9h ago</div>
+              </div>
+              <span style="display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:999px;background:#F3EEFF;color:#6B3FA0;font-size:11.5px;font-weight:800">Question</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+              <span style="display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:#F2F6FC;font-size:12px;font-weight:700;color:#374151">ð«ð· Paris, France</span>
+              <span style="display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:#F2F6FC;font-size:12px;font-weight:700;color:#5A6472">Jun 12 â Jun 16</span>
+            </div>
+            <h3 style="margin:12px 0 6px;font-size:16px;font-weight:800;line-height:1.4">Is the Louvre late-night opening actually worth it on a Friday, or better first thing Wednesday?</h3>
+            <p style="margin:0;font-size:14px;line-height:1.6;color:#5A6472">Three days in the city and I'd rather not spend one of them queuing. Anyone been recently?</p>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #EEF1F6">
+              <div style="display:flex">
+                <span style="width:26px;height:26px;border-radius:50%;background:#F2B872;border:2px solid #fff"></span>
+                <span style="width:26px;height:26px;border-radius:50%;background:#0060EA;border:2px solid #fff;margin-left:-8px"></span>
+                <span style="width:26px;height:26px;border-radius:50%;background:#2AA98B;border:2px solid #fff;margin-left:-8px"></span>
+              </div>
+              <span style="font-size:12.5px;font-weight:700;color:#5A6472">11 travelers answered</span>
+              <span style="flex:1"></span>
+              <button onClick="{{ answerQ }}" style="height:36px;padding:0 15px;border:1px solid #0060EA;border-radius:10px;background:#fff;color:#0060EA;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#F2F7FF">Answer</button>
+              <button onClick="{{ saveQ }}" style="{{ saveQStyle }}">{{ saveQLabel }}</button>
+            </div>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ showReels }}" hint-placeholder-val="{{ true }}">
+          <section style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0;font-size:15.5px;font-weight:800">Travel reels from places you're going</h3>
+              <a href="#" style="font-size:12.5px;font-weight:700">Watch all</a>
+            </div>
+            <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:2px">
+              <sc-for list="{{ reels }}" as="r" hint-placeholder-count="4">
+                <button onClick="{{ r.go }}" style="{{ r.style }}" style-hover="transform:translateY(-3px)">
+                  <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,35,0) 40%,rgba(7,17,35,.8))"></span>
+                  <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1220">â¶</span>
+                  <span style="position:absolute;left:10px;right:10px;bottom:10px;text-align:left;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:12.5px;font-weight:800;color:#fff">{{ r.title }}</span>
+                    <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.75)">{{ r.meta }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{ showPoll }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px 18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(140deg,#6BA6C9,#243B55);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">SN</div>
+              <div style="flex:1"><div style="font-size:14.5px;font-weight:800">Sofia Nakamura</div><div style="font-size:12.5px;font-weight:500;color:#8B94A3;margin-top:2px">Osaka, Japan Â· 1d ago</div></div>
+              <span style="display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:999px;background:#EAF1FE;color:#0060EA;font-size:11.5px;font-weight:800">Poll</span>
+            </div>
+            <h3 style="margin:14px 0 12px;font-size:15.5px;font-weight:800;line-height:1.45">Three nights in Kyoto â machiya stay in Gion or a ryokan outside the centre?</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ pollOptions }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.vote }}" style="{{ o.style }}">
+                  <span style="{{ o.barStyle }}"></span>
+                  <span style="position:relative;font-size:13.5px;font-weight:700;color:#1B2637">{{ o.label }}</span>
+                  <span style="position:relative;margin-left:auto;font-size:12.5px;font-weight:800;color:#5A6472">{{ o.pct }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="font-size:11.5px;font-weight:700;color:#8B94A3;margin-top:10px">{{ pollMeta }}</div>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ showJournal }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden;display:grid;grid-template-columns:220px minmax(0,1fr)">
+            <div style="background:center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=700&q=80');min-height:200px"></div>
+            <div style="padding:18px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:inline-flex;align-items:center;flex:none;white-space:nowrap;height:26px;padding:0 11px;border-radius:999px;background:#F3EEFF;color:#6B3FA0;font-size:11.5px;font-weight:800">Travel Journal</span>
+                <span style="font-size:12.5px;font-weight:600;color:#8B94A3">Iker Solano Â· 6 entries Â· Lisbon</span>
+              </div>
+              <h3 style="margin:12px 0 6px;font-size:17px;font-weight:800;line-height:1.35">Ten days walking Lisbon without a single taxi</h3>
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#5A6472">Entry 4 â the 28 tram is a tourist ride, not transport. The 24E from Campolide is empty, cheaper and drops you at the same miradouros.</p>
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px">
+                <button onClick="{{ readJournal }}" style="height:36px;padding:0 15px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer" style-hover="border-color:#CBD6E4">Read journal</button>
+                <button onClick="{{ followIker }}" style="{{ followIkerStyle }}">{{ followIkerLabel }}</button>
+                <span style="flex:1"></span>
+                <button onClick="{{ addShibuya }}" style="height:36px;padding:0 15px;border:0;border-radius:10px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none" style-hover="background:#0052C8">+ Add to trip</button>
+              </div>
+            </div>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ showBuddy }}" hint-placeholder-val="{{ true }}">
+          <article style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <h3 style="margin:0;font-size:15.5px;font-weight:800">Travelers with similar plans</h3>
+              <a href="#" style="font-size:12.5px;font-weight:700">See all</a>
+            </div>
+            <p style="margin:0 0 14px;font-size:12.5px;font-weight:500;color:#8B94A3">Matched on your Paris dates, pace and interests. Only travelers who made their trip discoverable appear here.</p>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ matches }}" as="m" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px;padding:14px 12px;border-top:1px solid #F1F3F7;border-radius:12px;transition:background .14s ease" style-hover="background:#FAFBFD">
+                  <span style="{{ m.rowAvatarStyle }}">{{ m.initial }}</span>
+                  <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                    <span style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                      <span style="font-size:14px;font-weight:800;letter-spacing:-.01em">{{ m.name }}</span>
+                      <span style="font-size:10.5px;font-weight:800;color:#067647;background:#ECFDF3;padding:3px 9px;border-radius:999px;white-space:nowrap">{{ m.match }}</span>
+                    </span>
+                    <span style="font-size:12px;font-weight:600;color:#8B94A3">{{ m.home }} Â· {{ m.dates }} Â· {{ m.tagLine }}</span>
+                  </span>
+                  <span style="display:flex;gap:8px;flex:none">
+                    <button onClick="{{ m.profile }}" style="height:34px;padding:0 15px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap" style-hover="border-color:#CBD6E4">Profile</button>
+                    <button onClick="{{ m.follow }}" style="{{ m.rowFollowStyle }}">{{ m.followLabel }}</button>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+          </article>
+        </sc-if>
+
+      </div>
+
+      <aside style="display:flex;flex-direction:column;gap:16px;position:sticky;top:138px">
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:18px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="{{ ringStyle }}">
+              <span style="width:52px;height:52px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1">
+                <span style="font-size:14px;font-weight:800;color:#0B1220">{{ xpPct }}</span>
+                <span style="font-size:8px;font-weight:800;letter-spacing:.06em;color:#8B94A3">LV.1</span>
+              </span>
+            </span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8B94A3">YOUR JOURNEY</span>
+              <span style="font-size:15px;font-weight:800">Wanderer</span>
+              <span style="font-size:11.5px;font-weight:600;color:#8B94A3">200 XP to Explorer</span>
+            </span>
+          </div>
+          <div style="height:6px;border-radius:999px;background:#EEF1F6;overflow:hidden;margin-top:14px"><div style="{{ xpBarStyle }}"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #EEF1F6">
+            <sc-for list="{{ journeyStats }}" as="j" hint-placeholder-count="4">
+              <span style="display:flex;flex-direction:column;gap:1px">
+                <span style="font-size:15px;font-weight:800">{{ j.value }}</span>
+                <span style="font-size:10px;font-weight:700;color:#8B94A3">{{ j.label }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px">
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8B94A3;margin-bottom:12px">TRAVELERS GOING WHERE YOU ARE</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ railTravelers }}" as="t" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="{{ t.avatarStyle }}">{{ t.initial }}</span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <span style="font-size:13px;font-weight:700">{{ t.name }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ t.line }}</span>
+                </span>
+                <button onClick="{{ t.follow }}" style="{{ t.followStyle }}">{{ t.followLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:18px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:44px;height:44px;flex:none;border-radius:14px;background:linear-gradient(140deg,#EAF1FE,#F3EEFF);display:flex;align-items:center;justify-content:center;font-size:19px">ð§­</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:14px;font-weight:800">Start your own community</span>
+              <span style="font-size:11.5px;font-weight:600;color:#8B94A3">Gather travelers around a place or a style of travel.</span>
+            </span>
+          </div>
+          <button onClick="{{ createCircle }}" style="width:100%;height:38px;margin-top:14px;border:0;border-radius:11px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(0,96,234,.22)" style-hover="background:#0052C8">Create a community</button>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8B94A3">TRENDING NEAR YOUR TRIP</span>
+            <span style="font-size:11px;font-weight:800;color:#0060EA">Paris</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ trending }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.go }}" style="display:flex;align-items:center;gap:11px;padding:8px;margin:-8px;border:0;background:transparent;border-radius:10px;cursor:pointer;text-align:left;font-family:inherit" style-hover="background:#F7F9FC">
+                <span style="{{ t.thumbStyle }}"></span>
+                <span style="flex:1;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:13px;font-weight:700;color:#0B1220">{{ t.title }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ t.meta }}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:16px">
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8B94A3;margin-bottom:12px">UPCOMING EVENTS</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ events }}" as="e" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:11px">
+                <span style="width:44px;height:44px;border-radius:11px;background:#F2F6FC;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1">
+                  <span style="font-size:9.5px;font-weight:800;color:#8B94A3">{{ e.mon }}</span>
+                  <span style="font-size:14px;font-weight:800;color:#0B1220">{{ e.day }}</span>
+                </span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:13px;font-weight:700">{{ e.name }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ e.meta }}</span>
+                </span>
+                <button onClick="{{ e.join }}" style="{{ e.joinStyle }}">{{ e.joinLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="font-size:11.5px;font-weight:600;color:#8B94A3;line-height:1.9;padding:0 4px">
+          <div style="display:flex;flex-wrap:wrap;gap:4px 12px">
+            <sc-for list="{{ footerLinks }}" as="l" hint-placeholder-count="6">
+              <a href="#" style="color:#8B94A3">{{ l }}</a>
+            </sc-for>
+          </div>
+          <div style="margin-top:8px;font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#B6BFCC">TRAVLPLANR CORPORATION Â© 2026</div>
+        </div>
+      </aside>
+    </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ notHome }}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button onClick="{{ goHome }}" style="width:34px;height:34px;flex:none;border:1px solid #E2E7EF;border-radius:50%;background:#fff;cursor:pointer;font-size:14px;font-weight:800;color:#5A6472;font-family:inherit" style-hover="border-color:#0060EA;color:#0060EA">â</button>
+        <span style="font-size:12.5px;font-weight:700;color:#8B94A3">Community</span>
+        <span style="font-size:12.5px;font-weight:700;color:#C3CEDD">/</span>
+        <span style="font-size:12.5px;font-weight:800;color:#0B1220">{{ routeName }}</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDiscover }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">DISCOVER</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">What travelers found this week</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">Ranked by how many people actually used them, not by how new they are.</p>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.02em;color:#067647;background:#ECFDF3;padding:5px 11px;border-radius:999px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:#0F9D58;animation:travlPulse 2.2s infinite"></span>{{ discoverLive }}</span>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ discoverCats }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px">
+          <button onClick="{{ featureGo }}" style="position:relative;border:0;padding:0;border-radius:20px;overflow:hidden;cursor:pointer;text-align:left;font-family:inherit;min-height:330px;background:#0B1220" style-hover="transform:translateY(-2px)">
+            <span style="{{ featureImg }}"></span>
+            <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,.05) 34%,rgba(11,18,32,.9))"></span>
+            <span style="position:absolute;top:16px;left:16px;height:26px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.92);color:#0B1220;font-size:10.5px;font-weight:800;display:flex;align-items:center;letter-spacing:.06em">MOST USED THIS WEEK</span>
+            <span style="position:absolute;left:22px;right:22px;bottom:20px;display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:23px;font-weight:800;color:#fff;line-height:1.24;letter-spacing:-.02em">{{ featureTitle }}</span>
+              <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.78)">{{ featureMeta }}</span>
+            </span>
+          </button>
+
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ discoverTop }}" as="d" hint-placeholder-count="3">
+              <button onClick="{{ d.go }}" style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);display:flex;align-items:center;gap:14px;padding:12px;cursor:pointer;text-align:left;font-family:inherit;transition:transform .14s ease" style-hover="transform:translateX(3px)">
+                <span style="{{ d.thumbStyle }}"></span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                  <span style="font-size:10px;font-weight:800;letter-spacing:.1em;color:#0060EA">{{ d.tag }}</span>
+                  <span style="font-size:13.5px;font-weight:800;line-height:1.38">{{ d.title }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ d.meta }}</span>
+                </span>
+                <span style="font-size:15px;font-weight:800;color:#D7DEE8">{{ d.rank }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+          <sc-for list="{{ discoverCards }}" as="d" hint-placeholder-count="6">
+            <button onClick="{{ d.go }}" style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:0;overflow:hidden;cursor:pointer;text-align:left;font-family:inherit;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <span style="{{ d.coverStyle }}"><span style="position:absolute;top:10px;left:10px;height:24px;padding:0 10px;border-radius:999px;background:rgba(11,18,32,.5);backdrop-filter:blur(8px);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center">{{ d.tag }}</span></span>
+              <span style="padding:14px 15px 16px;display:flex;flex-direction:column;gap:5px">
+                <span style="font-size:13.5px;font-weight:800;line-height:1.42">{{ d.title }}</span>
+                <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ d.meta }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDestinations }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">DESTINATION COMMUNITIES</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">Join the place, not just the trip</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">Every destination has its own feed of tips, trips and meetups from travelers there right now.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ destSorts }}" as="d" hint-placeholder-count="2"><button onClick="{{ d.go }}" style="{{ d.style }}">{{ d.label }}</button></sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+          <sc-for list="{{ destinations }}" as="d" hint-placeholder-count="6">
+            <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <div style="{{ d.coverStyle }}">
+                <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,.02) 36%,rgba(11,18,32,.82))"></span>
+                <span style="position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.9);font-size:10px;font-weight:800;color:#0B1220">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#0F9D58;animation:travlPulse 2.2s infinite"></span>{{ d.liveNow }}
+                </span>
+                <sc-if value="{{ d.hot }}"><span style="position:absolute;top:12px;right:12px;height:24px;padding:0 10px;border-radius:999px;background:#F04438;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center">{{ d.hot }}</span></sc-if>
+                <span style="position:absolute;left:15px;right:15px;bottom:12px;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:16.5px;font-weight:800;color:#fff;letter-spacing:-.01em">{{ d.name }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.78)">{{ d.members }}</span>
+                </span>
+              </div>
+              <div style="padding:14px 16px 16px;display:flex;flex-direction:column;flex:1">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                  <sc-for list="{{ d.stats }}" as="st" hint-placeholder-count="3">
+                    <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:15px;font-weight:800">{{ st.v }}</span><span style="font-size:10.5px;font-weight:700;color:#8B94A3">{{ st.l }}</span></span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:auto;padding-top:14px">
+                  <button onClick="{{ d.open }}" style="height:36px;padding:0 15px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap;flex:1" style-hover="border-color:#CBD6E4">View posts</button>
+                  <button onClick="{{ d.join }}" style="{{ d.joinStyle }}">{{ d.joinLabel }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTrips }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">COMMUNITY TRIPS</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">Real itineraries you can clone</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">Every trip here was actually travelled. Clone one and TRAVL AI reshapes it to your dates and pace.</p>
+          </div>
+          <button onClick="{{ openComposerMenu }}" style="height:38px;padding:0 17px;border:0;border-radius:11px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(0,96,234,.22)" style-hover="background:#0052C8">Share a trip</button>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ tripFilters }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px">
+          <sc-for list="{{ tripCards }}" as="t" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <div style="{{ t.heroStyle }}">
+                <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,.04) 40%,rgba(11,18,32,.86))"></span>
+                <span style="position:absolute;top:12px;right:12px;height:24px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.9);color:#0B1220;font-size:10.5px;font-weight:800;display:flex;align-items:center">{{ t.saves }} saves</span>
+                <span style="position:absolute;left:16px;right:16px;bottom:14px;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:19px;font-weight:800;color:#fff;line-height:1.24;letter-spacing:-.015em">{{ t.title }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.76)">{{ t.sub }}</span>
+                </span>
+              </div>
+              <div style="padding:15px 17px 17px;display:flex;flex-direction:column;flex:1">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <span style="{{ t.avatarStyle }}">{{ t.initial }}</span>
+                  <span style="font-size:12.5px;font-weight:700;color:#5A6472">{{ t.author }}</span>
+                  <span style="flex:1"></span>
+                  <span style="font-size:11.5px;font-weight:700;color:#8B94A3">{{ t.updated }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;padding:13px 0;border-top:1px solid #F1F3F7;border-bottom:1px solid #F1F3F7">
+                  <sc-for list="{{ t.stats }}" as="st" hint-placeholder-count="4">
+                    <span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:15px;font-weight:800">{{ st.v }}</span><span style="font-size:10px;font-weight:700;color:#8B94A3">{{ st.l }}</span></span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:15px;flex-wrap:wrap">
+                  <button onClick="{{ t.view }}" style="height:36px;padding:0 15px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap" style-hover="border-color:#CBD6E4">View itinerary</button>
+                  <button onClick="{{ t.save }}" style="{{ t.saveStyle }}">{{ t.saveLabel }}</button>
+                  <span style="flex:1"></span>
+                  <button onClick="{{ t.clone }}" style="height:36px;padding:0 16px;border:0;border-radius:10px;background:linear-gradient(100deg,#0060EA,#7A4FA3);color:#fff;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(90,50,150,.22)">â¦ Clone</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCircles }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">TRAVEL CIRCLES</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">Plan with a small group</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+          </div>
+          <button onClick="{{ createCircle }}" style="height:38px;padding:0 17px;border:0;border-radius:11px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(0,96,234,.22)" style-hover="background:#0052C8">Create a circle</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <sc-for list="{{ circles }}" as="c" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:0;overflow:hidden;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <div style="display:flex;align-items:center;gap:13px;padding:16px 18px;border-bottom:1px solid #F1F3F7">
+                <span style="{{ c.thumbStyle }}"></span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:15px;font-weight:800;letter-spacing:-.01em">{{ c.name }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ c.meta }}</span>
+                </span>
+                <span style="{{ c.privacyStyle }}">{{ c.privacy }}</span>
+              </div>
+              <div style="padding:15px 18px 17px;display:flex;flex-direction:column;flex:1">
+                <p style="margin:0;font-size:13px;font-weight:500;color:#5A6472;line-height:1.6">{{ c.desc }}</p>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:16px">
+                  <span style="display:flex"><sc-for list="{{ c.faces }}" as="fc" hint-placeholder-count="3"><span style="{{ fc.style }}"></span></sc-for></span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#8B94A3"><span style="{{ c.dotStyle }}"></span>{{ c.active }}</span>
+                  <span style="flex:1"></span>
+                  <button onClick="{{ c.join }}" style="{{ c.joinStyle }}">{{ c.joinLabel }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isEvents }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">EVENTS &amp; MEETUPS</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">Meet travelers in person</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">Photo walks, food crawls and live planning sessions â hosted by travelers, not brands.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ eventFilters }}" as="e" hint-placeholder-count="3"><button onClick="{{ e.go }}" style="{{ e.style }}">{{ e.label }}</button></sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <sc-for list="{{ eventCards }}" as="e" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <div style="{{ e.coverStyle }}">
+                <span style="position:absolute;inset:0;background:linear-gradient(110deg,rgba(11,18,32,.78),rgba(11,18,32,.18))"></span>
+                <span style="position:absolute;left:16px;top:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.94)">
+                  <span style="font-size:9.5px;font-weight:800;color:#8B94A3;letter-spacing:.06em">{{ e.mon }}</span>
+                  <span style="font-size:20px;font-weight:800;color:#0B1220;line-height:1.05">{{ e.day }}</span>
+                </span>
+                <span style="position:absolute;top:16px;right:14px;{{ e.typeStyle }}">{{ e.type }}</span>
+                <span style="position:absolute;left:16px;right:16px;bottom:13px;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:16.5px;font-weight:800;color:#fff;line-height:1.26;letter-spacing:-.01em">{{ e.name }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.78)">{{ e.meta }}</span>
+                </span>
+              </div>
+              <div style="padding:14px 17px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="display:flex"><sc-for list="{{ e.faces }}" as="fc" hint-placeholder-count="3"><span style="{{ fc.style }}"></span></sc-for></span>
+                <span style="font-size:11.5px;font-weight:700;color:#8B94A3">{{ e.going }}</span>
+                <span style="flex:1"></span>
+                <button onClick="{{ e.details }}" style="height:36px;padding:0 15px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:12px;font-weight:800;color:#374151;cursor:pointer;white-space:nowrap" style-hover="border-color:#CBD6E4">Details</button>
+                <button onClick="{{ e.join }}" style="{{ e.joinStyle }}">{{ e.joinLabel }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSaved }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#8B94A3">SAVED</div>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:8px">Your collection</h1>
+            <p style="margin:6px 0 0;font-size:13.5px;font-weight:500;color:#8B94A3;max-width:560px">{{ savedCount }} â add any of them straight into a trip.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ savedTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ savedEmpty }}">
+          <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);padding:64px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span style="width:58px;height:58px;border-radius:50%;background:#F2F6FC;display:flex;align-items:center;justify-content:center;font-size:22px">ð</span>
+            <div style="font-size:15.5px;font-weight:800;margin-top:8px">Nothing saved here yet</div>
+            <p style="margin:0;font-size:13px;font-weight:500;color:#8B94A3;max-width:300px;line-height:1.55">Tap Save on any post, trip or spot and it lands in this collection.</p>
+            <button onClick="{{ goHome }}" style="height:38px;padding:0 17px;border:0;border-radius:11px;background:#0060EA;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(0,96,234,.22);height:40px;margin-top:10px">Browse the feed</button>
+          </div>
+        </sc-if>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+          <sc-for list="{{ savedItems }}" as="i" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #EDF0F5;border-radius:18px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.05);overflow:hidden;display:flex;flex-direction:column;transition:transform .16s ease,box-shadow .16s ease" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,18,32,.1)">
+              <div style="{{ i.coverStyle }}">
+                <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,0) 46%,rgba(11,18,32,.62))"></span>
+                <span style="position:absolute;top:10px;left:10px;height:24px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.92);color:#0B1220;font-size:10px;font-weight:800;display:flex;align-items:center">{{ i.kind }}</span>
+              </div>
+              <div style="padding:14px 15px 16px;display:flex;flex-direction:column;flex:1">
+                <div style="font-size:13.5px;font-weight:800;line-height:1.42">{{ i.title }}</div>
+                <div style="font-size:11.5px;font-weight:600;color:#8B94A3;margin-top:3px">{{ i.meta }}</div>
+                <div style="display:flex;gap:8px;margin-top:auto;padding-top:13px">
+                  <button onClick="{{ i.add }}" style="flex:1;height:34px;border:0;border-radius:10px;background:#EAF1FE;color:#0060EA;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap" style-hover="background:#DCE9FF">+ Add to trip</button>
+                  <button onClick="{{ i.remove }}" style="width:34px;height:34px;flex:none;border:1px solid #E2E7EF;border-radius:10px;background:#fff;cursor:pointer;font-size:12px" style-hover="border-color:#CBD6E4">ð</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <button onClick="{{ toggleAI }}" style="position:fixed;right:26px;bottom:26px;z-index:70;height:50px;padding:0 21px;border:0;border-radius:999px;background:#0B1220;color:#fff;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 14px 34px rgba(11,18,32,.3);display:flex;align-items:center;gap:9px" style-hover="background:#26262B">â¦ Ask TRAVL AI</button>
+
+  <sc-if value="{{ aiOpen }}">
+    <div style="position:fixed;right:28px;bottom:96px;z-index:75;width:396px;background:#fff;border:1px solid #E2E7EF;border-radius:18px;box-shadow:0 26px 60px rgba(11,18,32,.22);overflow:hidden;animation:travlUp .18s ease">
+      <div style="padding:16px 18px;background:linear-gradient(100deg,#0A2E70,#0060EA);color:#fff;display:flex;align-items:center;gap:10px">
+        <span style="font-size:15px">â¦</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:800">TRAVL AI</div><div style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.78)">Connected to your Paris trip &amp; saved posts</div></div>
+        <button onClick="{{ toggleAI }}" style="width:28px;height:28px;border:0;border-radius:8px;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;font-size:14px;font-weight:700">Ã</button>
+      </div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ aiPrompts }}" as="p" hint-placeholder-count="4">
+          <button onClick="{{ p.go }}" style="text-align:left;padding:11px 13px;border:1px solid #E8ECF2;border-radius:11px;background:#FAFBFD;font-family:inherit;font-size:13px;font-weight:600;color:#1B2637;cursor:pointer;line-height:1.45" style-hover="border-color:#0060EA;background:#F5F9FF">{{ p.text }}</button>
+        </sc-for>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <input placeholder="Ask about your trip or this communityâ¦" style="flex:1;height:40px;border:1px solid #E2E7EF;border-radius:10px;padding:0 13px;font-family:inherit;font-size:13px;outline:none" style-focus="border-color:#0060EA">
+          <button style="width:40px;height:40px;border:0;border-radius:10px;background:#0060EA;color:#fff;font-size:15px;cursor:pointer">â</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}">
+    <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:90;background:rgba(11,18,32,.46);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:80px 20px;overflow:auto;animation:travlFade .14s ease">
+      <div onClick="{{ stop }}" style="width:560px;max-width:100%;background:#fff;border-radius:18px;box-shadow:0 30px 80px rgba(11,18,32,.3);overflow:hidden;animation:travlUp .18s ease">
+        <div style="padding:18px 22px;border-bottom:1px solid #EEF1F6;display:flex;align-items:center;gap:10px">
+          <div style="flex:1"><div style="font-size:16px;font-weight:800">{{ modalTitle }}</div><div style="font-size:12.5px;font-weight:500;color:#8B94A3;margin-top:2px">{{ modalSub }}</div></div>
+          <button onClick="{{ closeModal }}" style="width:32px;height:32px;border:1px solid #E8ECF2;border-radius:9px;background:#fff;cursor:pointer;font-size:15px;color:#5A6472">Ã</button>
+        </div>
+
+        <sc-if value="{{ isTypeMenu }}">
+          <div style="padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <sc-for list="{{ postTypes }}" as="p" hint-placeholder-count="5">
+              <button onClick="{{ p.open }}" style="display:flex;align-items:center;gap:11px;padding:14px;border:1px solid #E8ECF2;border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:inherit" style-hover="border-color:#0060EA;background:#F7FAFF">
+                <span style="width:34px;height:34px;border-radius:10px;background:#EAF1FE;display:flex;align-items:center;justify-content:center;font-size:15px">{{ p.icon }}</span>
+                <span style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:13.5px;font-weight:800;color:#0B1220">{{ p.label }}</span>
+                  <span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ p.hint }}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isForm }}">
+          <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="4">
+              <label style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">{{ f.label }}</span>
+                <sc-if value="{{ f.big }}">
+                  <textarea placeholder="{{ f.ph }}" rows="4" style="border:1px solid #E2E7EF;border-radius:11px;padding:11px 13px;font-family:inherit;font-size:13.5px;resize:vertical;outline:none" style-focus="border-color:#0060EA;box-shadow:0 0 0 3px rgba(0,96,234,.1)"></textarea>
+                </sc-if>
+                <sc-if value="{{ f.small }}">
+                  <input placeholder="{{ f.ph }}" style="height:42px;border:1px solid #E2E7EF;border-radius:11px;padding:0 13px;font-family:inherit;font-size:13.5px;outline:none" style-focus="border-color:#0060EA;box-shadow:0 0 0 3px rgba(0,96,234,.1)">
+                </sc-if>
+              </label>
+            </sc-for>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ formChips }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:14px 22px;border-top:1px solid #EEF1F6;display:flex;align-items:center;gap:10px;background:#FAFBFD">
+            <span style="font-size:11.5px;font-weight:600;color:#8B94A3">Visible to: Community</span>
+            <span style="flex:1"></span>
+            <button onClick="{{ closeModal }}" style="height:38px;padding:0 16px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:#374151;cursor:pointer">Cancel</button>
+            <button onClick="{{ submitForm }}" style="height:38px;padding:0 20px;border:0;border-radius:10px;background:#0060EA;color:#fff;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Post</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAddTrip }}">
+          <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+            <div style="border:1px solid #E8ECF2;border-radius:12px;padding:13px;display:flex;align-items:center;gap:12px;background:#FAFBFD">
+              <span style="{{ addThumbStyle }}"></span>
+              <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13.5px;font-weight:800">{{ addSpot }}</span><span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ addSpotMeta }}</span></span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">ADD TO WHICH TRIP</span>
+              <sc-for list="{{ trips }}" as="t" hint-placeholder-count="2">
+                <button onClick="{{ t.pick }}" style="{{ t.style }}">
+                  <span style="display:flex;flex-direction:column;gap:2px;text-align:left"><span style="font-size:13.5px;font-weight:800">{{ t.name }}</span><span style="font-size:11.5px;font-weight:600;color:#8B94A3">{{ t.dates }}</span></span>
+                  <span style="flex:1"></span>
+                  <span style="font-size:12px;font-weight:800;color:#0060EA">{{ t.mark }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ addKinds }}" as="k" hint-placeholder-count="5">
+                <button onClick="{{ k.pick }}" style="{{ k.style }}">{{ k.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:14px 22px;border-top:1px solid #EEF1F6;display:flex;justify-content:flex-end;gap:10px;background:#FAFBFD">
+            <button onClick="{{ closeModal }}" style="height:38px;padding:0 16px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:#374151;cursor:pointer">Cancel</button>
+            <button onClick="{{ confirmAdd }}" style="height:38px;padding:0 20px;border:0;border-radius:10px;background:#0060EA;color:#fff;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">Add to itinerary</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRemix }}">
+          <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+            <div style="border-radius:12px;padding:14px;background:linear-gradient(100deg,#F3F7FF,#F7F2FF);border:1px solid #E4E9FA">
+              <div style="font-size:13px;font-weight:800;color:#0B1220">We won't copy Rhea's trip.</div>
+              <p style="margin:6px 0 0;font-size:12.5px;line-height:1.55;color:#5A6472">TRAVL AI rebuilds the route around your dates, budget, pace and interests â keeping the parts travelers rated most useful.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">YOUR DATES</span><input value="Oct 12 â Oct 19" style="height:42px;border:1px solid #E2E7EF;border-radius:11px;padding:0 13px;font-family:inherit;font-size:13.5px;outline:none"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">TRAVELERS</span><input value="2 adults" style="height:42px;border:1px solid #E2E7EF;border-radius:11px;padding:0 13px;font-family:inherit;font-size:13.5px;outline:none"></label>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">PACE</span>
+              <div style="display:flex;gap:7px">
+                <sc-for list="{{ paces }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.pick }}" style="{{ p.style }}">{{ p.label }}</button></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#5A6472">INTERESTS</span>
+              <div style="display:flex;flex-wrap:wrap;gap:7px">
+                <sc-for list="{{ interests }}" as="i" hint-placeholder-count="6"><button onClick="{{ i.pick }}" style="{{ i.style }}">{{ i.label }}</button></sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="padding:14px 22px;border-top:1px solid #EEF1F6;display:flex;justify-content:flex-end;gap:10px;background:#FAFBFD">
+            <button onClick="{{ closeModal }}" style="height:38px;padding:0 16px;border:1px solid #E2E7EF;border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:#374151;cursor:pointer">Cancel</button>
+            <button onClick="{{ confirmRemix }}" style="height:38px;padding:0 20px;border:0;border-radius:10px;background:linear-gradient(100deg,#0060EA,#6B3FA0);color:#fff;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">â¦ Build my version</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isMenu }}">
+          <div style="padding:10px">
+            <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="4">
+              <button onClick="{{ m.go }}" style="width:100%;display:flex;flex-direction:column;gap:2px;text-align:left;padding:12px 14px;border:0;background:transparent;border-radius:10px;cursor:pointer;font-family:inherit" style-hover="background:#F7F9FC">
+                <span style="font-size:13.5px;font-weight:700;color:#0B1220">{{ m.label }}</span>
+                <span style="font-size:11.5px;font-weight:500;color:#8B94A3">{{ m.hint }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}">
+    <div style="position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:95;background:#0B1220;color:#fff;padding:13px 20px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:0 16px 40px rgba(11,18,32,.3);animation:travlUp .18s ease">{{ toast }}</div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1200}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'Home', filter: 'For You', destIdx: 0, hasTrip: true,
+    discoverCat: 'All', tripFilter: 'Popular', eventFilter: 'All', savedTab: 'All', destSort: 'Popular',
+    circleJoins: {}, privacy: 'Invite only',
+    query: '', searchOpen: false, aiOpen: false, modal: null, formType: null,
+    follows: {}, saves: {}, joins: {}, helpfulOn: {},
+    chips: {}, tripPick: 't1', addKind: 'Activity', pace: 'Balanced', interests: { Food: true, Museums: true },
+    toast: '', profileOpen: false, view: 'Feed', poll: null, planText: '', addSpot: null
+  };
+  componentWillUnmount() { clearTimeout(this._t); }
+  say(m) { clearTimeout(this._t); this.setState({ toast: m }); this._t = setTimeout(() => this.setState({ toast: '' }), 2400); }
+  set(k, v) { this.setState({ [k]: v }); }
+  tog(map, id) { this.setState(s => ({ [map]: { ...s[map], [id]: !s[map][id] } })); }
+
+  pill(a) { return 'height:34px;padding:0 14px;flex:none;white-space:nowrap;border-radius:999px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid ' + (a ? '#0060EA;background:#0060EA;color:#fff' : '#E2E7EF;background:#fff;color:#5A6472'); }
+  chip(a) { return 'height:32px;padding:0 13px;flex:none;white-space:nowrap;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid ' + (a ? '#0060EA;background:#F2F7FF;color:#0060EA' : '#E2E7EF;background:#fff;color:#5A6472'); }
+  followBtn(on, wide) { return (wide ? 'flex:1;height:32px;' : 'height:32px;padding:0 14px;') + 'border-radius:9px;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ' + (on ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#fff;color:#0060EA'); }
+  actionBtn(on) { return 'display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ' + (on ? '#0060EA;background:#F2F7FF;color:#0060EA' : '#E2E7EF;background:#fff;color:#374151'); }
+  avatar(g, d) { d = d || 36; return 'width:' + d + 'px;height:' + d + 'px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;background:' + g; }
+  face(g, i) { return 'width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:' + g + ';' + (i ? 'margin-left:-8px' : ''); }
+
+  renderVals() {
+    const s = this.state;
+    const dests = ['All', 'Paris', 'Tokyo', 'Bali'];
+    const f = s.filter, map = s.view === 'Map';
+    const show = t => f === 'For You' || f === t;
+    const route = s.tab;
+    const goPage = r => { this.setState({ tab: r, modal: null }); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
+    const openAdd = (spot, meta, grad) => this.setState({ modal: 'add', addSpot: { spot, meta, grad } });
+
+    const mkCover = { m1: "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80')", m2: "center/cover url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=400&q=80')", m3: "center/cover url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=400&q=80')" };
+    const mk = (name, home, dest, dates, match, tags, grad, id) => ({
+      name, home, dest, dates, match, tags, initial: name[0] + name.split(' ')[1][0],
+      avatarStyle: this.avatar(grad),
+      coverStyle: 'display:block;height:64px;background:' + (mkCover[id] || grad),
+      bigAvatarStyle: 'width:52px;height:52px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:' + grad,
+      profile: () => this.say('Opening ' + name + '’s profile'),
+      tagLine: tags.join(' Â· '),
+      rowAvatarStyle: 'width:46px;height:46px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:' + grad,
+      rowFollowStyle: 'height:34px;padding:0 18px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;border:1px solid ' + (s.follows[id] ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#0060EA;color:#fff'),
+      followLabel: s.follows[id] ? 'Following' : 'Follow',
+      followStyleBig: 'flex:1;height:34px;border-radius:10px;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;border:1px solid ' + (s.follows[id] ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#0060EA;color:#fff'),
+      follow: () => { this.tog('follows', id); this.say(s.follows[id] ? 'Unfollowed ' + name : 'Following ' + name); }
+    });
+    const rail = (name, line, grad, id) => ({
+      name, line, initial: name[0] + name.split(' ')[1][0], avatarStyle: this.avatar(grad),
+      followLabel: s.follows[id] ? 'Following' : 'Follow', followStyle: this.followBtn(s.follows[id]),
+      follow: () => { this.tog('follows', id); this.say(s.follows[id] ? 'Unfollowed ' + name : 'Following ' + name); }
+    });
+
+    const forms = {
+      'Ask Question': { title: 'Ask the community', sub: 'Travelers who know this destination will see it first.', fields: [['DESTINATION', 'Paris, France', 0], ['YOUR QUESTION', 'e.g. Louvre late-night vs early morning?', 1]], chips: ['Museums', 'Food', 'Transport', 'Budget', 'Safety'] },
+      'Share Trip': { title: 'Share a trip', sub: 'Attach an itinerary so others can use it as inspiration.', fields: [['DESTINATION', 'Tokyo â Kyoto â Osaka', 0], ['DATES', 'Apr 04 â Apr 11', 0], ['CAPTION', 'What made this route workâ¦', 1]], chips: ['Slow', 'Balanced', 'Packed', 'Budget', 'Mid-range', 'Luxury'] },
+      'Travel Tip': { title: 'Share a travel tip', sub: 'Specific, recent tips get surfaced to travelers going there.', fields: [['DESTINATION', 'Tokyo, Japan', 0], ['YOUR TIP', 'Book the 17:30 Shibuya Sky slot three weeks aheadâ¦', 1]], chips: ['Food', 'Transport', 'Stays', 'Sights', 'Money'] },
+      'Photo / Video': { title: 'Post a photo or video', sub: 'Tag the place so it can be added to other travelers’ trips.', fields: [['DESTINATION', 'Kyoto, Japan', 0], ['CAPTION', 'Say something about this momentâ¦', 1]], chips: ['Nature', 'City', 'Food', 'People'] },
+      'Find Travel Buddy': { title: 'Find a travel buddy', sub: 'Only travelers with overlapping dates will be matched.', fields: [['DESTINATION', 'Paris, France', 0], ['TRAVEL DATES', 'Jun 03 â Jun 06', 0], ['MESSAGE', 'Looking for someone to do a food walk withâ¦', 1]], chips: ['Solo', 'Food', 'Museums', 'Photography', 'Nightlife'] }
+    };
+    const form = forms[s.formType] || null;
+    const modalMeta = {
+      menu: ['Share something useful', 'Pick a post type â we only ask for what that type needs.'],
+      add: ['Add to trip', 'Bring this place straight into your itinerary.'],
+      remix: ['Use as inspiration', 'TRAVL AI Â· personalised from a community trip'],
+      circle: ['Create a travel circle', 'Small groups planning the same kind of travel.'],
+      report: ['Post options', 'You control what you see and who can reach you.']
+    };
+    const meta = s.modal === 'form' ? [form && form.title, form && form.sub] : (modalMeta[s.modal] || ['', '']);
+
+    const savedPool = [
+      { id: 'sv1', kind: 'Tip', title: 'Shibuya Sky Â· 17:30 slot', meta: 'Tokyo Â· saved 2h ago', grad: "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80')" },
+      { id: 'sv2', kind: 'Trip', title: '7 Days in Japan', meta: 'Rhea Sharma Â· saved yesterday', grad: "center/cover url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=600&q=80')" },
+      { id: 'sv3', kind: 'Spot', title: 'Louvre Â· Porte des Lions', meta: 'Paris Â· saved 3d ago', grad: "center/cover url('https://images.unsplash.com/photo-1565099824688-e93eb20fe622?auto=format&fit=crop&w=600&q=80')" },
+      { id: 'sv4', kind: 'Tip', title: 'Tram 24E Â· Campolide', meta: 'Lisbon Â· saved 4d ago', grad: "center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=600&q=80')" },
+      { id: 'sv5', kind: 'Trip', title: '5 Days in Lisbon & Sintra', meta: 'Community trip Â· saved 1w ago', grad: "center/cover url('https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=600&q=80')" }
+    ].filter(i => !s.saves['rm_' + i.id]);
+    const savedShown = savedPool.filter(i => s.savedTab === 'All' || i.kind + 's' === s.savedTab);
+
+    return {
+      routeName: route,
+      isHome: route === 'Home', notHome: route !== 'Home',
+      isDiscover: route === 'Discover', isDestinations: route === 'Destinations',
+      isTrips: route === 'Trips', isCircles: route === 'Travel Circles',
+      isEvents: route === 'Events', isSaved: route === 'Saved',
+      goHome: () => goPage('Home'),
+
+      subnav: ['Home', 'Discover', 'Destinations', 'Trips', 'Travel Circles', 'Events', 'Saved'].map(t => ({
+        label: t,
+        style: 'height:34px;padding:0 14px;border:0;background:' + (s.tab === t ? '#EAF1FE' : 'transparent') +
+          ';border-radius:9px;white-space:nowrap;flex:none;font-family:inherit;font-size:13.5px;font-weight:' + (s.tab === t ? '800' : '600') +
+          ';color:' + (s.tab === t ? '#0060EA' : '#5A6472') + ';cursor:pointer',
+        go: () => goPage(t)
+      })),
+
+      query: s.query, searchOpen: s.searchOpen && s.query.length > 0,
+      onQuery: e => this.setState({ query: e.target.value, searchOpen: true }),
+      onSearchFocus: () => this.setState({ searchOpen: true }),
+      suggestions: [
+        { icon: 'ð¯', label: 'Japan Destination Community', kind: 'Destination', act: () => goPage('Destinations') },
+        { icon: 'ðºï¸', label: 'Japan 7-day trips', kind: 'Trips', act: () => goPage('Trips') },
+        { icon: 'ð¡', label: 'Japan travel tips', kind: 'Posts', act: () => goPage('Discover') },
+        { icon: 'ð§', label: 'Travelers going to Japan', kind: 'People', act: () => goPage('Travel Circles') },
+        { icon: 'ð', label: 'Japan events & meetups', kind: 'Events', act: () => goPage('Events') }
+      ].map(x => ({ ...x, go: () => { this.setState({ searchOpen: false, query: '' }); x.act(); } })),
+
+      profileOpen: s.profileOpen, toggleProfile: () => this.set('profileOpen', !s.profileOpen),
+      profileMenu: [['ð¤', 'My travel profile', 'Home'], ['ð§­', 'My trips', 'Trips'], ['ð', 'Saved collections', 'Saved'], ['ð§âð¤âð§', 'Travel circles', 'Travel Circles'], ['ð', 'Events', 'Events'], ['ð', 'Privacy & trip visibility', ''], ['ð', 'Community guidelines', '']]
+        .map(([icon, label, target]) => ({ icon, label, go: () => { this.set('profileOpen', false); target ? goPage(target) : this.say(label); } })),
+
+      hasTrip: s.hasTrip, noTrip: !s.hasTrip,
+      heroImgStyle: "position:absolute;inset:0;background:center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80')",
+      heroToggleLabel: s.hasTrip ? 'Preview: no upcoming trip' : 'Preview: upcoming trip',
+      toggleTrip: () => this.set('hasTrip', !s.hasTrip),
+      openDestination: () => goPage('Destinations'),
+      openTravelers: () => goPage('Travel Circles'),
+      openTrip: () => goPage('Trips'),
+      planText: s.planText, onPlanText: e => this.set('planText', e.target.value),
+      planTrip: () => this.say(s.planText ? 'Building: ' + s.planText : 'Tell TRAVL AI where you’re going'),
+
+      xpPct: '34%',
+      ringStyle: 'width:64px;height:64px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#0060EA 0turn .34turn,#EEF1F6 .34turn 1turn)',
+      xpBarStyle: 'width:34%;height:100%;background:linear-gradient(90deg,#0060EA,#2AA98B)',
+      journeyStats: [{ value: '14', label: 'Countries' }, { value: '6', label: 'Trips' }, { value: '132', label: 'Followers' }, { value: '48', label: 'Helpful' }],
+
+      stories: [
+        ['Maya', 'Japan', 'There now', '#0F9D58', "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=400&q=80')"],
+        ['Daniel', 'Paris Â· Jun 12', 'Going soon', '#0060EA', "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80')"],
+        ['Sarah', 'Bali', 'Recently visited', '#8B94A3', "center/cover url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80')"],
+        ['Iker', 'Lisbon', 'There now', '#0F9D58', "center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=400&q=80')"],
+        ['Nina', 'ReykjavÃ­k', 'Going soon', '#0060EA', "center/cover url('https://images.unsplash.com/photo-1504829857797-ddff29c27927?auto=format&fit=crop&w=400&q=80')"],
+        ['Tom', 'Marrakech', 'Recently visited', '#8B94A3', "center/cover url('https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=400&q=80')"]
+      ].map(([name, place, status, dot, grad]) => ({
+        name, place, status, initial: name[0],
+        ringStyle: 'width:60px;height:60px;border-radius:50%;padding:2.5px;display:flex;background:linear-gradient(140deg,#0060EA,#F2B872)',
+        thumbStyle: 'width:100%;height:100%;border-radius:50%;border:2.5px solid #fff;background:' + grad,
+        dotStyle: 'font-size:9px;font-weight:800;letter-spacing:.02em;color:' + dot,
+        open: () => this.say(name + '’s story Â· ' + place)
+      })),
+      shareMoment: () => this.setState({ modal: 'form', formType: 'Photo / Video' }),
+
+      composerActions: [
+        ['Photo', '#0060EA', 'Photo / Video'], ['Video', '#6B3FA0', 'Photo / Video'],
+        ['Trip', '#2AA98B', 'Share Trip'], ['Question', '#E5734E', 'Ask Question'], ['Travel buddy', '#D2604B', 'Find Travel Buddy']
+      ].map(([label, color, ft]) => ({ label, dotStyle: 'width:8px;height:8px;border-radius:50%;flex:none;background:' + color, go: () => this.setState({ modal: 'form', formType: ft }) })),
+      postTypes: [
+        ['Share Trip', 'ð§­', 'Route, dates and itinerary'], ['Travel Tip', 'ð¡', 'One useful thing you learned'],
+        ['Ask Question', 'â', 'Get answers from people who went'], ['Photo / Video', 'ð·', 'Tag the place you shot it'],
+        ['Find Travel Buddy', 'ð¤', 'Match on dates and style']
+      ].map(([label, icon, hint]) => ({ label, icon, hint, open: () => this.setState({ modal: 'form', formType: label }) })),
+      openComposerMenu: () => this.set('modal', 'menu'),
+
+      filters: ['For You', 'Following', 'Near My Trip', 'Questions', 'Trip Plans', 'Tips', 'Photos'].map(x => ({ label: x, style: this.pill(f === x), go: () => this.set('filter', x) })),
+      destFilter: dests[s.destIdx], cycleDest: () => this.set('destIdx', (s.destIdx + 1) % dests.length),
+      viewModes: ['Feed', 'Map'].map(v => ({
+        label: v, go: () => this.set('view', v),
+        style: 'height:28px;padding:0 15px;border:0;border-radius:999px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;' + (s.view === v ? 'background:#0060EA;color:#fff' : 'background:transparent;color:#5A6472')
+      })),
+      mapMode: map,
+      pins: [{ l: 'Shibuya Sky Â· 12 tips', x: 20, y: 28 }, { l: 'Montmartre Â· 18 saves', x: 56, y: 18 }, { l: 'Louvre Â· 31 posts', x: 38, y: 56 }, { l: 'Lisbon route Â· 9 trips', x: 68, y: 64 }].map(p => ({
+        label: p.l, go: () => this.say('Opening ' + p.l),
+        style: 'position:absolute;left:' + p.x + '%;top:' + p.y + '%;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border:0;border-radius:999px;background:#0B1220;color:#fff;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 8px 20px rgba(11,18,32,.24)'
+      })),
+
+      showTip: !map && (show('Tips') || f === 'Near My Trip' || f === 'Photos'),
+      showItin: !map && (show('Trip Plans') || f === 'Following'),
+      showQuestion: !map && (show('Questions') || f === 'Near My Trip'),
+      showReels: !map && (f === 'For You' || f === 'Photos' || f === 'Following'),
+      showPoll: !map && (f === 'For You' || f === 'Questions'),
+      showJournal: !map && (f === 'For You' || f === 'Tips'),
+      showBuddy: !map && (f === 'For You' || f === 'Near My Trip'),
+
+      followMaya: () => { this.tog('follows', 'maya'); this.say(s.follows.maya ? 'Unfollowed Maya' : 'Following Maya Kondo'); },
+      followMayaLabel: s.follows.maya ? 'Following' : 'Follow', followMayaStyle: this.followBtn(s.follows.maya),
+      followRhea: () => { this.tog('follows', 'rhea'); this.say(s.follows.rhea ? 'Unfollowed Rhea' : 'Following Rhea Sharma'); },
+      followRheaLabel: s.follows.rhea ? 'Following' : 'Follow', followRheaStyle: this.followBtn(s.follows.rhea),
+      followIker: () => { this.tog('follows', 'iker'); this.say(s.follows.iker ? 'Unfollowed Iker' : 'Following Iker Solano'); },
+      followIkerLabel: s.follows.iker ? 'Following' : 'Follow',
+      followIkerStyle: 'height:36px;padding:0 15px;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ' + (s.follows.iker ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#fff;color:#0060EA'),
+
+      helpfulTip: () => this.tog('helpfulOn', 'tip'),
+      helpfulTipStyle: this.actionBtn(s.helpfulOn.tip), helpfulTipCount: s.helpfulOn.tip ? 249 : 248,
+      saveTip: () => { this.tog('saves', 'tip'); this.say(s.saves.tip ? 'Removed from saved' : 'Saved to your collection'); },
+      saveTipLabel: s.saves.tip ? 'Saved' : 'Save', saveTipStyle: this.actionBtn(s.saves.tip),
+      saveItin: () => { this.tog('saves', 'itin'); this.say(s.saves.itin ? 'Trip removed' : 'Trip saved'); },
+      saveItinLabel: s.saves.itin ? 'Saved' : 'Save trip',
+      saveItinStyle: 'height:38px;padding:0 16px;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ' + (s.saves.itin ? '#0060EA;background:#F2F7FF;color:#0060EA' : '#E2E7EF;background:#fff;color:#374151'),
+      saveQ: () => this.tog('saves', 'q'), saveQLabel: s.saves.q ? 'Saved' : 'Save',
+      saveQStyle: 'height:36px;padding:0 14px;border-radius:10px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ' + (s.saves.q ? '#0060EA;background:#F2F7FF;color:#0060EA' : '#E2E7EF;background:#fff;color:#374151'),
+      answerQ: () => this.say('Composer opened Â· answering Daniel'),
+      openMenu: () => this.set('modal', 'report'),
+      readJournal: () => this.say('Opening Iker’s Lisbon journal'),
+      addShibuya: () => openAdd('Shibuya Sky', 'Activity Â· Tokyo Â· Â¥2,500 Â· 2 hours', "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=400&q=80')"),
+
+      route: [{ city: 'Tokyo', nights: '3 nights', hasNext: true }, { city: 'Kyoto', nights: '2 nights', hasNext: true }, { city: 'Osaka', nights: '2 nights', hasNext: false }],
+
+      reels: [
+        { title: 'Sunset from Shibuya Sky', meta: 'Maya Â· 24K views', grad: "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=500&q=80')" },
+        { title: 'Paris in 60 seconds', meta: 'Lea Â· 11K views', grad: "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=500&q=80')" },
+        { title: 'Kyoto morning walk', meta: 'Sofia Â· 8.4K views', grad: "center/cover url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=500&q=80')" },
+        { title: 'Night train to Vienna', meta: 'Jonas Â· 6.1K views', grad: "center/cover url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=500&q=80')" }
+      ].map(r => ({ ...r, go: () => this.say('Playing â' + r.title + 'â'), style: 'position:relative;flex:none;width:150px;height:212px;border:0;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;font-family:inherit;background:' + r.grad })),
+
+      pollOptions: [{ id: 'a', label: 'Machiya in Gion', base: 58 }, { id: 'b', label: 'Ryokan outside the centre', base: 31 }, { id: 'c', label: 'Split â one night each', base: 11 }].map(o => {
+        const voted = !!s.poll, mine = s.poll === o.id;
+        return {
+          label: o.label, pct: voted ? o.base + (mine ? 1 : 0) + '%' : '',
+          vote: () => { this.setState({ poll: o.id }); this.say('Vote counted'); },
+          style: 'position:relative;display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 15px;border:0;border-radius:12px;cursor:pointer;overflow:hidden;font-family:inherit;text-align:left;background:' + (mine ? '#EAF1FE' : '#F5F7FA'),
+          barStyle: 'position:absolute;left:0;top:0;bottom:0;width:' + (voted ? o.base + '%' : '0%') + ';background:' + (mine ? 'rgba(0,96,234,.16)' : 'rgba(11,18,32,.05)') + ';transition:width .35s ease'
+        };
+      }),
+      pollMeta: s.poll ? '1,204 travelers voted Â· you voted' : '1,203 travelers voted Â· closes in 2 days',
+
+      matches: [
+        mk('Aarav Menon', 'India', 'Paris', 'Jun 4 â 9', '82% match', ['Food', 'Museums', 'Photography'], 'linear-gradient(140deg,#0060EA,#2AA98B)', 'm1'),
+        mk('Lea Fontaine', 'Canada', 'Paris', 'Jun 2 â 7', '76% match', ['Markets', 'Walking', 'Art'], 'linear-gradient(140deg,#D2604B,#F2B872)', 'm2'),
+        mk('Jonas Weber', 'Austria', 'Paris', 'Jun 5 â 10', '71% match', ['Cycling', 'Coffee', 'Jazz'], 'linear-gradient(140deg,#6B3FA0,#0060EA)', 'm3')
+      ],
+      railTravelers: [
+        rail('Priya Nair', 'Paris Â· Jun 3 â 8 Â· 88% match', 'linear-gradient(140deg,#0A6E7C,#2AA98B)', 'r1'),
+        rail('Marco Villa', 'Paris Â· Jun 1 â 6 Â· 74% match', 'linear-gradient(140deg,#4B2A63,#D2604B)', 'r2'),
+        rail('Emma Ross', 'Paris Â· Jun 4 â 11 Â· 69% match', 'linear-gradient(140deg,#0060EA,#6BA6C9)', 'r3')
+      ],
+      trending: [
+        { title: 'Eiffel Tower sunset reservations', meta: '46 tips this week', grad: "center/cover url('https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=300&q=80')" },
+        { title: 'Louvre late-night opening', meta: '31 travelers discussing', grad: "center/cover url('https://images.unsplash.com/photo-1565099824688-e93eb20fe622?auto=format&fit=crop&w=300&q=80')" },
+        { title: 'Montmartre food walks', meta: '18 saved routes', grad: "center/cover url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=300&q=80')" }
+      ].map(t => ({ ...t, thumbStyle: 'width:44px;height:44px;border-radius:10px;flex:none;background:' + t.grad, go: () => this.say('Opening â' + t.title + 'â') })),
+      events: [
+        { mon: 'JUN', day: '07', name: 'Paris Photography Walk', meta: 'Montmartre Â· 14 going', id: 'e1' },
+        { mon: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', meta: 'Shinjuku Â· 32 going', id: 'e2' }
+      ].map(e => ({ ...e, joinLabel: s.joins[e.id] ? 'Going' : 'Join', joinStyle: this.followBtn(s.joins[e.id]), join: () => { this.tog('joins', e.id); this.say(s.joins[e.id] ? 'Left ' + e.name : 'You’re going to ' + e.name); } })),
+      footerLinks: ['About', 'Accessibility', 'Help Center', 'Privacy & Terms', 'Safety', 'Guidelines'],
+      createCircle: () => this.set('modal', 'circle'),
+
+      featureImg: "position:absolute;inset:0;background:center/cover url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80')",
+      featureTitle: 'Kyoto in three unhurried days',
+      featureMeta: 'Rhea Sharma Â· 840 saves Â· used by 312 travelers this week',
+      featureGo: () => this.say('Opening âKyoto in three unhurried daysâ'),
+      discoverLive: '1,284 travelers browsing now',
+      discoverTop: [
+        { rank: '01', tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '1.2K travelers used this', grad: "center/cover url('https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=300&q=80')" },
+        { rank: '02', tag: 'ROUTE', title: 'Europe by night train under â¬400', meta: '611 saves Â· 14 days', grad: "center/cover url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=300&q=80')" },
+        { rank: '03', tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', grad: "center/cover url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=300&q=80')" }
+      ].map(d => ({ ...d, thumbStyle: 'width:64px;height:64px;flex:none;border-radius:13px;background:' + d.grad, go: () => this.say('Opening â' + d.title + 'â') })),
+      discoverCats: ['All', 'Tips', 'Routes', 'Reels', 'Food', 'Budget'].map(c => ({ label: c, style: this.pill(s.discoverCat === c), go: () => this.set('discoverCat', c) })),
+      discoverCards: [
+        { tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '46 tips Â· 1.2K used', grad: "center/cover url('https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80')" },
+        { tag: 'ROUTE', title: 'Kyoto in three unhurried days', meta: 'Rhea Sharma Â· 840 saves', grad: "center/cover url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80')" },
+        { tag: 'REEL', title: 'Sunset from Shibuya Sky', meta: 'Maya Kondo Â· 24K views', grad: "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80')" },
+        { tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', grad: "center/cover url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80')" },
+        { tag: 'BUDGET', title: 'Europe by night train under â¬400', meta: 'Marco Villa Â· 611 saves', grad: "center/cover url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=600&q=80')" },
+        { tag: 'TIP', title: 'Lisbon without a single taxi', meta: 'Iker Solano Â· 6 entries', grad: "center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=600&q=80')" }
+      ].map(c => ({ ...c, coverStyle: 'position:relative;display:block;height:136px;background:' + c.grad, go: () => this.say('Opening â' + c.title + 'â') })),
+
+      destSorts: ['Popular', 'Near me'].map(l => ({ label: l, style: this.chip(s.destSort === l), go: () => this.set('destSort', l) })),
+      destinations: [
+        { id: 'ds1', live: '428 planning', name: 'Paris, France', members: '24.8K travelers', hot: 'HOT', grad: "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '3.1K', l: 'Tips' }, { v: '412', l: 'Trips' }, { v: '96', l: 'Events' }] },
+        { id: 'ds2', live: '610 planning', name: 'Tokyo, Japan', members: '38.2K travelers', hot: 'HOT', grad: "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '5.4K', l: 'Tips' }, { v: '780', l: 'Trips' }, { v: '132', l: 'Events' }] },
+        { id: 'ds3', live: '214 planning', name: 'Bali, Indonesia', members: '16.1K travelers', hot: '', grad: "center/cover url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '2.2K', l: 'Tips' }, { v: '301', l: 'Trips' }, { v: '48', l: 'Events' }] },
+        { id: 'ds4', live: '168 planning', name: 'Lisbon, Portugal', members: '11.7K travelers', hot: '', grad: "center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '1.6K', l: 'Tips' }, { v: '224', l: 'Trips' }, { v: '31', l: 'Events' }] },
+        { id: 'ds5', live: '96 planning', name: 'ReykjavÃ­k, Iceland', members: '7.4K travelers', hot: '', grad: "center/cover url('https://images.unsplash.com/photo-1504829857797-ddff29c27927?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '980', l: 'Tips' }, { v: '141', l: 'Trips' }, { v: '18', l: 'Events' }] },
+        { id: 'ds6', live: '121 planning', name: 'Marrakech, Morocco', members: '9.2K travelers', hot: '', grad: "center/cover url('https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '1.1K', l: 'Tips' }, { v: '187', l: 'Trips' }, { v: '22', l: 'Events' }] }
+      ].map(x => ({
+        ...x, coverStyle: 'position:relative;height:150px;background:' + x.grad,
+        liveNow: x.live,
+        joinLabel: s.joins[x.id] ? 'Joined' : 'Join',
+        joinStyle: 'flex:1;height:36px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;border:1px solid ' + (s.joins[x.id] ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#0060EA;color:#fff'),
+        join: () => { this.tog('joins', x.id); this.say(s.joins[x.id] ? 'Left ' + x.name : 'Joined ' + x.name); },
+        open: () => this.say('Opening ' + x.name + ' community')
+      })),
+
+      tripFilters: ['Popular', 'Recent', 'Budget', 'Luxury'].map(l => ({ label: l, style: this.pill(s.tripFilter === l), go: () => this.set('tripFilter', l) })),
+      tripCards: [
+        { id: 'tc1', updated: 'Updated 2d ago', title: '7 Days in Japan', sub: 'Cherry-blossom season Â· Mid-range Â· Couple', author: 'Rhea Sharma', ini: 'RS', ag: 'linear-gradient(140deg,#0060EA,#4B2A63)', saves: '2.4K', grad: "center/cover url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '7', l: 'Days' }, { v: '3', l: 'Cities' }, { v: '12', l: 'Activities' }, { v: 'â¹1.4L', l: 'Per person' }] },
+        { id: 'tc2', updated: 'Updated 5d ago', title: '5 Days in Lisbon & Sintra', sub: 'Shoulder season Â· Budget Â· Solo', author: 'Iker Solano', ini: 'IS', ag: 'linear-gradient(140deg,#3A2D5C,#D2604B)', saves: '1.8K', grad: "center/cover url('https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '5', l: 'Days' }, { v: '2', l: 'Cities' }, { v: '9', l: 'Activities' }, { v: 'â¬620', l: 'Per person' }] },
+        { id: 'tc3', updated: 'Updated 1w ago', title: 'Europe by Train Â· 14 Days', sub: 'Summer Â· Budget Â· Couple', author: 'Marco Villa', ini: 'MV', ag: 'linear-gradient(140deg,#4B2A63,#D2604B)', saves: '1.2K', grad: "center/cover url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '14', l: 'Days' }, { v: '6', l: 'Cities' }, { v: '21', l: 'Activities' }, { v: 'â¬1.9K', l: 'Per person' }] },
+        { id: 'tc4', updated: 'Updated 3d ago', title: 'Paris Long Weekend', sub: 'Spring Â· Mid-range Â· Solo', author: 'Emma Ross', ini: 'ER', ag: 'linear-gradient(140deg,#0060EA,#6BA6C9)', saves: '940', grad: "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=700&q=80')", stats: [{ v: '4', l: 'Days' }, { v: '1', l: 'City' }, { v: '8', l: 'Activities' }, { v: 'Â£540', l: 'Per person' }] }
+      ].map(t => ({
+        ...t, heroStyle: 'position:relative;height:190px;background:' + t.grad, initial: t.ini,
+        avatarStyle: 'width:26px;height:26px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;background:' + t.ag,
+        saveLabel: s.saves[t.id] ? 'Saved' : 'Save',
+        saveStyle: 'height:36px;padding:0 15px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;border:1px solid ' + (s.saves[t.id] ? '#0060EA;background:#F2F7FF;color:#0060EA' : '#E2E7EF;background:#fff;color:#374151'),
+        save: () => { this.tog('saves', t.id); this.say(s.saves[t.id] ? 'Trip removed' : 'Trip saved'); },
+        view: () => this.say('Opening â' + t.title + 'â'),
+        clone: () => this.set('modal', 'remix')
+      })),
+
+      circles: [
+        { id: 'c1', name: 'Japan Spring 2027', meta: '18 members Â· 4 planning together', privacy: 'Invite only', desc: 'Cherry-blossom trip planning â splitting JR passes and comparing machiya stays.', active: 'Active 20m ago', grad: "center/cover url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=80')" },
+        { id: 'c2', name: 'Solo Women Travelers', meta: '2.4K members', privacy: 'Public', desc: 'Safety notes, stays and meetups for women travelling alone.', active: 'Active now', grad: "center/cover url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=300&q=80')" },
+        { id: 'c3', name: 'Slow Travel Europe', meta: '860 members', privacy: 'Public', desc: 'Two weeks minimum, trains over flights, one city at a time.', active: 'Active 1h ago', grad: "center/cover url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=300&q=80')" },
+        { id: 'c4', name: 'Paris June Crew', meta: '9 members Â· overlapping dates', privacy: 'Invite only', desc: 'Everyone here is in Paris the first week of June. Sharing a food walk and a museum day.', active: 'Active 5m ago', grad: "center/cover url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=300&q=80')" }
+      ].map(c => ({
+        ...c, thumbStyle: 'width:46px;height:46px;flex:none;border-radius:14px;background:' + c.grad,
+        dotStyle: 'width:6px;height:6px;border-radius:50%;background:' + (c.active.indexOf('now') > -1 || c.active.indexOf('m ago') > -1 ? '#0F9D58;animation:travlPulse 2.2s infinite' : '#D7DEE8'),
+        privacyStyle: 'flex:none;height:24px;padding:0 10px;border-radius:999px;font-size:10.5px;font-weight:800;display:flex;align-items:center;white-space:nowrap;' + (c.privacy === 'Public' ? 'background:#ECFDF3;color:#067647' : 'background:#F2F6FC;color:#8B94A3'),
+        faces: ['linear-gradient(140deg,#F2B872,#D2604B)', 'linear-gradient(140deg,#0060EA,#2AA98B)', 'linear-gradient(140deg,#6B3FA0,#0060EA)'].map((g, i) => ({ style: this.face(g, i) })),
+        joinLabel: s.circleJoins[c.id] ? 'Joined' : (c.privacy === 'Public' ? 'Join' : 'Request'),
+        joinStyle: this.followBtn(s.circleJoins[c.id]),
+        join: () => { this.tog('circleJoins', c.id); this.say(s.circleJoins[c.id] ? 'Left ' + c.name : (c.privacy === 'Public' ? 'Joined ' + c.name : 'Request sent to ' + c.name)); }
+      })),
+      privacyOpts: ['Public', 'Invite only', 'Hidden'].map(l => ({ label: l, style: this.chip(s.privacy === l), pick: () => this.set('privacy', l) })),
+      confirmCircle: () => { this.set('modal', null); this.say('Circle created'); },
+      isCircleForm: s.modal === 'circle',
+
+      eventFilters: ['All', 'Near me', 'Online'].map(l => ({ label: l, style: this.chip(s.eventFilter === l), go: () => this.set('eventFilter', l) })),
+      eventCards: [
+        { id: 'ev1', mon: 'JUN', day: '07', name: 'Paris Photography Walk', type: 'Meetup', meta: 'Montmartre, Paris Â· 09:00 Â· Free', going: '14 travelers going', grad: "center/cover url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=400&q=80')" },
+        { id: 'ev2', mon: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', type: 'Food', meta: 'Shinjuku, Tokyo Â· 19:00 Â· Â¥3,000', going: '32 travelers going', grad: "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=400&q=80')" },
+        { id: 'ev3', mon: 'JUN', day: '22', name: 'Planning Japan 2027 â live Q&A', type: 'Online', meta: 'Online Â· 18:00 CET Â· Free', going: '128 travelers going', grad: "center/cover url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=400&q=80')" },
+        { id: 'ev4', mon: 'JUL', day: '04', name: 'Lisbon Sunset Miradouro Crawl', type: 'Meetup', meta: 'GraÃ§a, Lisbon Â· 18:30 Â· Free', going: '21 travelers going', grad: "center/cover url('https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=400&q=80')" }
+      ].map(e => ({
+        ...e, coverStyle: 'position:relative;height:168px;background:' + e.grad,
+        typeStyle: 'height:22px;padding:0 9px;border-radius:999px;font-size:10.5px;font-weight:800;display:flex;align-items:center;white-space:nowrap;' + (e.type === 'Online' ? 'background:#F3EEFF;color:#6B3FA0' : 'background:#EAF1FE;color:#0060EA'),
+        faces: ['linear-gradient(140deg,#F2B872,#D2604B)', 'linear-gradient(140deg,#0A6E7C,#2AA98B)', 'linear-gradient(140deg,#6B3FA0,#0060EA)'].map((g, i) => ({ style: this.face(g, i) })),
+        joinLabel: s.joins[e.id] ? 'Going' : 'Join',
+        joinStyle: 'height:36px;padding:0 18px;flex:none;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;border:1px solid ' + (s.joins[e.id] ? '#E2E7EF;background:#F2F6FC;color:#5A6472' : '#0060EA;background:#0060EA;color:#fff'),
+        join: () => { this.tog('joins', e.id); this.say(s.joins[e.id] ? 'Left ' + e.name : 'You’re going to ' + e.name); },
+        details: () => this.say('Opening ' + e.name)
+      })),
+
+      savedTabs: ['All', 'Tips', 'Trips', 'Spots'].map(l => ({ label: l, style: this.chip(s.savedTab === l), go: () => this.set('savedTab', l) })),
+      savedEmpty: savedShown.length === 0,
+      savedCount: savedShown.length + (savedShown.length === 1 ? ' item saved' : ' items saved'),
+      savedItems: savedShown.map(i => ({
+        ...i, coverStyle: 'position:relative;height:116px;background:' + i.grad,
+        add: () => openAdd(i.title, i.meta, i.grad),
+        remove: () => { this.tog('saves', 'rm_' + i.id); this.say('Removed from saved'); }
+      })),
+
+      aiOpen: s.aiOpen, toggleAI: () => this.set('aiOpen', !s.aiOpen),
+      aiPrompts: [
+        ['What are travelers recommending in Paris right now?', 'Discover'],
+        ['Build a 3-day itinerary from my saved posts', 'Saved'],
+        ['Find travelers visiting Barcelona around my dates', 'Travel Circles'],
+        ['Show community trips I can clone', 'Trips']
+      ].map(([text, target]) => ({ text, go: () => { this.setState({ aiOpen: false }); goPage(target); } })),
+
+      modalOpen: !!s.modal, modalTitle: meta[0], modalSub: meta[1],
+      isTypeMenu: s.modal === 'menu', isForm: s.modal === 'form' && !!form,
+      isAddTrip: s.modal === 'add', isRemix: s.modal === 'remix', isMenu: s.modal === 'report',
+      closeModal: () => this.set('modal', null), stop: e => e.stopPropagation(),
+      formFields: form ? form.fields.map(([label, ph, big]) => ({ label, ph, big: !!big, small: !big })) : [],
+      formChips: form ? form.chips.map(c => ({ label: c, style: this.chip(!!s.chips[c]), pick: () => this.tog('chips', c) })) : [],
+      submitForm: () => { this.setState({ modal: null }); this.say('Posted to the community'); },
+
+      addSpot: s.addSpot ? s.addSpot.spot : '', addSpotMeta: s.addSpot ? s.addSpot.meta : '',
+      addThumbStyle: 'width:46px;height:46px;flex:none;border-radius:10px;background:' + (s.addSpot ? s.addSpot.grad : "center/cover url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=200&q=80')"),
+      trips: [{ id: 't1', name: 'Paris Â· Long weekend', dates: 'Jun 03 â Jun 06 Â· 4 activities' }, { id: 't2', name: 'Japan 2027', dates: 'Draft Â· 9 activities' }].map(t => ({
+        ...t, mark: s.tripPick === t.id ? 'â' : '',
+        style: 'display:flex;align-items:center;gap:10px;padding:13px;border-radius:12px;cursor:pointer;font-family:inherit;background:' + (s.tripPick === t.id ? '#F5F9FF' : '#fff') + ';border:1px solid ' + (s.tripPick === t.id ? '#0060EA' : '#E8ECF2'),
+        pick: () => this.set('tripPick', t.id)
+      })),
+      addKinds: ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'].map(k => ({ label: k, style: this.chip(s.addKind === k), pick: () => this.set('addKind', k) })),
+      confirmAdd: () => { this.setState({ modal: null }); this.say('Added to Paris Â· Long weekend'); },
+      openRemix: () => this.set('modal', 'remix'),
+      paces: ['Slow', 'Balanced', 'Packed'].map(p => ({ label: p, style: this.chip(s.pace === p), pick: () => this.set('pace', p) })),
+      interests: ['Food', 'Museums', 'Nature', 'Nightlife', 'Photography', 'Shopping'].map(i => ({ label: i, style: this.chip(!!s.interests[i]), pick: () => this.tog('interests', i) })),
+      confirmRemix: () => { this.setState({ modal: null }); this.say('Building your version of this tripâ¦'); },
+
+      menuItems: [
+        { label: 'Save post', hint: 'Add to a collection', go: () => { this.set('modal', null); this.say('Saved'); } },
+        { label: 'Mute Maya Kondo', hint: 'Stop seeing posts, stay following', go: () => { this.set('modal', null); this.say('Muted for 30 days'); } },
+        { label: 'Block traveler', hint: 'They can’t message or see your trips', go: () => { this.set('modal', null); this.say('Traveler blocked'); } },
+        { label: 'Report post', hint: 'Community guidelines & safety', go: () => { this.set('modal', null); this.say('Report sent to moderation'); } }
+      ],
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
