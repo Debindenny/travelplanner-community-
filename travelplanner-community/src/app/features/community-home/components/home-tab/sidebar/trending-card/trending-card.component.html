@@ -1,0 +1,17 @@
+<section class="surface-card trending-card">
+  <div class="trending-card__header">
+    <span class="trending-card__label">TRENDING NEAR YOUR TRIP</span>
+    <span class="trending-card__destination">{{ destination() }}</span>
+  </div>
+  <div class="trending-card__list">
+    @for (item of trending(); track item.id) {
+      <button type="button" class="trending-card__item" (click)="open.emit(item)">
+        <span class="trending-card__thumb" [style.background-image]="'url(' + item.image + ')'"></span>
+        <span class="trending-card__copy">
+          <span class="trending-card__title">{{ item.title }}</span>
+          <span class="trending-card__meta">{{ item.meta }}</span>
+        </span>
+      </button>
+    }
+  </div>
+</section>

@@ -1,0 +1,347 @@
+import {
+  AiPrompt,
+  CommunityHomeData,
+  ComposerFormDef,
+  PostOptionsMenuItem,
+  PostTypeOption,
+  ProfileMenuItem,
+  SearchSuggestion,
+  TripPickOption,
+} from '../models/community.models';
+import { avatarPhotoUrl, unsplashUrl } from '../../shared/utils/unsplash';
+
+const GRADIENTS = [
+  'linear-gradient(140deg,#F2B872,#D2604B)',
+  'linear-gradient(140deg,#0060EA,#2AA98B)',
+  'linear-gradient(140deg,#6B3FA0,#0060EA)',
+  'linear-gradient(140deg,#0A6E7C,#2AA98B)',
+  'linear-gradient(140deg,#D2604B,#F2B872)',
+];
+
+export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
+  { icon: 'user', label: 'My travel profile', target: 'Home' },
+  { icon: 'compass', label: 'My trips', target: 'Trips' },
+  { icon: 'bookmark', label: 'Saved collections', target: 'Saved' },
+  { icon: 'users', label: 'Travel circles', target: 'Travel Circles' },
+  { icon: 'calendar-check', label: 'Events', target: 'Events' },
+  { icon: 'lock', label: 'Privacy & trip visibility', target: null },
+  { icon: 'book', label: 'Community guidelines', target: null },
+];
+
+export const SEARCH_SUGGESTIONS: SearchSuggestion[] = [
+  { icon: '🏯', label: 'Japan Destination Community', kind: 'Destination', target: 'Destinations' },
+  { icon: '🗺️', label: 'Japan 7-day trips', kind: 'Trips', target: 'Trips' },
+  { icon: '💡', label: 'Japan travel tips', kind: 'Posts', target: 'Discover' },
+  { icon: '🧑', label: 'Travelers going to Japan', kind: 'People', target: 'Travel Circles' },
+  { icon: '📅', label: 'Japan events & meetups', kind: 'Events', target: 'Events' },
+];
+
+export const AI_PROMPTS: AiPrompt[] = [
+  { text: 'What are travelers recommending in Paris right now?', target: 'Discover' },
+  { text: 'Build a 3-day itinerary from my saved posts', target: 'Saved' },
+  { text: 'Find travelers visiting Barcelona around my dates', target: 'Travel Circles' },
+  { text: 'Show community trips I can clone', target: 'Trips' },
+];
+
+export const FOOTER_LINKS: string[] = ['About', 'Accessibility', 'Help Center', 'Privacy & Terms', 'Safety', 'Guidelines'];
+
+export const POST_TYPE_OPTIONS: PostTypeOption[] = [
+  { formType: 'Travel Tip', icon: 'sparkles', label: 'Travel Tip', hint: 'One specific thing that saved you time, money or a queue.' },
+  { formType: 'Photo / Video', icon: 'play', label: 'Photo / Video', hint: 'Tag the place so travelers can add it to a trip.' },
+  { formType: 'Share Trip', icon: 'map-pin', label: 'Share Trip', hint: 'Attach a route others can clone and reshape.' },
+  { formType: 'Ask Question', icon: 'message-circle', label: 'Ask Question', hint: 'Travelers who went recently answer first.' },
+  { formType: 'Start a Poll', icon: 'bar-chart', label: 'Start a Poll', hint: 'Two or three choices — travelers vote in one tap.' },
+  { formType: 'Host a Meetup', icon: 'calendar-check', label: 'Host a Meetup', hint: 'A scheduled gathering — travelers can join and add it to a trip.' },
+  { formType: 'Find Travel Buddy', icon: 'user-plus', label: 'Find Travel Buddy', hint: 'Only travelers with overlapping dates are matched.' },
+];
+
+export const COMPOSER_FORMS: Record<string, ComposerFormDef> = {
+  'Travel Tip': {
+    formType: 'Travel Tip',
+    icon: 'sparkles',
+    hint: 'One specific thing that saved you time, money or a queue.',
+    submitLabel: 'Post tip',
+    needsMedia: false,
+    chipsLabel: 'WHAT IS IT ABOUT?',
+    chips: ['Food', 'Transport', 'Stays', 'Sights', 'Money', 'Safety'],
+    fields: [
+      { key: 'destination', label: 'DESTINATION', placeholder: 'Tokyo, Japan', multiline: false },
+      { key: 'tip', label: 'YOUR TIP', placeholder: 'Book the 17:30 Shibuya Sky slot three weeks ahead…', multiline: true },
+    ],
+  },
+  'Photo / Video': {
+    formType: 'Photo / Video',
+    icon: 'play',
+    hint: 'Tag the place so travelers can add it to a trip.',
+    submitLabel: 'Share moment',
+    needsMedia: true,
+    chipsLabel: 'MOOD',
+    chips: ['Nature', 'City', 'Food', 'People', 'Golden hour'],
+    fields: [
+      { key: 'destination', label: 'DESTINATION', placeholder: 'Kyoto, Japan', multiline: false },
+      { key: 'caption', label: 'CAPTION', placeholder: 'Say something about this moment…', multiline: true },
+    ],
+  },
+  'Share Trip': {
+    formType: 'Share Trip',
+    icon: 'map-pin',
+    hint: 'Attach a route others can clone and reshape.',
+    submitLabel: 'Share itinerary',
+    needsMedia: false,
+    chipsLabel: 'PACE & BUDGET',
+    chips: ['Slow', 'Balanced', 'Packed', 'Budget', 'Mid-range', 'Luxury'],
+    fields: [
+      { key: 'route', label: 'ROUTE', placeholder: 'Tokyo → Kyoto → Osaka', multiline: false },
+      { key: 'dates', label: 'DATES', placeholder: 'Apr 04 – Apr 11 · 7 days', multiline: false },
+      { key: 'summary', label: 'WHAT MADE IT WORK', placeholder: 'Three cities, two rail legs, one unplanned day…', multiline: true },
+    ],
+  },
+  'Ask Question': {
+    formType: 'Ask Question',
+    icon: 'message-circle',
+    hint: 'Travelers who went recently answer first.',
+    submitLabel: 'Ask community',
+    needsMedia: false,
+    chipsLabel: 'TOPIC',
+    chips: ['Museums', 'Food', 'Transport', 'Budget', 'Safety'],
+    fields: [
+      { key: 'destination', label: 'DESTINATION', placeholder: 'Paris, France', multiline: false },
+      { key: 'question', label: 'YOUR QUESTION', placeholder: 'Louvre on a Friday late-night, or first thing Tuesday?', multiline: true },
+    ],
+  },
+  'Start a Poll': {
+    formType: 'Start a Poll',
+    icon: 'bar-chart',
+    hint: 'Two or three choices — travelers vote in one tap.',
+    submitLabel: 'Post poll',
+    needsMedia: false,
+    chipsLabel: 'DESTINATION',
+    chips: ['Paris', 'Tokyo', 'Bali', 'Lisbon'],
+    fields: [
+      { key: 'question', label: 'QUESTION', placeholder: 'Machiya in Gion or a ryokan outside the centre?', multiline: false },
+      { key: 'options', label: 'OPTIONS (one per line)', placeholder: 'Machiya in Gion\nRyokan outside the centre\nSplit — one night each', multiline: true },
+    ],
+  },
+  'Host a Meetup': {
+    formType: 'Host a Meetup',
+    icon: 'calendar-check',
+    hint: 'A scheduled gathering — travelers can join and add it to a trip.',
+    submitLabel: 'Publish meetup',
+    needsMedia: false,
+    chipsLabel: 'KIND OF MEETUP',
+    chips: ['Walk', 'Food', 'Photography', 'Online', 'Free'],
+    fields: [
+      { key: 'what', label: 'WHAT IS IT?', placeholder: 'Montmartre photography walk before the crowds', multiline: false },
+      { key: 'when', label: 'WHEN & WHERE', placeholder: 'Sat 07 June · 09:00 · Montmartre, Paris', multiline: false },
+      { key: 'details', label: 'DETAILS', placeholder: 'We start at the funicular and finish with coffee…', multiline: true },
+    ],
+  },
+  'Find Travel Buddy': {
+    formType: 'Find Travel Buddy',
+    icon: 'user-plus',
+    hint: 'Only travelers with overlapping dates are matched.',
+    submitLabel: 'Post request',
+    needsMedia: false,
+    chipsLabel: 'TRAVEL STYLE',
+    chips: ['Solo', 'Food', 'Museums', 'Photography', 'Nightlife'],
+    fields: [
+      { key: 'destination', label: 'DESTINATION', placeholder: 'Paris, France', multiline: false },
+      { key: 'dates', label: 'YOUR DATES', placeholder: 'Jun 03 – Jun 06', multiline: false },
+      { key: 'lookingFor', label: 'WHAT YOU ARE LOOKING FOR', placeholder: 'Someone to do a morning food walk with…', multiline: true },
+    ],
+  },
+};
+
+export const TRIP_PICK_OPTIONS: TripPickOption[] = [
+  { id: 't1', name: 'Paris · Long weekend', dates: 'Jun 03 – Jun 06 · 4 activities' },
+  { id: 't2', name: 'Japan 2027', dates: 'Draft · 9 activities' },
+];
+
+export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'];
+
+export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [
+  { label: 'Save post', hint: 'Add to a collection', message: 'Saved' },
+  { label: 'Mute author', hint: 'Stop seeing posts, stay following', message: 'Muted for 30 days' },
+  { label: 'Block traveler', hint: 'They can’t message or see your trips', message: 'Traveler blocked' },
+  { label: 'Report post', hint: 'Community guidelines & safety', message: 'Report sent to moderation' },
+];
+
+export function buildCommunityHomeData(): CommunityHomeData {
+  return {
+    stories: [
+      { id: 'st1', name: 'Maya', place: 'Japan', status: 'There now', image: unsplashUrl('1540959733332-eab4deabeeaf', 400) },
+      { id: 'st2', name: 'Daniel', place: 'Paris · Jun 12', status: 'Going soon', image: unsplashUrl('1502602898657-3e91760cbb34', 400) },
+      { id: 'st3', name: 'Sarah', place: 'Bali', status: 'Recently visited', image: unsplashUrl('1537996194471-e657df975ab4', 400) },
+      { id: 'st4', name: 'Iker', place: 'Lisbon', status: 'There now', image: unsplashUrl('1585208798174-6cedd86e019a', 400) },
+      { id: 'st5', name: 'Nina', place: 'Reykjavík', status: 'Going soon', image: unsplashUrl('1504829857797-ddff29c27927', 400) },
+      { id: 'st6', name: 'Tom', place: 'Marrakech', status: 'Recently visited', image: unsplashUrl('1539020140153-e479b8c22e70', 400) },
+    ],
+    posts: [
+      {
+        id: 'p1',
+        kind: 'INSIGHT',
+        tone: '#0060EA',
+        tags: ['Tips', 'Following'],
+        place: 'Tokyo',
+        author: 'Maya Kondo',
+        initials: 'MK',
+        avatarGradient: GRADIENTS[0],
+        meta: 'Went last week · Tokyo, Japan',
+        title: 'Book the 17:30 Shibuya Sky slot three weeks ahead.',
+        body: 'Sunset lands at 18:04 in April, and the 17:30 entry gets you daylight, dusk and the city lit — all on one ticket. The 18:00 slot sells out first, so nobody checks 17:30.',
+        image: unsplashUrl('1540959733332-eab4deabeeaf', 1000),
+        helpfulBase: 248,
+        cta: 'addToTrip',
+        ctaLabel: 'Add to trip',
+        comments: [
+          { id: 'p1c1', author: 'Daniel Rossi', text: 'Did this last month — the west corner is empty until about 18:15. Worth the wait.', when: '2h ago', likes: 12 },
+          { id: 'p1c2', author: 'Priya Nair', text: 'Is the outdoor deck open if it rains?', when: '1h ago', likes: 3 },
+        ],
+      },
+      {
+        id: 'p2',
+        kind: 'POLL',
+        tone: '#6B3FA0',
+        tags: ['Questions'],
+        place: 'Tokyo',
+        author: 'Rhea Sharma',
+        initials: 'RS',
+        avatarGradient: GRADIENTS[1],
+        meta: 'Planning Japan · 3 nights in Kyoto',
+        title: 'Machiya in Gion or a ryokan outside the centre?',
+        body: 'Two nights in Kyoto, first time, travelling as a couple. Walkability matters more than luxury.',
+        pollVotesBase: 1203,
+        poll: [
+          { id: 'o1', label: 'Machiya in Gion', basePercent: 58 },
+          { id: 'o2', label: 'Ryokan outside the centre', basePercent: 31 },
+          { id: 'o3', label: 'Split — one night each', basePercent: 11 },
+        ],
+        helpfulBase: 64,
+        cta: 'answer',
+        ctaLabel: 'Share your take',
+        comments: [{ id: 'p2c1', author: 'Iker Solano', text: 'Machiya. You lose an hour a day commuting from anywhere outside Gion.', when: '4h ago', likes: 21 }],
+      },
+      {
+        id: 'p3',
+        kind: 'VIDEO',
+        tone: '#D2604B',
+        tags: ['Photos', 'Following'],
+        place: 'Tokyo',
+        author: 'Lea Fontaine',
+        initials: 'LF',
+        avatarGradient: GRADIENTS[4],
+        meta: '24K views · Shibuya, Tokyo',
+        title: 'Sunset from Shibuya Sky — 90 seconds, no edit.',
+        image: unsplashUrl('1490806843957-31f4c9a91c65', 1000),
+        isVideo: true,
+        helpfulBase: 412,
+        cta: 'save',
+        ctaLabel: 'Save to collection',
+        comments: [{ id: 'p3c1', author: 'Emma Ross', text: 'This is exactly why I moved the Tokyo leg to April. Beautiful.', when: '6h ago', likes: 8 }],
+      },
+      {
+        id: 'p4',
+        kind: 'ITINERARY',
+        tone: '#2AA98B',
+        tags: ['Trip Plans', 'Following'],
+        place: 'Tokyo',
+        author: 'Rhea Sharma',
+        initials: 'RS',
+        avatarGradient: GRADIENTS[1],
+        meta: 'Travelled Mar 2026 · shared publicly',
+        title: '7 Days in Japan — the route I would repeat exactly.',
+        body: 'Three cities, two rail legs, one unplanned day. The unplanned day was the best one.',
+        route: [
+          { city: 'Tokyo', nights: '3 nights', hasNext: true },
+          { city: 'Kyoto', nights: '2 nights', hasNext: true },
+          { city: 'Osaka', nights: '2 nights', hasNext: false },
+        ],
+        stats: [
+          { label: 'Days', value: '7' },
+          { label: 'Cities', value: '3' },
+          { label: 'Activities', value: '12' },
+          { label: 'Per person', value: '₹1.4L' },
+        ],
+        helpfulBase: 186,
+        cta: 'remix',
+        ctaLabel: 'Make my version',
+        comments: [{ id: 'p4c1', author: 'Marco Villa', text: 'Cloned this and swapped Osaka for Nara. Held up perfectly.', when: '1d ago', likes: 34 }],
+      },
+      {
+        id: 'p5',
+        kind: 'MEETUP',
+        tone: '#E5734E',
+        tags: ['Near My Trip'],
+        place: 'Paris',
+        author: 'Camille Roy',
+        initials: 'CR',
+        avatarGradient: GRADIENTS[2],
+        meta: 'Hosting · local guide, Paris',
+        title: 'Montmartre photography walk before the crowds.',
+        body: 'We start at the funicular at 09:00 and finish with coffee at Saint-Jean. Bring anything — phones are fine.',
+        meetup: { month: 'JUN', day: '07', when: 'Saturday 07 June · 09:00 – 11:30', where: 'Montmartre, Paris · free · 6 spaces left', going: '14 going' },
+        helpfulBase: 39,
+        cta: 'join',
+        ctaLabel: 'Join meetup',
+        comments: [{ id: 'p5c1', author: 'Aarav Menon', text: 'I land on the 4th — count me in.', when: '3h ago', likes: 5 }],
+      },
+      {
+        id: 'p6',
+        kind: 'QUESTION',
+        tone: '#0060EA',
+        tags: ['Questions', 'Near My Trip'],
+        place: 'Paris',
+        author: 'Daniel Rossi',
+        initials: 'DR',
+        avatarGradient: GRADIENTS[3],
+        meta: 'Asking · Paris, 03 – 09 June',
+        title: 'Louvre on a Friday late-night, or first thing on a Tuesday?',
+        body: 'Two hours is all I want to give it. I care about the Italian paintings and not much else.',
+        helpfulBase: 27,
+        cta: 'answer',
+        ctaLabel: 'Answer this',
+        comments: [
+          {
+            id: 'p6c1',
+            author: 'Iker Solano',
+            text: 'Tuesday 09:00, enter at Porte des Lions. You will have the Denon wing nearly to yourself for 40 minutes.',
+            when: '5h ago',
+            likes: 46,
+          },
+        ],
+      },
+    ],
+    journeyStats: [
+      { value: '14', label: 'Countries' },
+      { value: '6', label: 'Trips' },
+      { value: '132', label: 'Followers' },
+      { value: '48', label: 'Helpful' },
+    ],
+    matches: [
+      { id: 'm1', name: 'Aarav Menon', home: 'India', dates: 'Jun 4 – 9', matchPercent: '82% match', tags: ['Food', 'Museums', 'Photography'], avatarGradient: 'linear-gradient(140deg,#0060EA,#2AA98B)' },
+      { id: 'm2', name: 'Lea Fontaine', home: 'Canada', dates: 'Jun 2 – 7', matchPercent: '76% match', tags: ['Markets', 'Walking', 'Art'], avatarGradient: 'linear-gradient(140deg,#D2604B,#F2B872)' },
+      { id: 'm3', name: 'Jonas Weber', home: 'Austria', dates: 'Jun 5 – 10', matchPercent: '71% match', tags: ['Cycling', 'Coffee', 'Jazz'], avatarGradient: 'linear-gradient(140deg,#6B3FA0,#0060EA)' },
+    ],
+    travelersRail: [
+      { id: 'r1', name: 'Priya Nair', line: 'Paris · Jun 3 – 8 · 88% match', avatarGradient: 'linear-gradient(140deg,#0A6E7C,#2AA98B)' },
+      { id: 'r2', name: 'Marco Villa', line: 'Paris · Jun 1 – 6 · 74% match', avatarGradient: 'linear-gradient(140deg,#4B2A63,#D2604B)' },
+      { id: 'r3', name: 'Emma Ross', line: 'Paris · Jun 4 – 11 · 69% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#6BA6C9)' },
+    ],
+    trending: [
+      { id: 'tr1', title: 'Eiffel Tower sunset reservations', meta: '46 tips this week', image: unsplashUrl('1511739001486-6bfe10ce785f', 300) },
+      { id: 'tr2', title: 'Louvre late-night opening', meta: '31 travelers discussing', image: unsplashUrl('1565099824688-e93eb20fe622', 300) },
+      { id: 'tr3', title: 'Montmartre food walks', meta: '18 saved routes', image: unsplashUrl('1499856871958-5b9627545d1a', 300) },
+    ],
+    events: [
+      { id: 'e1', month: 'JUN', day: '07', name: 'Paris Photography Walk', meta: 'Montmartre · 14 going' },
+      { id: 'e2', month: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', meta: 'Shinjuku · 32 going' },
+    ],
+    sideCircles: [
+      { id: 'c1', name: 'Japan Spring 2027', live: true, image: unsplashUrl('1493976040374-85c8e12f0c0e', 120) },
+      { id: 'c2', name: 'Paris June Crew', live: true, image: unsplashUrl('1502602898657-3e91760cbb34', 120) },
+      { id: 'c3', name: 'Slow Travel Europe', live: false, image: unsplashUrl('1474487548417-781cb71495f3', 120) },
+    ],
+  };
+}
+
+export { avatarPhotoUrl };

@@ -1,219 +1,107 @@
 <div class="page-shell">
-  <app-header
-    [activeTab]="activeTab()"
-    (selectTab)="onSelectTab($event)"
-    (toggleProfile)="toggleProfile()"
-  ></app-header>
+  <app-header (selectMenuItem)="onProfileMenuItem($event)" />
 
-  <div class="subnav" role="navigation" aria-label="Community sections">
-    <button
-      type="button"
-      class="subnav__pill"
-      [class.is-active]="activeTab() === tab"
-      *ngFor="let tab of subTabs"
-      (click)="onSelectTab(tab)"
-    >
-      {{ tab }}
-    </button>
+  <div class="secondary-bar">
+    <div class="secondary-bar__inner">
+      <app-search-bar [suggestions]="searchSuggestions" (selectSuggestion)="onSelectSuggestion($event)" />
+    </div>
   </div>
 
-  <main class="content-shell" *ngIf="!loading(); else loadingState">
-    <section class="hero-card" aria-labelledby="hero-title">
-      <div class="hero-card__overlay"></div>
-      <div class="hero-card__content">
-        <div class="hero-card__copy">
-          <div class="hero-card__badge">{{ heroBadge() }}</div>
-          <h1 id="hero-title">Paris, France</h1>
-          <p>Jun 03 · Jun 06 · 3 nights · 4 saved spots</p>
-          <div class="hero-card__actions">
-            <button type="button" class="button button--primary" (click)="onSelectTab('Destinations')">Explore Paris</button>
-            <button type="button" class="button button--ghost" (click)="onSelectTab('Travel Circles')">Find travelers</button>
-            <button type="button" class="button button--text" (click)="onSelectTab('Trips')">Open my trip →</button>
-          </div>
-        </div>
-        <div class="hero-card__planner">
-          <div class="hero-card__planner-label">ITINERARY INSPIRATION</div>
-          <input
-            aria-label="Trip planner"
-            type="text"
-            [ngModel]="planText()"
-            (ngModelChange)="planText.set($event)"
-            placeholder="e.g. 5 relaxed days in Bali"
-          />
-          <button type="button" class="button button--primary button--full" (click)="planTrip()">Build my itinerary</button>
-        </div>
-      </div>
-      <button type="button" class="hero-card__toggle" (click)="toggleHeroTrip()">{{ heroHasTrip() ? 'Preview: no upcoming trip' : 'Preview: upcoming trip' }}</button>
-    </section>
+  <div class="page-grid">
+    <app-sidebar-nav
+      [activeTab]="store.activeTab()"
+      [circles]="store.sideCircles()"
+      (selectTab)="store.selectTab($event)"
+      (selectCircle)="onSelectCircle($event)"
+      (share)="store.openComposerMenu()"
+    />
 
-    <section class="story-row" aria-label="Stories">
-      <button type="button" class="story story--add">
-        <span class="story__icon">+</span>
-        <span class="story__label">Your story</span>
-      </button>
-      <button type="button" class="story" *ngFor="let story of stories()">
-        <span class="story__avatar" [style.background-image]="story.image"></span>
-        <span class="story__name">{{ story.name }}</span>
-        <span class="story__status">{{ story.status }}</span>
-      </button>
-    </section>
-
-    <div class="main-grid">
-      <div class="feed-column">
-        <section class="composer card" aria-label="Composer">
-          <div class="composer__row">
-            <div class="composer__avatar">AV</div>
-            <button type="button" class="composer__input" (click)="openComposer()">Share something useful with travelers…</button>
-          </div>
-          <div class="composer__actions">
-            <button type="button" class="chip" (click)="openComposer()">📷 Photo</button>
-            <button type="button" class="chip" (click)="openComposer()">🎥 Video</button>
-            <button type="button" class="chip" (click)="openComposer()">🗺️ Trip</button>
-            <button type="button" class="chip" (click)="openComposer()">❓ Question</button>
-          </div>
-        </section>
-
-        <section class="filter-bar" role="toolbar" aria-label="Feed filters">
-          <button type="button" class="pill" [class.is-active]="selectedFilter() === filter" *ngFor="let filter of filters" (click)="onFilterSelect(filter)">
-            {{ filter }}
-          </button>
-          <span class="spacer"></span>
-          <button type="button" class="segmented" (click)="onViewModeSelect('Feed')">Feed</button>
-          <button type="button" class="segmented" (click)="onViewModeSelect('Map')">Map</button>
-        </section>
-
-        <section class="card post-card" *ngFor="let post of visiblePosts()">
-          <div class="post-card__header">
-            <div class="post-card__avatar">{{ post.initials }}</div>
-            <div>
-              <div class="post-card__author">{{ post.author }}</div>
-              <div class="post-card__meta">{{ post.meta }}</div>
-            </div>
-            <button type="button" class="soft-button" (click)="toggleFollow(post.id)">{{ followedIds().includes(post.id) ? 'Following' : 'Follow' }}</button>
-          </div>
-          <h3 class="post-card__title">{{ post.title }}</h3>
-          <p class="post-card__body">{{ post.body }}</p>
-          <div class="post-card__chips" *ngIf="post.chips?.length">
-            <span class="chip chip--soft" *ngFor="let chip of post.chips">{{ chip }}</span>
-          </div>
-          <div class="post-card__media" *ngIf="post.image" [style.background-image]="post.image"></div>
-          <div class="post-card__actions">
-            <button type="button" class="soft-button" (click)="toggleHelpful(post.id)">{{ helpfulIds().includes(post.id) ? 'Helpful · 249' : 'Helpful · 248' }}</button>
-            <button type="button" class="soft-button" (click)="toggleSave(post.id)">{{ savedIds().includes(post.id) ? 'Saved' : 'Save' }}</button>
-            <button type="button" class="soft-button" (click)="openModal('add')">+ Add to trip</button>
-          </div>
-        </section>
-      </div>
-
-      <aside class="sidebar">
-        <section class="card sidebar-card">
-          <div class="sidebar-card__header">YOUR JOURNEY</div>
-          <div class="sidebar-card__xp">
-            <div class="sidebar-card__ring">34%</div>
-            <div>
-              <div class="sidebar-card__title">Wanderer</div>
-              <div class="sidebar-card__copy">200 XP to Explorer</div>
-            </div>
-          </div>
-          <div class="sidebar-card__stats">
-            <div *ngFor="let stat of journeyStats()" class="sidebar-card__stat">
-              <strong>{{ stat.value }}</strong>
-              <span>{{ stat.label }}</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="card sidebar-card">
-          <div class="sidebar-card__header">TRAVELERS GOING WHERE YOU ARE</div>
-          <div class="sidebar-card__list">
-            <div class="sidebar-card__list-item" *ngFor="let traveler of travelers()">
-              <div class="avatar avatar--small" [style.background]="traveler.accent">{{ traveler.initials }}</div>
-              <div>
-                <div class="sidebar-card__title">{{ traveler.name }}</div>
-                <div class="sidebar-card__copy">{{ traveler.line }}</div>
-              </div>
-              <button type="button" class="soft-button" (click)="toggleFollow(traveler.id)">{{ followedIds().includes(traveler.id) ? 'Following' : 'Follow' }}</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="card sidebar-card">
-          <div class="sidebar-card__header">TRENDING NEAR YOUR TRIP</div>
-          <div class="sidebar-card__list">
-            <button type="button" class="sidebar-card__pill" *ngFor="let item of trending()" (click)="openModal('report')">
-              <span class="sidebar-card__thumb" [style.background-image]="item.image"></span>
-              <span>
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.meta }}</small>
-              </span>
-            </button>
-          </div>
-        </section>
-
-        <section class="card sidebar-card">
-          <div class="sidebar-card__header">UPCOMING EVENTS</div>
-          <div class="sidebar-card__list">
-            <div class="sidebar-card__list-item" *ngFor="let event of events()">
-              <div class="calendar-pill">
-                <span>{{ event.dateLabel.split(' ')[0] }}</span>
-                <strong>{{ event.dateLabel.split(' ')[1] }}</strong>
-              </div>
-              <div>
-                <div class="sidebar-card__title">{{ event.name }}</div>
-                <div class="sidebar-card__copy">{{ event.meta }}</div>
-              </div>
-              <button type="button" class="soft-button" (click)="toggleJoin(event.id)">{{ joinedIds().includes(event.id) ? 'Going' : 'Join' }}</button>
-            </div>
-          </div>
-        </section>
-      </aside>
-    </div>
-  </main>
-
-  <ng-template #loadingState>
-    <main class="content-shell content-shell--centered">
-      <div class="loading-state" role="status">Loading the community experience…</div>
+    <main class="page-main">
+      @switch (store.activeTab()) {
+        @case ('Home') {
+          <app-home-tab />
+        }
+        @default {
+          <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />
+        }
+      }
     </main>
-  </ng-template>
-
-  <button type="button" class="fab" (click)="toggleAI()">⋯ Ask TRAVL AI</button>
-
-  <div class="ai-panel" *ngIf="aiOpen()">
-    <div class="ai-panel__header">
-      <div>
-        <strong>TRAVL AI</strong>
-        <div>Connected to your Paris trip & saved posts</div>
-      </div>
-      <button type="button" class="soft-button" (click)="toggleAI()">×</button>
-    </div>
-    <div class="ai-panel__body">
-      <button type="button" class="ai-prompt" *ngFor="let prompt of aiPrompts" (click)="onSelectTab('Discover')">
-        {{ prompt }}
-      </button>
-      <div class="ai-panel__input-row">
-        <input aria-label="AI prompt" type="text" placeholder="Ask about your trip or this community…" />
-        <button type="button" class="button button--primary">→</button>
-      </div>
-    </div>
   </div>
 
-  <div class="modal-backdrop" *ngIf="modal()" (click)="closeModal()">
-    <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <div>
-          <strong>Share something useful</strong>
-          <div>Pick a post type and publish to the community</div>
-        </div>
-        <button type="button" class="soft-button" (click)="closeModal()">×</button>
-      </div>
-      <div class="modal__body">
-        <div class="modal__grid">
-          <button type="button" class="modal__card" (click)="submitPost()">Share Trip</button>
-          <button type="button" class="modal__card" (click)="submitPost()">Travel Tip</button>
-          <button type="button" class="modal__card" (click)="submitPost()">Ask Question</button>
-          <button type="button" class="modal__card" (click)="submitPost()">Photo / Video</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <app-ai-assistant-panel [prompts]="aiPrompts" (selectPrompt)="onAiPrompt($event)" (ask)="onAiAsk($event)" />
+
+  @switch (store.modal()?.kind) {
+    @case ('composerMenu') {
+      <app-modal-shell
+        title="Share something useful"
+        subtitle="Pick a post type — we only ask for what that type needs."
+        (close)="store.closeModal()"
+      >
+        <app-composer-type-menu (selectType)="store.selectPostType($event)" />
+      </app-modal-shell>
+    }
+    @case ('composerForm') {
+      @if (store.composerForm(); as form) {
+        <app-modal-shell title="Share with travelers" subtitle="Pick what you post and who sees it." (close)="store.closeModal()">
+          <app-composer-form
+            [form]="form"
+            [values]="store.formValues()"
+            [chips]="store.formChips()"
+            [mediaAttached]="store.formMediaAttached()"
+            [audience]="store.audience()"
+            [ready]="store.composerFormReady()"
+            (back)="store.backToComposerMenu()"
+            (fieldChange)="store.updateFormField(form.formType, $event.key, $event.value)"
+            (toggleChip)="store.toggleFormChip($event)"
+            (setAudience)="store.setAudience($event)"
+            (toggleMedia)="store.toggleMediaAttachment()"
+            (cancel)="store.closeModal()"
+            (submit)="store.submitComposerForm()"
+          />
+        </app-modal-shell>
+      }
+    }
+    @case ('addToTrip') {
+      @if (store.activeAddToTripPayload(); as trip) {
+        <app-modal-shell title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
+          <app-add-to-trip-modal
+            [spot]="trip.spot"
+            [spotMeta]="trip.meta"
+            [spotImage]="trip.image"
+            [trips]="store.tripPickOptions"
+            [tripPick]="store.tripPick()"
+            [addKinds]="store.addToTripKinds"
+            [addKind]="store.addKind()"
+            (pickTrip)="store.pickTrip($event)"
+            (pickKind)="store.pickAddKind($event)"
+            (cancel)="store.closeModal()"
+            (confirm)="store.confirmAddToTrip()"
+          />
+        </app-modal-shell>
+      }
+    }
+    @case ('story') {
+      @if (store.activeStory(); as story) {
+        <app-modal-shell width="400px" [showHeader]="false" (close)="store.closeModal()">
+          <app-story-viewer-modal
+            [story]="story"
+            [followed]="store.followedIds().has('st_' + story.name)"
+            [saved]="store.savedIds().has('st_' + story.name)"
+            (close)="store.closeModal()"
+            (toggleFollow)="store.toggleFollow('st_' + story.name, story.name)"
+            (openTrip)="store.showToast('Opening ' + story.name + '’s ' + story.place + ' trip'); store.closeModal()"
+            (message)="store.showToast('Message sent to ' + story.name); store.closeModal()"
+            (toggleSave)="store.toggleSave('st_' + story.name)"
+          />
+        </app-modal-shell>
+      }
+    }
+    @case ('postOptions') {
+      <app-modal-shell title="Post options" subtitle="You control what you see and who can reach you." (close)="store.closeModal()">
+        <app-post-options-modal (selectItem)="store.runPostOptionsAction($event.message)" />
+      </app-modal-shell>
+    }
+  }
+
+  <app-toast [message]="store.toast()" />
 </div>

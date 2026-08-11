@@ -1,0 +1,21 @@
+<section class="story-rail" aria-label="Stories">
+  <button type="button" class="story-rail__item" (click)="addStory.emit()">
+    <span class="story-rail__add-ring">
+      <app-icon name="plus" [size]="20" />
+    </span>
+    <span class="story-rail__label story-rail__label--muted">Your story</span>
+  </button>
+
+  @for (story of stories(); track story.id) {
+    <button type="button" class="story-rail__item" (click)="openStory.emit(story)">
+      <span
+        class="story-rail__ring"
+        [class.story-rail__ring--live]="story.status === 'There now'"
+        [class.story-rail__ring--upcoming]="story.status === 'Going soon'"
+      >
+        <span class="story-rail__thumb" [style.background-image]="'url(' + story.image + ')'"></span>
+      </span>
+      <span class="story-rail__label">{{ story.name }}</span>
+    </button>
+  }
+</section>

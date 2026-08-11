@@ -1,0 +1,97 @@
+<div class="home-tab">
+  <app-hero-card
+    [hasTrip]="store.hasUpcomingTrip()"
+    [planText]="store.planText()"
+    (planTextChange)="store.setPlanText($event)"
+    (exploreDestination)="store.selectTab('Destinations')"
+    (findTravelers)="store.selectTab('Travel Circles')"
+    (openTrip)="store.selectTab('Trips')"
+    (toggleHeroTrip)="store.toggleHeroTrip()"
+    (buildItinerary)="store.planTrip()"
+  />
+
+  <app-story-rail [stories]="store.stories()" (openStory)="onOpenStory($event)" (addStory)="store.openComposerMenu()" />
+
+  <div class="home-tab__grid">
+    <div class="home-tab__feed">
+      <app-feed-filter-bar
+        [activeFilter]="store.filter()"
+        [destinationFilter]="store.destinationFilter()"
+        [viewMode]="store.viewMode()"
+        (selectFilter)="store.selectFilter($event)"
+        (cycleDestination)="store.cycleDestinationFilter()"
+        (selectViewMode)="store.setViewMode($event)"
+      />
+
+      @if (store.viewMode() === 'Map') {
+        <div class="map-panel">
+          <div class="map-panel__grid"></div>
+          @for (pin of mapPins; track pin.label) {
+            <button type="button" class="map-panel__pin" [style.left.%]="pin.x" [style.top.%]="pin.y" (click)="store.showToast('Opening ' + pin.label)">
+              <span class="map-panel__pin-dot"></span>{{ pin.label }}
+            </button>
+          }
+          <div class="map-panel__caption">Community posts near your Paris trip · destination-level only</div>
+        </div>
+      } @else if (store.feedEmpty()) {
+        <div class="empty-state">
+          <span class="empty-state__icon">
+            <app-icon name="compass" [size]="22" />
+          </span>
+          <div class="empty-state__title">Nothing in this filter yet</div>
+          <p class="empty-state__copy">Try “For You”, or share something and start the conversation.</p>
+          <button type="button" class="empty-state__button" (click)="store.openComposerMenu()">Share with travelers</button>
+        </div>
+      } @else {
+        @for (post of store.visiblePosts(); track post.id) {
+          <app-post-card
+            [post]="post"
+            [followed]="isFollowed(post.id)"
+            [saved]="isSaved(post.id)"
+            [helpfulOn]="isHelpfulOn(post.id)"
+            [joined]="isJoined(post.id)"
+            [commentsOpen]="isCommentsOpen(post.id)"
+            [commentDraft]="draftFor(post.id)"
+            [likedCommentIds]="store.commentLikeKeys()"
+            [votedOptionId]="store.votedOptionFor(post.id)"
+            (toggleFollow)="store.toggleFollow(post.id, post.author)"
+            (deletePost)="store.deletePost(post.id)"
+            (openOptions)="store.openPostOptions()"
+            (toggleHelpful)="store.toggleHelpful(post.id)"
+            (toggleComments)="store.toggleComments(post.id)"
+            (toggleSave)="store.toggleSave(post.id)"
+            (runCta)="store.runPostCta(post)"
+            (votePoll)="store.votePoll(post.id, $event)"
+            (likeComment)="store.likeComment(post.id, $event)"
+            (replyToComment)="onReply(post.id, $event)"
+            (commentDraftChange)="store.setCommentDraft(post.id, $event)"
+            (submitComment)="store.postComment(post.id)"
+          />
+        }
+      }
+
+      @if (store.showSimilarTravelers()) {
+        <app-similar-travelers
+          [matches]="store.matches()"
+          [followedIds]="store.followedIds()"
+          (seeAll)="store.selectTab('Travel Circles')"
+          (viewProfile)="store.showToast('Opening ' + $event.name + '’s profile')"
+          (toggleFollow)="onToggleFollowTraveler($event)"
+        />
+      }
+    </div>
+
+    <app-community-sidebar
+      [journeyStats]="store.journeyStats()"
+      [travelersRail]="store.travelersRail()"
+      [trending]="store.trending()"
+      [events]="store.events()"
+      [followedIds]="store.followedIds()"
+      [joinedIds]="store.joinedIds()"
+      (toggleFollowTraveler)="onToggleFollowTraveler($event)"
+      (createCircle)="store.showToast('Circle created')"
+      (openTrending)="onOpenTrending($event)"
+      (toggleJoinEvent)="onToggleJoinEvent($event)"
+    />
+  </div>
+</div>

@@ -1,8 +1,12 @@
-.topbar {
+:host {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: #fff;
+  display: block;
+}
+
+.topbar {
+  background: var(--surface);
   border-bottom: 1px solid var(--border-soft);
 }
 
@@ -20,6 +24,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: none;
 }
 
 .topbar__brand-mark {
@@ -30,18 +35,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
-}
 
-.topbar__brand-mark svg {
-  width: 16px;
-  height: 16px;
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .topbar__brand-divider {
   width: 1px;
   height: 20px;
-  background: var(--border-soft);
+  background: var(--border-hover);
 }
 
 .topbar__brand-name {
@@ -59,66 +63,145 @@
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-muted);
+  flex: 1;
+
+  @media (max-width: 1000px) {
+    display: none;
+  }
 }
 
 .topbar__nav-link {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
-}
+  color: var(--text-muted);
 
-.topbar__nav-link.is-active {
-  color: var(--text-primary);
-  font-weight: 800;
+  &.is-active {
+    color: var(--text-primary);
+    font-weight: 800;
+  }
 }
 
 .topbar__actions {
-  flex: 1;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 14px;
+  flex: none;
+  margin-left: auto;
 }
 
-.topbar__pill,
-.topbar__icon,
-.topbar__profile {
-  border: 1px solid var(--border-soft);
-  background: transparent;
-  color: var(--text-muted);
+.topbar__locale {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  white-space: nowrap;
+  border: 1px solid var(--border);
   border-radius: 999px;
-}
-
-.topbar__pill {
   padding: 7px 14px;
   font-size: 12px;
   font-weight: 700;
+  color: var(--text-muted);
+}
+
+.topbar__locale-accent {
+  color: var(--accent);
 }
 
 .topbar__icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &:hover {
+    background: var(--surface-sunken);
+  }
+}
+
+.topbar__profile-wrap {
+  position: relative;
 }
 
 .topbar__profile {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #eaf1fe;
-  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--border-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+
+  &:hover {
+    border-color: var(--accent);
+  }
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  width: 264px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  padding: 8px;
+  animation: travl-up 0.16s ease;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.profile-menu__header {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 6px;
+}
+
+.profile-menu__name {
+  font-size: 13.5px;
   font-weight: 800;
 }
 
-@media (max-width: 1000px) {
-  .topbar__nav {
-    display: none;
+.profile-menu__meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.profile-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+
+  &:hover {
+    background: #f5f8fc;
+  }
+
+  app-icon {
+    width: 16px;
+    display: flex;
+    justify-content: center;
+    color: var(--text-muted);
   }
 }

@@ -1,0 +1,155 @@
+<article class="post-card">
+  <div class="post-card__header">
+    <span class="post-card__avatar" [style.background-image]="'url(' + avatar() + ')'"></span>
+    <span class="post-card__identity">
+      <span class="post-card__author-row">
+        <span class="post-card__author">{{ post().author }}</span>
+        <span class="post-card__kind" [style.--tone]="post().tone">{{ post().kind }}</span>
+      </span>
+      <span class="post-card__meta">{{ post().meta }}</span>
+    </span>
+
+    @if (relevantToTrip()) {
+      <span class="post-card__trip-badge">MATCHES YOUR TRIP</span>
+    }
+
+    @if (post().authoredByMe) {
+      <button type="button" class="post-card__follow post-card__follow--danger" (click)="deletePost.emit()">Delete</button>
+    } @else {
+      <button type="button" class="post-card__follow" [class.is-following]="followed()" (click)="toggleFollow.emit()">
+        {{ followed() ? 'Following' : 'Follow' }}
+      </button>
+    }
+
+    <button type="button" class="post-card__menu" aria-label="Post options" (click)="openOptions.emit()">
+      <app-icon name="more-horizontal" [size]="16" />
+    </button>
+  </div>
+
+  <div class="post-card__body">
+    <p class="post-card__title">{{ post().title }}</p>
+    @if (post().body) {
+      <p class="post-card__text">{{ post().body }}</p>
+    }
+  </div>
+
+  @if (post().image) {
+    <div class="post-card__media" [class.post-card__media--video]="post().isVideo" [style.background-image]="'url(' + post().image + ')'">
+      @if (post().isVideo) {
+        <button type="button" class="post-card__play" aria-label="Play video">
+          <app-icon name="play" [size]="18" />
+        </button>
+      }
+      <span class="post-card__place-badge">
+        <app-icon name="map-pin" [size]="13" />
+        {{ post().place }}
+      </span>
+    </div>
+  }
+
+  @if (post().poll) {
+    <div class="post-card__poll">
+      @for (option of post().poll; track option.id) {
+        <button
+          type="button"
+          class="poll-option"
+          [class.is-mine]="votedOptionId() === option.id"
+          (click)="votePoll.emit(option.id)"
+        >
+          <span class="poll-option__bar" [style.width]="pollBarWidth(option.id, option.basePercent)"></span>
+          <span class="poll-option__label">{{ option.label }}</span>
+          <span class="poll-option__pct">{{ pollPercent(option.id, option.basePercent) }}</span>
+        </button>
+      }
+      <span class="post-card__poll-meta">{{ pollMeta }}</span>
+    </div>
+  }
+
+  @if (post().route) {
+    <div class="post-card__trip">
+      <div class="post-card__trip-route">
+        @for (stop of post().route; track stop.city) {
+          <span class="post-card__trip-stop">
+            <span class="post-card__trip-city">{{ stop.city }}</span>
+            <span class="post-card__trip-nights">{{ stop.nights }}</span>
+            @if (stop.hasNext) {
+              <span class="post-card__trip-arrow">→</span>
+            }
+          </span>
+        }
+      </div>
+      <div class="post-card__trip-stats">
+        @for (stat of post().stats; track stat.label) {
+          <span class="post-card__trip-stat">
+            <span class="post-card__trip-stat-value">{{ stat.value }}</span>
+            <span class="post-card__trip-stat-label">{{ stat.label }}</span>
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (post().meetup) {
+    <div class="post-card__meetup">
+      <span class="post-card__meetup-date">
+        <span class="post-card__meetup-month">{{ post().meetup?.month }}</span>
+        <span class="post-card__meetup-day">{{ post().meetup?.day }}</span>
+      </span>
+      <span class="post-card__meetup-info">
+        <span class="post-card__meetup-when">{{ post().meetup?.when }}</span>
+        <span class="post-card__meetup-where">{{ post().meetup?.where }}</span>
+      </span>
+      <span class="post-card__meetup-faces">
+        <span class="post-card__meetup-face-stack">
+          @for (face of meetupFaces; track $index) {
+            <span class="post-card__meetup-face" [style.background]="face"></span>
+          }
+        </span>
+        <span class="post-card__meetup-going">{{ post().meetup?.going }}</span>
+      </span>
+    </div>
+  }
+
+  <div class="post-card__social-line">
+    <span>{{ helpfulCount() }} found this helpful · {{ post().comments.length }} {{ post().comments.length === 1 ? 'comment' : 'comments' }}</span>
+  </div>
+
+  <div class="post-card__actions">
+    <button type="button" class="action-button" [class.is-on]="helpfulOn()" (click)="toggleHelpful.emit()">
+      <app-icon name="thumbs-up" [size]="15" />
+      Helpful · {{ helpfulCount() }}
+    </button>
+    <button type="button" class="action-button" [class.is-on]="commentsOpen()" (click)="toggleComments.emit()">
+      <app-icon name="message-circle" [size]="15" />
+      Comment · {{ post().comments.length }}
+    </button>
+    <button type="button" class="action-button" [class.is-on]="saved()" (click)="toggleSave.emit()">
+      <app-icon name="bookmark" [size]="15" />
+      {{ saved() ? 'Saved' : 'Save' }}
+    </button>
+    <span class="post-card__actions-spacer"></span>
+    <button
+      type="button"
+      class="post-card__cta"
+      [class.is-on]="ctaOn()"
+      [class.post-card__cta--remix]="post().cta === 'remix'"
+      (click)="runCta.emit()"
+    >
+      {{ ctaLabel() }}
+    </button>
+  </div>
+
+  @if (commentsOpen()) {
+    <app-comment-section
+      [postId]="post().id"
+      [comments]="post().comments"
+      [likedCommentIds]="likedCommentIds()"
+      [draft]="commentDraft()"
+      [authorInitials]="currentUserInitials()"
+      (likeComment)="likeComment.emit($event)"
+      (reply)="replyToComment.emit($event)"
+      (draftChange)="commentDraftChange.emit($event)"
+      (submit)="submitComment.emit()"
+    />
+  }
+</article>

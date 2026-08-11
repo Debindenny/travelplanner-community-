@@ -1,0 +1,38 @@
+:host {
+  display: block;
+  padding: 10px;
+}
+
+.post-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-options__item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f7f9fc;
+  }
+}
+
+.post-options__label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.post-options__hint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
