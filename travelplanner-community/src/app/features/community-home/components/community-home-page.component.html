@@ -23,16 +23,14 @@
         @case ('Home') {
           <app-home-tab />
         }
-<<<<<<< HEAD
         @case ('Discover') {
           <app-discover-tab />
-=======
+        }
         @case ('Travel Circles') {
           <app-community-travelcircles (goHome)="goHome()" />
         }
         @case ('Trips') {
           <app-community-trips (goHome)="goHome()" />
->>>>>>> feature/trips
         }
         @default {
           <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />

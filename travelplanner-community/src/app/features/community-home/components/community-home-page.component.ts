@@ -7,12 +7,9 @@ import { AiAssistantPanelComponent } from '../../../shared/components/ai-assista
 import { ComingSoonComponent } from '../../../shared/components/coming-soon/coming-soon.component';
 import { ToastComponent } from '../../../shared/components/toast/toast.component';
 import { HomeTabComponent } from './home-tab/home-tab.component';
-<<<<<<< HEAD
 import { DiscoverTabComponent } from './discover-tab/discover-tab.component';
-=======
 import { CommunityTravelCirclesComponent } from '../../community-travelcircles/components/community-travelcircles-page.component';
 import { CommunityTripsComponent } from '../../community-trips/components/community-trips-page.component';
->>>>>>> feature/trips
 import { ModalShellComponent } from './overlays/modal-shell/modal-shell.component';
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
@@ -33,12 +30,9 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
     ComingSoonComponent,
     ToastComponent,
     HomeTabComponent,
-<<<<<<< HEAD
     DiscoverTabComponent,
-=======
     CommunityTravelCirclesComponent,
     CommunityTripsComponent,
->>>>>>> feature/trips
     ModalShellComponent,
     ComposerTypeMenuComponent,
     ComposerFormComponent,
