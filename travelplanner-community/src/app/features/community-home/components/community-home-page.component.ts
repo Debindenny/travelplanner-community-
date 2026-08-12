@@ -8,6 +8,7 @@ import { ComingSoonComponent } from '../../../shared/components/coming-soon/comi
 import { ToastComponent } from '../../../shared/components/toast/toast.component';
 import { HomeTabComponent } from './home-tab/home-tab.component';
 import { CommunityTravelCirclesComponent } from '../../community-travelcircles/components/community-travelcircles-page.component';
+import { CommunityTripsComponent } from '../../community-trips/components/community-trips-page.component';
 import { ModalShellComponent } from './overlays/modal-shell/modal-shell.component';
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
@@ -29,6 +30,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
     ToastComponent,
     HomeTabComponent,
     CommunityTravelCirclesComponent,
+    CommunityTripsComponent,
     ModalShellComponent,
     ComposerTypeMenuComponent,
     ComposerFormComponent,
