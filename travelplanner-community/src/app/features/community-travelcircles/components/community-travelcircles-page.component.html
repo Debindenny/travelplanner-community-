@@ -1,0 +1,60 @@
+<div class="circles-header">
+  <div class="breadcrumb">
+    <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">
+      <app-icon name="chevron-right" [size]="14" class="breadcrumb__back-icon" />
+    </button>
+    <span class="breadcrumb__crumb">Community</span>
+    <span class="breadcrumb__divider">/</span>
+    <span class="breadcrumb__current">Travel Circles</span>
+  </div>
+
+  <div class="circles-header__row">
+    <div class="circles-header__copy">
+      <span class="circles-header__eyebrow">Travel Circles</span>
+      <h1 class="circles-header__title">Plan with a small group</h1>
+      <p class="circles-header__subtitle">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+    </div>
+    <button type="button" class="circles-header__cta" (click)="onCreateCircle()">Create a circle</button>
+  </div>
+</div>
+
+<div class="circle-grid">
+  @for (card of cards(); track card.id) {
+    <article class="circle-card">
+      <div class="circle-card__top">
+        <div>
+          <h3 class="circle-card__title">{{ card.title }}</h3>
+          <p class="circle-card__meta">{{ card.meta }}</p>
+        </div>
+        <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
+      </div>
+
+      <p class="circle-card__description">{{ card.description }}</p>
+
+      <div class="circle-card__bottom">
+        <span class="circle-card__activity">
+          <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="card.live"></span>
+          {{ card.activity }}
+        </span>
+        <button
+          type="button"
+          class="circle-card__cta"
+          [class.circle-card__cta--active]="isMember(card.id)"
+          (click)="onToggleMembership(card)"
+        >
+          {{ buttonLabel(card) }}
+        </button>
+      </div>
+    </article>
+  }
+</div>
+
+@if (showCreateModal()) {
+  <app-modal-shell
+    title="Create a travel circle"
+    subtitle="Small groups planning the same kind of travel."
+    (close)="onCancelCreateCircle()"
+  >
+    <app-create-circle-modal (cancel)="onCancelCreateCircle()" (create)="onCircleCreated($event)" />
+  </app-modal-shell>
+}

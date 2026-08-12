@@ -9,6 +9,7 @@ import { ToastComponent } from '../../../shared/components/toast/toast.component
 import { HomeTabComponent } from './home-tab/home-tab.component';
 import { DiscoverTabComponent } from './discover-tab/discover-tab.component';
 import { CommunityTripsComponent } from '../../community-trips/components/community-trips-page.component';
+import { CommunityTravelCirclesComponent } from '../../community-travelcircles/components/community-travelcircles-page.component';
 import { SavedTabComponent } from './saved-tab/saved-tab.component';
 import { DestinationsTabComponent } from './destinations-tab/destinations-tab.component';
 import { EventsTabComponent } from './events-tab/events-tab.component';
@@ -34,6 +35,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
     HomeTabComponent,
     DiscoverTabComponent,
     CommunityTripsComponent,
+    CommunityTravelCirclesComponent,
     SavedTabComponent,
     DestinationsTabComponent,
     EventsTabComponent,
