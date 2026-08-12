@@ -110,6 +110,20 @@ export interface UpcomingEvent {
   day: string;
 }
 
+export type EventBadgeKind = 'Meetup' | 'Food' | 'Online';
+export type EventsFilter = 'All' | 'Near me' | 'Online';
+
+export interface EventListing {
+  id: string;
+  month: string;
+  day: string;
+  badge: EventBadgeKind;
+  title: string;
+  meta: string;
+  travelersGoing: number;
+  isOnline: boolean;
+}
+
 export interface SideCircle {
   id: string;
   name: string;
@@ -200,5 +214,6 @@ export interface CommunityHomeData {
   travelersRail: TravelerRailItem[];
   trending: TrendingItem[];
   events: UpcomingEvent[];
+  eventListings: EventListing[];
   sideCircles: SideCircle[];
 }
