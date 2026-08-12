@@ -2,6 +2,7 @@ export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Tra
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
 export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
+export type DestinationSort = 'Popular' | 'Near me';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
 export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
@@ -117,6 +118,21 @@ export interface SideCircle {
   image: string;
 }
 
+export interface DestinationStat {
+  label: string;
+  value: string;
+}
+
+export interface CommunityDestination {
+  id: string;
+  name: string;
+  members: string;
+  livePlanning: string;
+  hot?: string;
+  image: string;
+  stats: DestinationStat[];
+}
+
 export interface ProfileMenuItem {
   icon: string;
   label: string;
@@ -201,4 +217,5 @@ export interface CommunityHomeData {
   trending: TrendingItem[];
   events: UpcomingEvent[];
   sideCircles: SideCircle[];
+  destinations: CommunityDestination[];
 }
