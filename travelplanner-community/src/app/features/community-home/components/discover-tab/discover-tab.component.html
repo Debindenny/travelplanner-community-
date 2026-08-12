@@ -1,0 +1,70 @@
+<div class="discover-tab">
+  <div class="discover-tab__head">
+    <div class="discover-tab__head-text">
+      <div class="discover-tab__eyebrow">DISCOVER</div>
+      <h1 class="discover-tab__title">What travelers found this week</h1>
+      <p class="discover-tab__subtitle">Ranked by how many people actually used them, not by how new they are.</p>
+    </div>
+    <span class="discover-tab__live">
+      <span class="discover-tab__live-dot"></span>{{ store.discoverLiveCount }}
+    </span>
+  </div>
+
+  <div class="discover-tab__pills">
+    @for (category of store.discoverCategories; track category) {
+      <button
+        type="button"
+        class="discover-tab__pill"
+        [class.is-active]="category === store.discoverCategory()"
+        (click)="store.selectDiscoverCategory(category)"
+      >
+        {{ category }}
+      </button>
+    }
+  </div>
+
+  <div class="discover-tab__top-row">
+    <button
+      type="button"
+      class="discover-tab__feature"
+      [style.background-image]="'url(' + store.discoverFeature.image + ')'"
+      (click)="onOpen(store.discoverFeature.title)"
+    >
+      <span class="discover-tab__feature-tag">MOST USED THIS WEEK</span>
+      <span class="discover-tab__feature-text">
+        <span class="discover-tab__feature-title">{{ store.discoverFeature.title }}</span>
+        <span class="discover-tab__feature-meta">{{ store.discoverFeature.meta }}</span>
+      </span>
+    </button>
+
+    <div class="discover-tab__ranked">
+      @for (item of store.discoverTop; track item.id) {
+        <button type="button" class="discover-tab__ranked-item surface-card" (click)="onOpen(item.title)">
+          <span class="discover-tab__ranked-thumb" [style.background-image]="'url(' + item.image + ')'"></span>
+          <span class="discover-tab__ranked-text">
+            <span class="discover-tab__ranked-tag">{{ item.tag }}</span>
+            <span class="discover-tab__ranked-title">{{ item.title }}</span>
+            <span class="discover-tab__ranked-meta">{{ item.meta }}</span>
+          </span>
+          <span class="discover-tab__ranked-rank">{{ item.rank }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="discover-tab__grid">
+    @for (card of store.filteredDiscoverCards(); track card.id) {
+      <button type="button" class="discover-tab__card surface-card" (click)="onOpen(card.title)">
+        <span class="discover-tab__card-cover" [style.background-image]="'url(' + card.image + ')'">
+          <span class="discover-tab__card-tag">{{ card.tag }}</span>
+        </span>
+        <span class="discover-tab__card-body">
+          <span class="discover-tab__card-title">{{ card.title }}</span>
+          <span class="discover-tab__card-meta">{{ card.meta }}</span>
+        </span>
+      </button>
+    } @empty {
+      <div class="discover-tab__empty">No results in this category yet.</div>
+    }
+  </div>
+</div>

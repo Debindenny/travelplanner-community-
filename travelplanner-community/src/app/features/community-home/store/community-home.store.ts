@@ -3,6 +3,12 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
+  DISCOVER_CARDS,
+  DISCOVER_CATEGORIES,
+  DISCOVER_CATEGORY_TAGS,
+  DISCOVER_FEATURE,
+  DISCOVER_LIVE_COUNT,
+  DISCOVER_TOP,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
@@ -57,6 +63,7 @@ export class CommunityHomeStore {
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
+  private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
 
   readonly stories = computed(() => this.data.stories);
   readonly journeyStats = computed(() => this.data.journeyStats);
@@ -88,6 +95,7 @@ export class CommunityHomeStore {
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
+  readonly discoverCategory = this._discoverCategory.asReadonly();
 
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
 
@@ -131,6 +139,16 @@ export class CommunityHomeStore {
   readonly addToTripKinds = ADD_TO_TRIP_KINDS;
   readonly currentUser = CURRENT_USER;
 
+  readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
+  readonly discoverCategories = DISCOVER_CATEGORIES;
+  readonly discoverFeature = DISCOVER_FEATURE;
+  readonly discoverTop = DISCOVER_TOP;
+
+  readonly filteredDiscoverCards = computed(() => {
+    const tag = DISCOVER_CATEGORY_TAGS[this._discoverCategory()];
+    return tag ? DISCOVER_CARDS.filter((card) => card.tag === tag) : DISCOVER_CARDS;
+  });
+
   selectTab(tab: CommunityTab): void {
     this._activeTab.set(tab);
     this._modal.set(null);
@@ -139,6 +157,10 @@ export class CommunityHomeStore {
 
   selectFilter(filter: FeedFilter): void {
     this._filter.set(filter);
+  }
+
+  selectDiscoverCategory(category: string): void {
+    this._discoverCategory.set(category);
   }
 
   cycleDestinationFilter(): void {

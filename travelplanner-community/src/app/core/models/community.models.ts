@@ -102,6 +102,29 @@ export interface TrendingItem {
   image: string;
 }
 
+export interface DiscoverFeature {
+  title: string;
+  meta: string;
+  image: string;
+}
+
+export interface DiscoverRankedItem {
+  id: string;
+  rank: string;
+  tag: string;
+  title: string;
+  meta: string;
+  image: string;
+}
+
+export interface DiscoverCard {
+  id: string;
+  tag: string;
+  title: string;
+  meta: string;
+  image: string;
+}
+
 export interface UpcomingEvent {
   id: string;
   name: string;
