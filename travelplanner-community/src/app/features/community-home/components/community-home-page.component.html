@@ -1,6 +1,4 @@
-<div class="page-shell" (document:mousemove)="onAmbientMouseMove($event)">
-  <div class="page-aurora" aria-hidden="true" [style.--aurora-x.%]="auroraX()" [style.--aurora-y.%]="auroraY()"></div>
-
+<div class="page-shell">
   <app-header (selectMenuItem)="onProfileMenuItem($event)" (toggleTheme)="store.showToast('Dark mode is coming soon')" />
 
   <div class="secondary-bar">
@@ -25,9 +23,6 @@
         }
         @case ('Discover') {
           <app-discover-tab />
-        }
-        @case ('Travel Circles') {
-          <app-community-travelcircles (goHome)="goHome()" />
         }
         @case ('Trips') {
           <app-community-trips (goHome)="goHome()" />
