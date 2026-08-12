@@ -1,5 +1,12 @@
 <div class="modal-backdrop" (click)="close.emit()">
-  <div class="modal-shell" [style.width]="width()" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+  <div
+    class="modal-shell"
+    [class.modal-shell--violet]="variant() === 'violet'"
+    [style.width]="width()"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+  >
     @if (showHeader()) {
       <div class="modal-shell__header">
         <div class="modal-shell__header-copy">

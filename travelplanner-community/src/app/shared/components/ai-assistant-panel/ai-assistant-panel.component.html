@@ -1,6 +1,9 @@
-<button type="button" class="ai-fab" (click)="open.set(!open())">
-  <app-icon name="sparkles" [size]="16" />
-  Ask TRAVL AI
+<button type="button" class="ai-fab" [class.is-open]="open()" (click)="open.set(!open())">
+  <span class="ai-fab__ring" aria-hidden="true"></span>
+  <span class="ai-fab__icon">
+    <app-icon name="sparkles" [size]="16" />
+  </span>
+  <span class="ai-fab__label">Ask TRAVL AI</span>
 </button>
 
 @if (open()) {
