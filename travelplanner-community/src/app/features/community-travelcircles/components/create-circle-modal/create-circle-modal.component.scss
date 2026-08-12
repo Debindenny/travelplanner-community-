@@ -75,9 +75,9 @@
   }
 
   &.is-active {
-    border: 1.5px solid transparent;
-    background: linear-gradient(#f2eafe, #f2eafe) padding-box, linear-gradient(135deg, #8b5cf6, #c2569b) border-box;
-    color: #7c3aed;
+    border: 1.5px solid var(--accent);
+    background: #fff;
+    color: var(--accent);
   }
 }
 
@@ -91,8 +91,7 @@
 
 .ccm__footer {
   padding: 14px 22px;
-  border-top: 1px solid rgba(139, 92, 246, 0.16);
-  background: rgba(139, 92, 246, 0.05);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   gap: 10px;
