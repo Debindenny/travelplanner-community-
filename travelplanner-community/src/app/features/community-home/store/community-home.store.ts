@@ -265,7 +265,7 @@ export class CommunityHomeStore {
       author: CURRENT_USER.name,
       when: 'Just now',
       mine: true,
-      ...CARD_CONTENT[kind],
+      ...CARD_CONTENT[kind as keyof typeof CARD_CONTENT],
     };
     this._crewMessages.set([...this._crewMessages(), message]);
     this.showToast('Added to the crew chat');
