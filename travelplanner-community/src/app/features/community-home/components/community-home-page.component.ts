@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
 import { AppHeaderComponent } from '../../../shared/components/app-header/app-header.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
@@ -7,6 +7,12 @@ import { AiAssistantPanelComponent } from '../../../shared/components/ai-assista
 import { ComingSoonComponent } from '../../../shared/components/coming-soon/coming-soon.component';
 import { ToastComponent } from '../../../shared/components/toast/toast.component';
 import { HomeTabComponent } from './home-tab/home-tab.component';
+<<<<<<< HEAD
+import { DiscoverTabComponent } from './discover-tab/discover-tab.component';
+=======
+import { CommunityTravelCirclesComponent } from '../../community-travelcircles/components/community-travelcircles-page.component';
+import { CommunityTripsComponent } from '../../community-trips/components/community-trips-page.component';
+>>>>>>> feature/trips
 import { ModalShellComponent } from './overlays/modal-shell/modal-shell.component';
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
@@ -27,6 +33,12 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
     ComingSoonComponent,
     ToastComponent,
     HomeTabComponent,
+<<<<<<< HEAD
+    DiscoverTabComponent,
+=======
+    CommunityTravelCirclesComponent,
+    CommunityTripsComponent,
+>>>>>>> feature/trips
     ModalShellComponent,
     ComposerTypeMenuComponent,
     ComposerFormComponent,
@@ -43,6 +55,14 @@ export class CommunityHomePageComponent {
 
   readonly searchSuggestions = SEARCH_SUGGESTIONS;
   readonly aiPrompts = AI_PROMPTS;
+
+  readonly auroraX = signal(50);
+  readonly auroraY = signal(35);
+
+  onAmbientMouseMove(event: MouseEvent): void {
+    this.auroraX.set((event.clientX / window.innerWidth) * 100);
+    this.auroraY.set((event.clientY / window.innerHeight) * 100);
+  }
 
   onSelectSuggestion(suggestion: SearchSuggestion): void {
     this.store.selectTab(suggestion.target);

@@ -2,6 +2,9 @@ import {
   AiPrompt,
   CommunityHomeData,
   ComposerFormDef,
+  DiscoverCard,
+  DiscoverFeature,
+  DiscoverRankedItem,
   PostOptionsMenuItem,
   PostTypeOption,
   ProfileMenuItem,
@@ -158,6 +161,40 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
 ];
 
 export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'];
+
+export const DISCOVER_LIVE_COUNT = '1,284 travelers browsing now';
+
+export const DISCOVER_CATEGORIES: string[] = ['All', 'Tips', 'Routes', 'Reels', 'Food', 'Budget'];
+
+export const DISCOVER_CATEGORY_TAGS: Readonly<Record<string, string>> = {
+  All: '',
+  Tips: 'TIP',
+  Routes: 'ROUTE',
+  Reels: 'REEL',
+  Food: 'FOOD',
+  Budget: 'BUDGET',
+};
+
+export const DISCOVER_FEATURE: DiscoverFeature = {
+  title: 'Kyoto in three unhurried days',
+  meta: 'Rhea Sharma · 840 saves · used by 312 travelers this week',
+  image: unsplashUrl('1493976040374-85c8e12f0c0e', 1200),
+};
+
+export const DISCOVER_TOP: DiscoverRankedItem[] = [
+  { id: 'dt1', rank: '01', tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '1.2K travelers used this', image: unsplashUrl('1511739001486-6bfe10ce785f', 300) },
+  { id: 'dt2', rank: '02', tag: 'ROUTE', title: 'Europe by night train under €400', meta: '611 saves · 14 days', image: unsplashUrl('1474487548417-781cb71495f3', 300) },
+  { id: 'dt3', rank: '03', tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', image: unsplashUrl('1499856871958-5b9627545d1a', 300) },
+];
+
+export const DISCOVER_CARDS: DiscoverCard[] = [
+  { id: 'dc1', tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '46 tips · 1.2K used', image: unsplashUrl('1511739001486-6bfe10ce785f', 600) },
+  { id: 'dc2', tag: 'ROUTE', title: 'Kyoto in three unhurried days', meta: 'Rhea Sharma · 840 saves', image: unsplashUrl('1493976040374-85c8e12f0c0e', 600) },
+  { id: 'dc3', tag: 'REEL', title: 'Sunset from Shibuya Sky', meta: 'Maya Kondo · 24K views', image: unsplashUrl('1540959733332-eab4deabeeaf', 600) },
+  { id: 'dc4', tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', image: unsplashUrl('1504674900247-0877df9cc836', 600) },
+  { id: 'dc5', tag: 'BUDGET', title: 'Europe by night train under €400', meta: 'Marco Villa · 611 saves', image: unsplashUrl('1474487548417-781cb71495f3', 600) },
+  { id: 'dc6', tag: 'TIP', title: 'Lisbon without a single taxi', meta: 'Iker Solano · 6 entries', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
+];
 
 export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [
   { label: 'Save post', hint: 'Add to a collection', message: 'Saved' },

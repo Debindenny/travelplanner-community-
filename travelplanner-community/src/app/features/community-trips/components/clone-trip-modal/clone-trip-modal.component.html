@@ -1,0 +1,48 @@
+<div class="ctm__body">
+  <div class="ctm__callout">
+    <strong class="ctm__callout-title">We won't copy {{ authorFirstName() }}'s trip.</strong>
+    <p class="ctm__callout-copy">
+      TRAVL AI rebuilds the route around your dates, budget, pace and interests — keeping the parts travelers rated most useful.
+    </p>
+  </div>
+
+  <div class="ctm__row">
+    <label class="ctm__field">
+      <span class="ctm__label">Your dates</span>
+      <input class="ctm__input" type="text" [value]="dates()" (input)="dates.set($any($event.target).value)" placeholder="e.g. Oct 12 - Oct 19" />
+    </label>
+    <label class="ctm__field">
+      <span class="ctm__label">Travelers</span>
+      <input class="ctm__input" type="text" [value]="travelers()" (input)="travelers.set($any($event.target).value)" placeholder="e.g. 2 adults" />
+    </label>
+  </div>
+
+  <div class="ctm__field">
+    <span class="ctm__label">Pace</span>
+    <div class="ctm__pills">
+      @for (option of paceOptions; track option) {
+        <button type="button" class="ctm__pill" [class.is-active]="pace() === option" (click)="pace.set(option)">{{ option }}</button>
+      }
+    </div>
+  </div>
+
+  <div class="ctm__field">
+    <span class="ctm__label">Interests</span>
+    <div class="ctm__pills">
+      @for (option of interestOptions; track option) {
+        <button type="button" class="ctm__pill" [class.is-active]="interests().has(option)" (click)="toggleInterest(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="ctm__footer">
+  <span class="ctm__spacer"></span>
+  <button type="button" class="ctm__cancel" (click)="cancel.emit()">Cancel</button>
+  <button type="button" class="ctm__build" (click)="onBuild()">
+    <app-icon name="sparkles" [size]="14" />
+    Build my version
+  </button>
+</div>

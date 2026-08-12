@@ -25,6 +25,15 @@
   animation: travl-up 0.18s ease;
 }
 
+.modal-shell--violet {
+  border: 1.5px solid transparent;
+  background: linear-gradient(#faf5ff, #faf5ff) padding-box, linear-gradient(135deg, #8b5cf6, #c2569b) border-box;
+
+  .modal-shell__header {
+    border-bottom-color: rgba(139, 92, 246, 0.16);
+  }
+}
+
 .modal-shell__header {
   padding: 18px 22px;
   border-bottom: 1px solid var(--border-soft);
