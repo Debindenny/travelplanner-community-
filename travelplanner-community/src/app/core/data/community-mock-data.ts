@@ -385,6 +385,82 @@ export function buildCommunityHomeData(): CommunityHomeData {
       { id: 'sv4', kind: 'Tip', title: 'Tram 24E · Campolide', meta: 'Lisbon · saved 4d ago', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
       { id: 'sv5', kind: 'Trip', title: '5 Days in Lisbon & Sintra', meta: 'Community trip · saved 1w ago', image: unsplashUrl('1555881400-74d7acaacd8b', 600) },
     ],
+    destinations: [
+      {
+        id: 'ds1',
+        name: 'Paris, France',
+        members: '24.8K travelers',
+        livePlanning: '428 planning',
+        hot: 'HOT',
+        image: unsplashUrl('1502602898657-3e91760cbb34', 700),
+        stats: [
+          { value: '3.1K', label: 'Tips' },
+          { value: '412', label: 'Trips' },
+          { value: '96', label: 'Events' },
+        ],
+      },
+      {
+        id: 'ds2',
+        name: 'Tokyo, Japan',
+        members: '38.2K travelers',
+        livePlanning: '610 planning',
+        hot: 'HOT',
+        image: unsplashUrl('1540959733332-eab4deabeeaf', 700),
+        stats: [
+          { value: '5.4K', label: 'Tips' },
+          { value: '780', label: 'Trips' },
+          { value: '132', label: 'Events' },
+        ],
+      },
+      {
+        id: 'ds3',
+        name: 'Bali, Indonesia',
+        members: '16.1K travelers',
+        livePlanning: '214 planning',
+        image: unsplashUrl('1537996194471-e657df975ab4', 700),
+        stats: [
+          { value: '2.2K', label: 'Tips' },
+          { value: '301', label: 'Trips' },
+          { value: '48', label: 'Events' },
+        ],
+      },
+      {
+        id: 'ds4',
+        name: 'Lisbon, Portugal',
+        members: '11.7K travelers',
+        livePlanning: '168 planning',
+        image: unsplashUrl('1585208798174-6cedd86e019a', 700),
+        stats: [
+          { value: '1.6K', label: 'Tips' },
+          { value: '224', label: 'Trips' },
+          { value: '31', label: 'Events' },
+        ],
+      },
+      {
+        id: 'ds5',
+        name: 'Reykjavík, Iceland',
+        members: '7.4K travelers',
+        livePlanning: '96 planning',
+        image: unsplashUrl('1504829857797-ddff29c27927', 700),
+        stats: [
+          { value: '980', label: 'Tips' },
+          { value: '141', label: 'Trips' },
+          { value: '18', label: 'Events' },
+        ],
+      },
+      {
+        id: 'ds6',
+        name: 'Marrakech, Morocco',
+        members: '9.2K travelers',
+        livePlanning: '121 planning',
+        image: unsplashUrl('1539020140153-e479b8c22e70', 700),
+        stats: [
+          { value: '1.1K', label: 'Tips' },
+          { value: '187', label: 'Trips' },
+          { value: '22', label: 'Events' },
+        ],
+      },
+    ],
   };
 }
 

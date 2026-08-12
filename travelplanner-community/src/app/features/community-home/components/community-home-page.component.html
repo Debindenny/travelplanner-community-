@@ -30,6 +30,9 @@
         @case ('Saved') {
           <app-saved-tab />
         }
+        @case ('Destinations') {
+          <app-destinations-tab />
+        }
         @default {
           <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />
         }

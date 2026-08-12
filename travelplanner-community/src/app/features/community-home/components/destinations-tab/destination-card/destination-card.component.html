@@ -1,0 +1,32 @@
+<article class="destination-card">
+  <div class="destination-card__cover" [style.background-image]="'url(' + destination().image + ')'">
+    <span class="destination-card__live">
+      <span class="destination-card__live-dot"></span>{{ destination().livePlanning }}
+    </span>
+    @if (destination().hot) {
+      <span class="destination-card__hot">{{ destination().hot }}</span>
+    }
+    <div class="destination-card__identity">
+      <strong class="destination-card__name">{{ destination().name }}</strong>
+      <span class="destination-card__members">{{ destination().members }}</span>
+    </div>
+  </div>
+
+  <div class="destination-card__body">
+    <div class="destination-card__stats">
+      @for (stat of destination().stats; track stat.label) {
+        <div class="destination-card__stat">
+          <strong>{{ stat.value }}</strong>
+          <span>{{ stat.label }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="destination-card__actions">
+      <button type="button" class="destination-card__view" (click)="viewPosts.emit()">View posts</button>
+      <button type="button" class="destination-card__join" [class.is-joined]="joined()" (click)="toggleJoin.emit()">
+        {{ joined() ? 'Joined' : 'Join' }}
+      </button>
+    </div>
+  </div>
+</article>

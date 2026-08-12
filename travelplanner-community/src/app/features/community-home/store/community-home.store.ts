@@ -16,6 +16,7 @@ import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
+  DestinationSort,
   FeedFilter,
   ModalState,
   SavedCollectionTab,
@@ -42,6 +43,7 @@ export class CommunityHomeStore {
   private readonly _filter = signal<FeedFilter>('For You');
   private readonly _viewMode = signal<ViewMode>('Feed');
   private readonly _destinationFilterIndex = signal(0);
+  private readonly _destinationSort = signal<DestinationSort>('Popular');
   private readonly _hasUpcomingTrip = signal(true);
   private readonly _planText = signal('');
   private readonly _profileOpen = signal(false);
@@ -75,6 +77,7 @@ export class CommunityHomeStore {
   readonly trending = computed(() => this.data.trending);
   readonly events = computed(() => this.data.events);
   readonly sideCircles = computed(() => this.data.sideCircles);
+  readonly destinations = computed(() => this.data.destinations);
 
   private readonly remainingSavedCollection = computed(() =>
     this.data.savedCollection.filter((item) => !this._removedSavedCollectionIds().has(item.id)),
@@ -121,6 +124,7 @@ export class CommunityHomeStore {
   readonly discoverCategory = this._discoverCategory.asReadonly();
 
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
+  readonly destinationSort = this._destinationSort.asReadonly();
 
   readonly visiblePosts = computed(() => {
     if (this._viewMode() === 'Map') {
@@ -188,6 +192,10 @@ export class CommunityHomeStore {
 
   cycleDestinationFilter(): void {
     this._destinationFilterIndex.set((this._destinationFilterIndex() + 1) % DESTINATION_FILTERS.length);
+  }
+
+  setDestinationSort(sort: DestinationSort): void {
+    this._destinationSort.set(sort);
   }
 
   setViewMode(mode: ViewMode): void {

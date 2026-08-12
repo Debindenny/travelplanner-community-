@@ -1,0 +1,34 @@
+<div class="destinations-tab">
+  <div class="destinations-tab__header">
+    <div class="destinations-tab__copy">
+      <div class="destinations-tab__eyebrow">DESTINATION COMMUNITIES</div>
+      <h1 class="destinations-tab__title">Join the place, not just the trip</h1>
+      <p class="destinations-tab__lead">Every destination has its own feed of tips, trips and meetups from travelers there right now.</p>
+    </div>
+    <div class="destinations-tab__sorts" role="toolbar" aria-label="Sort destinations">
+      @for (sort of sorts; track sort) {
+        <button type="button" class="pill" [class.is-active]="store.destinationSort() === sort" (click)="store.setDestinationSort(sort)">
+          {{ sort }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (store.destinations().length) {
+    <div class="destinations-tab__grid">
+      @for (destination of store.destinations(); track destination.id) {
+        <app-destination-card
+          [destination]="destination"
+          [joined]="isJoined(destination.id)"
+          (viewPosts)="onViewPosts(destination)"
+          (toggleJoin)="onToggleJoin(destination)"
+        />
+      }
+    </div>
+  } @else {
+    <div class="destinations-tab__empty">
+      <div class="destinations-tab__empty-title">No destination communities yet</div>
+      <p class="destinations-tab__empty-copy">Check back soon — new destinations are added as travelers start planning.</p>
+    </div>
+  }
+</div>
