@@ -71,11 +71,17 @@
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-  flex: 1;
 
   @media (max-width: 1000px) {
     display: none;
   }
+}
+
+.topbar__search {
+  flex: 1;
+  min-width: 0;
+  max-width: 420px;
+  margin: 0 4px;
 }
 
 .topbar__nav-link {
@@ -120,7 +126,6 @@
   align-items: center;
   gap: 14px;
   flex: none;
-  margin-left: auto;
 }
 
 .topbar__locale {

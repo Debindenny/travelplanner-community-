@@ -1,11 +1,10 @@
 export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Travel Circles' | 'Events' | 'Saved';
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
-export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type DestinationSort = 'Popular' | 'Near me';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'circleForm';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
@@ -103,6 +102,26 @@ export interface TrendingItem {
   title: string;
   meta: string;
   image: string;
+}
+
+export type CrewMessageKind = 'text' | 'place' | 'poll' | 'meet' | 'split';
+
+export interface CrewPollOption {
+  id: string;
+  label: string;
+  basePercent: number;
+}
+
+export interface CrewMessage {
+  id: string;
+  kind: CrewMessageKind;
+  author: string;
+  text: string;
+  sub?: string;
+  when: string;
+  image?: string;
+  options?: CrewPollOption[];
+  mine?: boolean;
 }
 
 export interface DiscoverFeature {

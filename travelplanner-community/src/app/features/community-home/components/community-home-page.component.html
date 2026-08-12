@@ -1,11 +1,10 @@
 <div class="page-shell">
-  <app-header (selectMenuItem)="onProfileMenuItem($event)" (toggleTheme)="store.showToast('Dark mode is coming soon')" />
-
-  <div class="secondary-bar">
-    <div class="secondary-bar__inner">
-      <app-search-bar [suggestions]="searchSuggestions" (selectSuggestion)="onSelectSuggestion($event)" />
-    </div>
-  </div>
+  <app-header
+    [suggestions]="searchSuggestions"
+    (selectSuggestion)="onSelectSuggestion($event)"
+    (selectMenuItem)="onProfileMenuItem($event)"
+    (toggleTheme)="store.showToast('Dark mode is coming soon')"
+  />
 
   <div class="page-grid">
     <app-sidebar-nav
@@ -117,6 +116,11 @@
     @case ('postOptions') {
       <app-modal-shell title="Post options" subtitle="You control what you see and who can reach you." (close)="store.closeModal()">
         <app-post-options-modal (selectItem)="store.runPostOptionsAction($event.message)" />
+      </app-modal-shell>
+    }
+    @case ('circleForm') {
+      <app-modal-shell title="Create a travel circle" subtitle="Small groups planning the same kind of travel." (close)="store.closeModal()">
+        <app-create-circle-modal (cancel)="store.closeModal()" (create)="store.submitCircleForm($event)" />
       </app-modal-shell>
     }
   }

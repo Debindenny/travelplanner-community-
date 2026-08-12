@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { AppHeaderComponent } from '../../../shared/components/app-header/app-header.component';
-import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { SidebarNavComponent } from '../../../shared/components/sidebar-nav/sidebar-nav.component';
 import { AiAssistantPanelComponent } from '../../../shared/components/ai-assistant-panel/ai-assistant-panel.component';
 import { ComingSoonComponent } from '../../../shared/components/coming-soon/coming-soon.component';
@@ -19,6 +18,7 @@ import { ComposerFormComponent } from './overlays/composer-form/composer-form.co
 import { AddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-trip-modal.component';
 import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-viewer-modal.component';
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
+import { CreateCircleModalComponent } from '../../community-travelcircles/components/create-circle-modal/create-circle-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
 import { AI_PROMPTS, SEARCH_SUGGESTIONS } from '../../../core/data/community-mock-data';
 import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle } from '../../../core/models/community.models';
@@ -27,7 +27,6 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
   selector: 'app-community-home-page',
   imports: [
     AppHeaderComponent,
-    SearchBarComponent,
     SidebarNavComponent,
     AiAssistantPanelComponent,
     ComingSoonComponent,
@@ -45,6 +44,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
     AddToTripModalComponent,
     StoryViewerModalComponent,
     PostOptionsModalComponent,
+    CreateCircleModalComponent,
   ],
   templateUrl: './community-home-page.component.html',
   styleUrl: './community-home-page.component.scss',

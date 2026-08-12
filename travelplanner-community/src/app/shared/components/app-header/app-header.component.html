@@ -17,6 +17,8 @@
       }
     </nav>
 
+    <app-search-bar class="topbar__search" [suggestions]="suggestions()" (selectSuggestion)="selectSuggestion.emit($event)" />
+
     <div class="topbar__actions" aria-label="Quick tools">
       <div class="topbar__locale">
         <span>US</span><span class="topbar__locale-accent">EN</span><span>/ INR</span>

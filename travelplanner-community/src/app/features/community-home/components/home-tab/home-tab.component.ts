@@ -10,12 +10,6 @@ import { CommunitySidebarComponent } from './community-sidebar/community-sidebar
 import { CommunityHomeStore } from '../../store/community-home.store';
 import { CommunityStory, PostComment, TravelMatch, TravelerRailItem, TrendingItem, UpcomingEvent } from '../../../../core/models/community.models';
 
-interface MapPin {
-  label: string;
-  x: number;
-  y: number;
-}
-
 @Component({
   selector: 'app-home-tab',
   imports: [
@@ -33,13 +27,6 @@ interface MapPin {
 })
 export class HomeTabComponent {
   readonly store = inject(CommunityHomeStore);
-
-  readonly mapPins: MapPin[] = [
-    { label: 'Shibuya Sky · 12 tips', x: 20, y: 28 },
-    { label: 'Montmartre · 18 saves', x: 56, y: 18 },
-    { label: 'Louvre · 31 posts', x: 38, y: 56 },
-    { label: 'Lisbon route · 9 trips', x: 68, y: 64 },
-  ];
 
   isFollowed(id: string): boolean {
     return this.store.followedIds().has(id);

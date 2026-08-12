@@ -1,4 +1,21 @@
 <aside class="community-sidebar">
+  <app-travel-crew-card
+    [inCrew]="inCrew()"
+    [messages]="crewMessages()"
+    [draft]="crewDraft()"
+    [votes]="crewVotes()"
+    [rsvpIds]="crewRsvpIds()"
+    [settledIds]="crewSettledIds()"
+    (join)="joinCrew.emit()"
+    (createCircle)="createCircle.emit()"
+    (draftChange)="crewDraftChange.emit($event)"
+    (send)="sendCrew.emit()"
+    (addCard)="addCrewCard.emit($event)"
+    (vote)="voteCrewPoll.emit($event)"
+    (toggleRsvp)="toggleCrewRsvp.emit($event)"
+    (toggleSettled)="toggleCrewSettled.emit($event)"
+  />
+
   <app-journey-card [stats]="journeyStats()" />
 
   <app-travelers-rail-card

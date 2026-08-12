@@ -3,6 +3,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
+  CREW_MESSAGES,
   DISCOVER_CARDS,
   DISCOVER_CATEGORIES,
   DISCOVER_CATEGORY_TAGS,
@@ -16,14 +17,16 @@ import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
+  CrewMessage,
+  CrewMessageKind,
   DestinationSort,
   EventsFilter,
   FeedFilter,
   ModalState,
   SavedCollectionTab,
   StoryViewerPayload,
-  ViewMode,
 } from '../../../core/models/community.models';
+import { CreateCirclePayload } from '../../community-travelcircles/components/create-circle-modal/create-circle-modal.component';
 
 const CURRENT_USER = {
   name: 'Ava Reyes',
@@ -43,7 +46,6 @@ export class CommunityHomeStore {
   private readonly _activeTab = signal<CommunityTab>('Home');
   private readonly _filter = signal<FeedFilter>('For You');
   private readonly _eventsFilter = signal<EventsFilter>('All');
-  private readonly _viewMode = signal<ViewMode>('Feed');
   private readonly _destinationFilterIndex = signal(0);
   private readonly _destinationSort = signal<DestinationSort>('Popular');
   private readonly _hasUpcomingTrip = signal(true);
@@ -71,6 +73,13 @@ export class CommunityHomeStore {
   private readonly _tripPick = signal('t1');
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
+
+  private readonly _inCrew = signal(false);
+  private readonly _crewMessages = signal<CrewMessage[]>(CREW_MESSAGES);
+  private readonly _crewDraft = signal('');
+  private readonly _crewVotes = signal<Readonly<Record<string, string>>>({});
+  private readonly _crewRsvpIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _crewSettledIds = signal<ReadonlySet<string>>(new Set());
 
   readonly stories = computed(() => this.data.stories);
   readonly journeyStats = computed(() => this.data.journeyStats);
@@ -104,7 +113,6 @@ export class CommunityHomeStore {
   readonly activeTab = this._activeTab.asReadonly();
   readonly filter = this._filter.asReadonly();
   readonly eventsFilter = this._eventsFilter.asReadonly();
-  readonly viewMode = this._viewMode.asReadonly();
   readonly hasUpcomingTrip = this._hasUpcomingTrip.asReadonly();
   readonly planText = this._planText.asReadonly();
   readonly profileOpen = this._profileOpen.asReadonly();
@@ -126,13 +134,17 @@ export class CommunityHomeStore {
   readonly addKind = this._addKind.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
 
+  readonly inCrew = this._inCrew.asReadonly();
+  readonly crewMessages = this._crewMessages.asReadonly();
+  readonly crewDraft = this._crewDraft.asReadonly();
+  readonly crewVotes = this._crewVotes.asReadonly();
+  readonly crewRsvpIds = this._crewRsvpIds.asReadonly();
+  readonly crewSettledIds = this._crewSettledIds.asReadonly();
+
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
   readonly destinationSort = this._destinationSort.asReadonly();
 
   readonly visiblePosts = computed(() => {
-    if (this._viewMode() === 'Map') {
-      return [];
-    }
     const filter = this._filter();
     const destination = this.destinationFilter();
     return this._posts().filter((post) => {
@@ -142,7 +154,7 @@ export class CommunityHomeStore {
     });
   });
 
-  readonly feedEmpty = computed(() => this._viewMode() === 'Feed' && this.visiblePosts().length === 0);
+  readonly feedEmpty = computed(() => this.visiblePosts().length === 0);
 
   readonly visibleEventListings = computed(() => {
     const filter = this._eventsFilter();
@@ -157,9 +169,7 @@ export class CommunityHomeStore {
     });
   });
 
-  readonly showSimilarTravelers = computed(
-    () => this._viewMode() === 'Feed' && (this._filter() === 'For You' || this._filter() === 'Near My Trip'),
-  );
+  readonly showSimilarTravelers = computed(() => this._filter() === 'For You' || this._filter() === 'Near My Trip');
 
   readonly activeStory = computed(() => this._modal()?.story ?? null);
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
@@ -210,16 +220,80 @@ export class CommunityHomeStore {
     this._eventsFilter.set(filter);
   }
 
+  joinCrew(): void {
+    this._inCrew.set(true);
+    this.showToast('You’re in · Paris Crew, 03–09 Jun');
+  }
+
+  setCrewDraft(text: string): void {
+    this._crewDraft.set(text);
+  }
+
+  sendCrew(): void {
+    const text = this._crewDraft().trim();
+    if (!text) {
+      return;
+    }
+    const message: CrewMessage = {
+      id: `crew-${this._crewMessages().length}`,
+      kind: 'text',
+      author: CURRENT_USER.name,
+      text,
+      when: 'Just now',
+      mine: true,
+    };
+    this._crewMessages.set([...this._crewMessages(), message]);
+    this._crewDraft.set('');
+  }
+
+  addCrewCard(kind: CrewMessageKind): void {
+    const CARD_CONTENT: Record<Exclude<CrewMessageKind, 'text'>, Pick<CrewMessage, 'text' | 'sub' | 'options'>> = {
+      place: { text: 'Shared a place', sub: 'Tap to view details' },
+      poll: {
+        text: 'Quick poll for the crew',
+        options: [
+          { id: 'o0', label: 'Option A', basePercent: 0 },
+          { id: 'o1', label: 'Option B', basePercent: 0 },
+        ],
+      },
+      meet: { text: 'Propose a meet-up', sub: 'Time & place TBD' },
+      split: { text: 'New expense', sub: 'Split evenly' },
+    };
+    const message: CrewMessage = {
+      id: `crew-${this._crewMessages().length}`,
+      kind,
+      author: CURRENT_USER.name,
+      when: 'Just now',
+      mine: true,
+      ...CARD_CONTENT[kind],
+    };
+    this._crewMessages.set([...this._crewMessages(), message]);
+    this.showToast('Added to the crew chat');
+  }
+
+  voteCrewPoll(messageId: string, optionId: string): void {
+    this._crewVotes.set({ ...this._crewVotes(), [messageId]: optionId });
+    this.showToast('Vote counted');
+  }
+
+  toggleCrewRsvp(messageId: string): void {
+    const wasGoing = this._crewRsvpIds().has(messageId);
+    this._crewRsvpIds.set(this.toggledSet(this._crewRsvpIds(), messageId));
+    this.showToast(wasGoing ? 'RSVP removed' : 'You’re in');
+  }
+
+  toggleCrewSettled(messageId: string): void {
+    const wasSettled = this._crewSettledIds().has(messageId);
+    this._crewSettledIds.set(this.toggledSet(this._crewSettledIds(), messageId));
+    this.showToast(wasSettled ? 'Marked unpaid' : 'Marked as paid');
+  }
+
   cycleDestinationFilter(): void {
     this._destinationFilterIndex.set((this._destinationFilterIndex() + 1) % DESTINATION_FILTERS.length);
   }
 
   setDestinationSort(sort: DestinationSort): void {
     this._destinationSort.set(sort);
-  }
-
-  setViewMode(mode: ViewMode): void {
-    this._viewMode.set(mode);
   }
 
   toggleProfile(): void {
@@ -479,6 +553,16 @@ export class CommunityHomeStore {
 
   openPostOptions(): void {
     this._modal.set({ kind: 'postOptions' });
+  }
+
+  openCircleForm(): void {
+    this._modal.set({ kind: 'circleForm' });
+  }
+
+  submitCircleForm(payload: CreateCirclePayload): void {
+    this._modal.set(null);
+    this.showToast(`“${payload.name}” created`);
+    this._activeTab.set('Travel Circles');
   }
 
   runPostOptionsAction(message: string): void {

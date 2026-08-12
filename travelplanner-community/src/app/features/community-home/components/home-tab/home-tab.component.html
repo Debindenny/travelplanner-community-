@@ -17,23 +17,11 @@
       <app-feed-filter-bar
         [activeFilter]="store.filter()"
         [destinationFilter]="store.destinationFilter()"
-        [viewMode]="store.viewMode()"
         (selectFilter)="store.selectFilter($event)"
         (cycleDestination)="store.cycleDestinationFilter()"
-        (selectViewMode)="store.setViewMode($event)"
       />
 
-      @if (store.viewMode() === 'Map') {
-        <div class="map-panel">
-          <div class="map-panel__grid"></div>
-          @for (pin of mapPins; track pin.label) {
-            <button type="button" class="map-panel__pin" [style.left.%]="pin.x" [style.top.%]="pin.y" (click)="store.showToast('Opening ' + pin.label)">
-              <span class="map-panel__pin-dot"></span>{{ pin.label }}
-            </button>
-          }
-          <div class="map-panel__caption">Community posts near your Paris trip · destination-level only</div>
-        </div>
-      } @else if (store.feedEmpty()) {
+      @if (store.feedEmpty()) {
         <div class="empty-state">
           <span class="empty-state__icon">
             <app-icon name="compass" [size]="22" />
@@ -88,10 +76,23 @@
       [events]="store.events()"
       [followedIds]="store.followedIds()"
       [joinedIds]="store.joinedIds()"
+      [inCrew]="store.inCrew()"
+      [crewMessages]="store.crewMessages()"
+      [crewDraft]="store.crewDraft()"
+      [crewVotes]="store.crewVotes()"
+      [crewRsvpIds]="store.crewRsvpIds()"
+      [crewSettledIds]="store.crewSettledIds()"
       (toggleFollowTraveler)="onToggleFollowTraveler($event)"
-      (createCircle)="store.showToast('Circle created')"
+      (createCircle)="store.openCircleForm()"
       (openTrending)="onOpenTrending($event)"
       (toggleJoinEvent)="onToggleJoinEvent($event)"
+      (joinCrew)="store.joinCrew()"
+      (crewDraftChange)="store.setCrewDraft($event)"
+      (sendCrew)="store.sendCrew()"
+      (addCrewCard)="store.addCrewCard($event)"
+      (voteCrewPoll)="store.voteCrewPoll($event.messageId, $event.optionId)"
+      (toggleCrewRsvp)="store.toggleCrewRsvp($event)"
+      (toggleCrewSettled)="store.toggleCrewSettled($event)"
     />
   </div>
 </div>
