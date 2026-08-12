@@ -1,0 +1,13 @@
+<div class="event-filter-bar" role="group" aria-label="Filter events">
+  @for (filterOption of filters; track filterOption) {
+    <button
+      type="button"
+      class="event-filter-bar__pill"
+      [class.is-active]="activeFilter() === filterOption"
+      [attr.aria-pressed]="activeFilter() === filterOption"
+      (click)="selectFilter.emit(filterOption)"
+    >
+      {{ filterOption }}
+    </button>
+  }
+</div>
