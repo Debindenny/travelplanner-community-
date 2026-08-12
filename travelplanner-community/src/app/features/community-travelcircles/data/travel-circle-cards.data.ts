@@ -2,7 +2,7 @@ export interface TravelCircleCard {
   id: string;
   title: string;
   meta: string;
-  visibility: 'Public' | 'Invite only';
+  visibility: 'Public' | 'Invite only' | 'Friends';
   description: string;
   activity: string;
   live: boolean;

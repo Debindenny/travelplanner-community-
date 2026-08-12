@@ -87,7 +87,7 @@
 </section>
 
 <div class="circle-grid">
-  @for (card of cards; track card.id) {
+  @for (card of cards(); track card.id) {
     <article
       class="circle-card"
       [style.--accent]="card.accent"
@@ -125,3 +125,14 @@
     </article>
   }
 </div>
+
+@if (showCreateModal()) {
+  <app-modal-shell
+    variant="violet"
+    title="Create a travel circle"
+    subtitle="Small groups planning the same kind of travel."
+    (close)="onCancelCreateCircle()"
+  >
+    <app-create-circle-modal (cancel)="onCancelCreateCircle()" (create)="onCircleCreated($event)" />
+  </app-modal-shell>
+}

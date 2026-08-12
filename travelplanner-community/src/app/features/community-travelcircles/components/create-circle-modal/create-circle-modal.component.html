@@ -1,0 +1,44 @@
+<div class="ccm__body">
+  <label class="ccm__field">
+    <span class="ccm__label">Circle name</span>
+    <input
+      class="ccm__input"
+      type="text"
+      [value]="name()"
+      (input)="onNameInput($any($event.target).value)"
+      placeholder="e.g. Japan Spring 2027"
+    />
+  </label>
+
+  <label class="ccm__field">
+    <span class="ccm__label">What is it for?</span>
+    <textarea
+      class="ccm__textarea"
+      rows="3"
+      [value]="description()"
+      (input)="onDescriptionInput($any($event.target).value)"
+      placeholder="Cherry-blossom trip planning — splitting JR passes and comparing stays."
+    ></textarea>
+  </label>
+
+  <div class="ccm__field">
+    <span class="ccm__label">Who can join</span>
+    <div class="ccm__pills">
+      @for (option of visibilityOptions; track option) {
+        <button type="button" class="ccm__pill" [class.is-active]="visibility() === option" (click)="visibility.set(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+    <p class="ccm__hint">{{ visibilityHint() }}</p>
+  </div>
+</div>
+
+<div class="ccm__footer">
+  @if (!ready()) {
+    <span class="ccm__footer-hint">Name your circle to continue</span>
+  }
+  <span class="ccm__spacer"></span>
+  <button type="button" class="ccm__cancel" (click)="cancel.emit()">Cancel</button>
+  <button type="button" class="ccm__submit" [class.is-ready]="ready()" [disabled]="!ready()" (click)="onCreate()">Create circle</button>
+</div>

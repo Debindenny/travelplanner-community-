@@ -1,8 +1,17 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
+import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
+
+const ACCENT_PALETTE: Array<[string, string]> = [
+  ['#0060ea', '#2aa98b'],
+  ['#8b5cf6', '#c2569b'],
+  ['#5b3fa0', '#8b5cf6'],
+  ['#2aa98b', '#0060ea'],
+];
 
 interface Star {
   x: number;
@@ -22,7 +31,7 @@ const DEFAULT_TILT: CardTilt = { rx: 0, ry: 0, mx: 50, my: 50 };
 
 @Component({
   selector: 'app-community-travelcircles',
-  imports: [IconComponent],
+  imports: [IconComponent, ModalShellComponent, CreateCircleModalComponent],
   templateUrl: './community-travelcircles-page.component.html',
   styleUrl: './community-travelcircles-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,7 +41,11 @@ export class CommunityTravelCirclesComponent {
 
   readonly goHome = output<void>();
 
-  readonly cards = TRAVEL_CIRCLE_CARDS;
+  private readonly _cards = signal<TravelCircleCard[]>(TRAVEL_CIRCLE_CARDS);
+  readonly cards = this._cards.asReadonly();
+
+  readonly showCreateModal = signal(false);
+
   readonly flightPath = 'M60,80 Q 420,10 600,110 T 1140,55';
 
   readonly stars: Star[] = [
@@ -122,6 +135,31 @@ export class CommunityTravelCirclesComponent {
   }
 
   onCreateCircle(): void {
-    this.store.showToast('Circle created');
+    this.showCreateModal.set(true);
+  }
+
+  onCancelCreateCircle(): void {
+    this.showCreateModal.set(false);
+  }
+
+  onCircleCreated(payload: CreateCirclePayload): void {
+    const [accent, accent2] = ACCENT_PALETTE[this._cards().length % ACCENT_PALETTE.length];
+
+    const newCard: TravelCircleCard = {
+      id: `tc-${this._cards().length}-${payload.name.toLowerCase().replace(/\s+/g, '-')}`,
+      title: payload.name,
+      meta: '1 member · just created',
+      visibility: payload.visibility,
+      description: payload.description || 'A new circle for planning together.',
+      activity: 'Active now',
+      live: true,
+      cta: payload.visibility === 'Invite only' ? 'Request' : 'Join',
+      accent,
+      accent2,
+    };
+
+    this._cards.set([newCard, ...this._cards()]);
+    this.showCreateModal.set(false);
+    this.store.showToast(`"${payload.name}" created`);
   }
 }
