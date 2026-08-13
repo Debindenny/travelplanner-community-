@@ -16,6 +16,7 @@ import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
+  EventsFilter,
   FeedFilter,
   ModalState,
   SavedCollectionTab,
@@ -40,6 +41,7 @@ export class CommunityHomeStore {
   private readonly _posts = signal<CommunityPost[]>(this.data.posts);
   private readonly _activeTab = signal<CommunityTab>('Home');
   private readonly _filter = signal<FeedFilter>('For You');
+  private readonly _eventsFilter = signal<EventsFilter>('All');
   private readonly _viewMode = signal<ViewMode>('Feed');
   private readonly _destinationFilterIndex = signal(0);
   private readonly _hasUpcomingTrip = signal(true);
@@ -97,6 +99,7 @@ export class CommunityHomeStore {
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly filter = this._filter.asReadonly();
+  readonly eventsFilter = this._eventsFilter.asReadonly();
   readonly viewMode = this._viewMode.asReadonly();
   readonly hasUpcomingTrip = this._hasUpcomingTrip.asReadonly();
   readonly planText = this._planText.asReadonly();
@@ -135,6 +138,19 @@ export class CommunityHomeStore {
   });
 
   readonly feedEmpty = computed(() => this._viewMode() === 'Feed' && this.visiblePosts().length === 0);
+
+  readonly visibleEventListings = computed(() => {
+    const filter = this._eventsFilter();
+    return this.data.eventListings.filter((event) => {
+      if (filter === 'Online') {
+        return event.isOnline;
+      }
+      if (filter === 'Near me') {
+        return !event.isOnline;
+      }
+      return true;
+    });
+  });
 
   readonly showSimilarTravelers = computed(
     () => this._viewMode() === 'Feed' && (this._filter() === 'For You' || this._filter() === 'Near My Trip'),
@@ -183,6 +199,10 @@ export class CommunityHomeStore {
 
   selectDiscoverCategory(category: string): void {
     this._discoverCategory.set(category);
+  }
+
+  selectEventsFilter(filter: EventsFilter): void {
+    this._eventsFilter.set(filter);
   }
 
   cycleDestinationFilter(): void {

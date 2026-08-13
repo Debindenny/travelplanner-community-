@@ -135,6 +135,19 @@ export interface UpcomingEvent {
   day: string;
 }
 
+export type EventBadgeKind = 'Meetup' | 'Food' | 'Online';
+export type EventsFilter = 'All' | 'Near me' | 'Online';
+
+export interface EventListing {
+  id: string;
+  month: string;
+  day: string;
+  badge: EventBadgeKind;
+  title: string;
+  meta: string;
+  travelersGoing: number;
+  isOnline: boolean;
+}
 
 export interface SavedCollectionItem {
   id: string;
@@ -228,4 +241,5 @@ export interface CommunityHomeData {
   trending: TrendingItem[];
   events: UpcomingEvent[];
   savedCollection: SavedCollectionItem[];
+  eventListings: EventListing[];
 }

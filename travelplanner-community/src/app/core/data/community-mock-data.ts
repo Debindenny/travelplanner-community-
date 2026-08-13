@@ -378,6 +378,48 @@ export function buildCommunityHomeData(): CommunityHomeData {
       { id: 'sv4', kind: 'Tip', title: 'Tram 24E · Campolide', meta: 'Lisbon · saved 4d ago', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
       { id: 'sv5', kind: 'Trip', title: '5 Days in Lisbon & Sintra', meta: 'Community trip · saved 1w ago', image: unsplashUrl('1555881400-74d7acaacd8b', 600) },
     ],
+    eventListings: [
+      {
+        id: 'ev1',
+        month: 'JUN',
+        day: '07',
+        badge: 'Meetup',
+        title: 'Paris Photography Walk',
+        meta: 'Montmartre, Paris · 09:00 · Free',
+        travelersGoing: 14,
+        isOnline: false,
+      },
+      {
+        id: 'ev2',
+        month: 'JUN',
+        day: '15',
+        badge: 'Food',
+        title: 'Tokyo Ramen Meetup',
+        meta: 'Shinjuku, Tokyo · 19:00 · ¥3,000',
+        travelersGoing: 32,
+        isOnline: false,
+      },
+      {
+        id: 'ev3',
+        month: 'JUN',
+        day: '22',
+        badge: 'Online',
+        title: 'Planning Japan 2027 — live Q&A',
+        meta: 'Online · 18:00 CET · Free',
+        travelersGoing: 128,
+        isOnline: true,
+      },
+      {
+        id: 'ev4',
+        month: 'JUL',
+        day: '04',
+        badge: 'Meetup',
+        title: 'Lisbon Sunset Miradouro Crawl',
+        meta: 'Graça, Lisbon · 18:30 · Free',
+        travelersGoing: 21,
+        isOnline: false,
+      },
+    ],
   };
 }
 
