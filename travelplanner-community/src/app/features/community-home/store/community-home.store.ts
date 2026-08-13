@@ -16,6 +16,7 @@ import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
+  DiscoverDetailPayload,
   FeedFilter,
   ModalState,
   StoryViewerPayload,
@@ -120,6 +121,7 @@ export class CommunityHomeStore {
 
   readonly activeStory = computed(() => this._modal()?.story ?? null);
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
+  readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -415,6 +417,10 @@ export class CommunityHomeStore {
 
   openStoryViewer(story: StoryViewerPayload): void {
     this._modal.set({ kind: 'story', story });
+  }
+
+  openDiscoverItem(item: DiscoverDetailPayload): void {
+    this._modal.set({ kind: 'discoverDetail', discoverItem: item });
   }
 
   openPostOptions(): void {

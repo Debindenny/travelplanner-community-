@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { CommunityHomeStore } from '../../store/community-home.store';
+import { DiscoverDetailPayload } from '../../../../core/models/community.models';
 
 @Component({
   selector: 'app-discover-tab',
@@ -12,8 +13,8 @@ import { CommunityHomeStore } from '../../store/community-home.store';
 export class DiscoverTabComponent {
   readonly store = inject(CommunityHomeStore);
 
-  onOpen(title: string): void {
-    this.store.showToast(`Opening “${title}”`);
+  onOpen(item: DiscoverDetailPayload): void {
+    this.store.openDiscoverItem(item);
   }
 
   goHome(): void {
