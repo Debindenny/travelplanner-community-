@@ -16,6 +16,9 @@
         @case ('Home') {
           <app-home-tab />
         }
+        @case ('Discover') {
+          <app-discover-tab />
+        }
         @default {
           <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />
         }
