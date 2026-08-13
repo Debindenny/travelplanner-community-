@@ -235,8 +235,8 @@ export function buildCommunityHomeData(): CommunityHomeData {
         image: unsplashUrl('1490806843957-31f4c9a91c65', 1000),
         isVideo: true,
         helpfulBase: 412,
-        cta: 'save',
-        ctaLabel: 'Save to collection',
+        cta: 'addToTrip',
+        ctaLabel: 'Add to trip',
         comments: [{ id: 'p3c1', author: 'Emma Ross', text: 'This is exactly why I moved the Tokyo leg to April. Beautiful.', when: '6h ago', likes: 8 }],
       },
       {

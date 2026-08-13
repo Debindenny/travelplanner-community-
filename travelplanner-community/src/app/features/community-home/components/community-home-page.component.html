@@ -3,18 +3,11 @@
 
   <app-header (selectMenuItem)="onProfileMenuItem($event)" (toggleTheme)="store.showToast('Dark mode is coming soon')" />
 
-  <div class="secondary-bar">
-    <div class="secondary-bar__inner">
-      <app-search-bar [suggestions]="searchSuggestions" (selectSuggestion)="onSelectSuggestion($event)" />
-    </div>
-  </div>
-
   <div class="page-grid">
     <app-sidebar-nav
       [activeTab]="store.activeTab()"
-      [circles]="store.sideCircles()"
+      [journeyStats]="store.journeyStats()"
       (selectTab)="store.selectTab($event)"
-      (selectCircle)="onSelectCircle($event)"
       (share)="store.openComposerMenu()"
     />
 
@@ -68,7 +61,7 @@
     }
     @case ('addToTrip') {
       @if (store.activeAddToTripPayload(); as trip) {
-        <app-modal-shell title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
+        <app-modal-shell titleIcon="plus" title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
           <app-add-to-trip-modal
             [spot]="trip.spot"
             [spotMeta]="trip.meta"

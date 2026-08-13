@@ -123,20 +123,31 @@
       <app-icon name="message-circle" [size]="15" />
       Comment · {{ post().comments.length }}
     </button>
-    <button type="button" class="action-button" [class.is-on]="saved()" (click)="toggleSave.emit()">
-      <app-icon name="bookmark" [size]="15" />
-      {{ saved() ? 'Saved' : 'Save' }}
+    <button type="button" class="action-button" (click)="share.emit()">
+      <app-icon name="share" [size]="15" />
+      Share
     </button>
     <span class="post-card__actions-spacer"></span>
-    <button
-      type="button"
-      class="post-card__cta"
-      [class.is-on]="ctaOn()"
-      [class.post-card__cta--remix]="post().cta === 'remix'"
-      (click)="runCta.emit()"
-    >
-      {{ ctaLabel() }}
-    </button>
+    @if (!post().poll) {
+      <button
+        type="button"
+        class="post-card__cta"
+        [class.is-on]="ctaOn()"
+        [class.post-card__cta--remix]="post().cta === 'remix'"
+        (click)="runCta.emit()"
+      >
+        @if (post().cta === 'addToTrip') {
+          <app-icon name="plus" [size]="14" />
+        }
+        @if (post().cta === 'remix') {
+          <app-icon name="sparkles" [size]="14" />
+        }
+        @if (post().cta === 'join' && !joined()) {
+          <app-icon name="calendar-check" [size]="14" />
+        }
+        {{ ctaLabel() }}
+      </button>
+    }
   </div>
 
   @if (commentsOpen()) {

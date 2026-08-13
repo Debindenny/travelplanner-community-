@@ -60,6 +60,7 @@
             (toggleHelpful)="store.toggleHelpful(post.id)"
             (toggleComments)="store.toggleComments(post.id)"
             (toggleSave)="store.toggleSave(post.id)"
+            (share)="store.showToast('Link copied to clipboard')"
             (runCta)="store.runPostCta(post)"
             (votePoll)="store.votePoll(post.id, $event)"
             (likeComment)="store.likeComment(post.id, $event)"
@@ -82,7 +83,6 @@
     </div>
 
     <app-community-sidebar
-      [journeyStats]="store.journeyStats()"
       [travelersRail]="store.travelersRail()"
       [trending]="store.trending()"
       [events]="store.events()"

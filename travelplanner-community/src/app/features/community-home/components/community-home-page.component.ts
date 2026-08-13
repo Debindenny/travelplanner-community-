@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
 import { AppHeaderComponent } from '../../../shared/components/app-header/app-header.component';
-import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { SidebarNavComponent } from '../../../shared/components/sidebar-nav/sidebar-nav.component';
 import { AiAssistantPanelComponent } from '../../../shared/components/ai-assistant-panel/ai-assistant-panel.component';
 import { ComingSoonComponent } from '../../../shared/components/coming-soon/coming-soon.component';
@@ -15,14 +14,13 @@ import { AddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-tri
 import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-viewer-modal.component';
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
-import { AI_PROMPTS, SEARCH_SUGGESTIONS } from '../../../core/data/community-mock-data';
-import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle } from '../../../core/models/community.models';
+import { AI_PROMPTS } from '../../../core/data/community-mock-data';
+import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/community.models';
 
 @Component({
   selector: 'app-community-home-page',
   imports: [
     AppHeaderComponent,
-    SearchBarComponent,
     SidebarNavComponent,
     AiAssistantPanelComponent,
     ComingSoonComponent,
@@ -43,7 +41,6 @@ import { AiPrompt, CommunityTab, ProfileMenuItem, SearchSuggestion, SideCircle }
 export class CommunityHomePageComponent {
   readonly store = inject(CommunityHomeStore);
 
-  readonly searchSuggestions = SEARCH_SUGGESTIONS;
   readonly aiPrompts = AI_PROMPTS;
 
   readonly auroraX = signal(50);
@@ -54,21 +51,12 @@ export class CommunityHomePageComponent {
     this.auroraY.set((event.clientY / window.innerHeight) * 100);
   }
 
-  onSelectSuggestion(suggestion: SearchSuggestion): void {
-    this.store.selectTab(suggestion.target);
-  }
-
   onProfileMenuItem(item: ProfileMenuItem): void {
     if (item.target) {
       this.store.selectTab(item.target);
     } else {
       this.store.showToast(item.label);
     }
-  }
-
-  onSelectCircle(circle: SideCircle): void {
-    this.store.showToast(`Opening ${circle.name}`);
-    this.store.selectTab('Travel Circles');
   }
 
   onAiPrompt(prompt: AiPrompt): void {

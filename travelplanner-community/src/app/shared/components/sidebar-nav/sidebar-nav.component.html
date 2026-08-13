@@ -1,4 +1,9 @@
 <aside class="sidebar-nav">
+  <button type="button" class="sidebar-nav__share" (click)="share.emit()">
+    <app-icon name="plus" [size]="16" />
+    Share with travelers
+  </button>
+
   <nav class="sidebar-nav__list">
     @for (item of subnavItems; track item.tab) {
       <button
@@ -18,21 +23,5 @@
     }
   </nav>
 
-  <div class="sidebar-nav__circles">
-    <div class="sidebar-nav__circles-label">YOUR CIRCLES</div>
-    @for (circle of circles(); track circle.id) {
-      <button type="button" class="sidebar-nav__circle" (click)="selectCircle.emit(circle)">
-        <span class="sidebar-nav__circle-thumb" [style.background-image]="'url(' + circle.image + ')'"></span>
-        <span class="sidebar-nav__circle-name">{{ circle.name }}</span>
-        @if (circle.live) {
-          <span class="sidebar-nav__circle-dot"></span>
-        }
-      </button>
-    }
-  </div>
-
-  <button type="button" class="sidebar-nav__share" (click)="share.emit()">
-    <app-icon name="plus" [size]="16" />
-    Share with travelers
-  </button>
+  <app-journey-card [stats]="journeyStats()" />
 </aside>

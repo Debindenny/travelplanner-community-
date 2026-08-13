@@ -19,25 +19,6 @@
   //   var(--surface-muted);
 }
 
-.secondary-bar {
-  position: sticky;
-  top: 64px;
-  z-index: 50;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.secondary-bar__inner {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 58px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
 .page-grid {
   max-width: 1440px;
   margin: 0 auto;

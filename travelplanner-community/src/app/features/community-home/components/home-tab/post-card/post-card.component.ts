@@ -33,6 +33,7 @@ export class PostCardComponent {
   readonly toggleHelpful = output<void>();
   readonly toggleComments = output<void>();
   readonly toggleSave = output<void>();
+  readonly share = output<void>();
   readonly runCta = output<void>();
   readonly votePoll = output<string>();
   readonly likeComment = output<string>();
