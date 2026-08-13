@@ -147,6 +147,7 @@ export interface EventListing {
   meta: string;
   travelersGoing: number;
   isOnline: boolean;
+  image: string;
 }
 
 export interface SavedCollectionItem {

@@ -1,5 +1,5 @@
 <article class="event-card">
-  <div class="event-card__banner">
+  <div class="event-card__banner" [style.background-image]="'url(' + event().image + ')'">
     <div class="event-card__date">
       <span class="event-card__date-month">{{ event().month }}</span>
       <span class="event-card__date-day">{{ event().day }}</span>

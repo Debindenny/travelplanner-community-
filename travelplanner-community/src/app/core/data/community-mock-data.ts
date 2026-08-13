@@ -388,6 +388,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Montmartre, Paris · 09:00 · Free',
         travelersGoing: 14,
         isOnline: false,
+        image: unsplashUrl('1499856871958-5b9627545d1a', 400),
       },
       {
         id: 'ev2',
@@ -398,6 +399,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Shinjuku, Tokyo · 19:00 · ¥3,000',
         travelersGoing: 32,
         isOnline: false,
+        image: unsplashUrl('1540959733332-eab4deabeeaf', 400),
       },
       {
         id: 'ev3',
@@ -408,6 +410,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Online · 18:00 CET · Free',
         travelersGoing: 128,
         isOnline: true,
+        image: unsplashUrl('1490806843957-31f4c9a91c65', 400),
       },
       {
         id: 'ev4',
@@ -418,6 +421,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Graça, Lisbon · 18:30 · Free',
         travelersGoing: 21,
         isOnline: false,
+        image: unsplashUrl('1585208798174-6cedd86e019a', 400),
       },
     ],
   };
