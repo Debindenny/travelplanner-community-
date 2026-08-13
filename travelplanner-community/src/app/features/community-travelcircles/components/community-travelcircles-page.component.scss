@@ -340,7 +340,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 30%, white), transparent 65%);
+    // background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 30%, white), transparent 65%);
     opacity: 0;
     transition: opacity 0.25s ease;
     pointer-events: none;
