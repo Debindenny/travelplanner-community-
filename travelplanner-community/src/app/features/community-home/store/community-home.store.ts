@@ -18,6 +18,7 @@ import {
   CommunityTab,
   FeedFilter,
   ModalState,
+  SavedCollectionTab,
   StoryViewerPayload,
   ViewMode,
 } from '../../../core/models/community.models';
@@ -51,6 +52,8 @@ export class CommunityHomeStore {
   private readonly _followedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _savedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _joinedIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _savedCollectionTab = signal<SavedCollectionTab>('All');
+  private readonly _removedSavedCollectionIds = signal<ReadonlySet<string>>(new Set());
   private readonly _helpfulOnIds = signal<ReadonlySet<string>>(new Set());
   private readonly _openCommentPostIds = signal<ReadonlySet<string>>(new Set(['p1']));
   private readonly _commentLikeKeys = signal<ReadonlySet<string>>(new Set());
@@ -71,6 +74,26 @@ export class CommunityHomeStore {
   readonly travelersRail = computed(() => this.data.travelersRail);
   readonly trending = computed(() => this.data.trending);
   readonly events = computed(() => this.data.events);
+
+  private readonly remainingSavedCollection = computed(() =>
+    this.data.savedCollection.filter((item) => !this._removedSavedCollectionIds().has(item.id)),
+  );
+
+  readonly savedCollectionTab = this._savedCollectionTab.asReadonly();
+
+  readonly savedCollectionTabs: SavedCollectionTab[] = ['All', 'Tips', 'Trips', 'Spots'];
+
+  readonly savedCollectionItems = computed(() => {
+    const tab = this._savedCollectionTab();
+    return this.remainingSavedCollection().filter((item) => tab === 'All' || `${item.kind}s` === tab);
+  });
+
+  readonly savedCollectionEmpty = computed(() => this.savedCollectionItems().length === 0);
+
+  readonly savedCollectionCount = computed(() => {
+    const count = this.savedCollectionItems().length;
+    return `${count} ${count === 1 ? 'item saved' : 'items saved'}`;
+  });
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly filter = this._filter.asReadonly();
@@ -316,6 +339,15 @@ export class CommunityHomeStore {
     const wasSaved = this._savedIds().has(id);
     this._savedIds.set(this.toggledSet(this._savedIds(), id));
     this.showToast(wasSaved ? 'Removed from saved' : 'Saved to your collection');
+  }
+
+  selectSavedCollectionTab(tab: SavedCollectionTab): void {
+    this._savedCollectionTab.set(tab);
+  }
+
+  removeSavedCollectionItem(id: string): void {
+    this._removedSavedCollectionIds.set(this.toggledSet(this._removedSavedCollectionIds(), id, true));
+    this.showToast('Removed from saved');
   }
 
   toggleHelpful(id: string): void {

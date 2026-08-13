@@ -371,6 +371,13 @@ export function buildCommunityHomeData(): CommunityHomeData {
       { id: 'e1', month: 'JUN', day: '07', name: 'Paris Photography Walk', meta: 'Montmartre · 14 going' },
       { id: 'e2', month: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', meta: 'Shinjuku · 32 going' },
     ],
+    savedCollection: [
+      { id: 'sv1', kind: 'Tip', title: 'Shibuya Sky · 17:30 slot', meta: 'Tokyo · saved 2h ago', image: unsplashUrl('1540959733332-eab4deabeeaf', 600) },
+      { id: 'sv2', kind: 'Trip', title: '7 Days in Japan', meta: 'Rhea Sharma · saved yesterday', image: unsplashUrl('1490806843957-31f4c9a91c65', 600) },
+      { id: 'sv3', kind: 'Spot', title: 'Louvre · Porte des Lions', meta: 'Paris · saved 3d ago', image: unsplashUrl('1565099824688-e93eb20fe622', 600) },
+      { id: 'sv4', kind: 'Tip', title: 'Tram 24E · Campolide', meta: 'Lisbon · saved 4d ago', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
+      { id: 'sv5', kind: 'Trip', title: '5 Days in Lisbon & Sintra', meta: 'Community trip · saved 1w ago', image: unsplashUrl('1555881400-74d7acaacd8b', 600) },
+    ],
   };
 }
 
