@@ -129,9 +129,10 @@
   }
 
   &.is-active {
-    background: var(--text-primary);
-    border-color: var(--text-primary);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
+    font-weight: 800;
   }
 }
 
