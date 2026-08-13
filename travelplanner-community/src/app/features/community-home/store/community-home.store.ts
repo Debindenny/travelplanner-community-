@@ -4,6 +4,12 @@ import {
   ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
   PARIS_CREW_MESSAGES,
+  DISCOVER_CARDS,
+  DISCOVER_CATEGORIES,
+  DISCOVER_CATEGORY_TAGS,
+  DISCOVER_FEATURE,
+  DISCOVER_LIVE_COUNT,
+  DISCOVER_TOP,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
@@ -14,8 +20,10 @@ import {
   CommunityTab,
   CrewCardKind,
   CrewMessage,
+  EventsFilter,
   FeedFilter,
   ModalState,
+  SavedCollectionTab,
   StoryViewerPayload,
   ViewMode,
 } from '../../../core/models/community.models';
@@ -37,6 +45,7 @@ export class CommunityHomeStore {
   private readonly _posts = signal<CommunityPost[]>(this.data.posts);
   private readonly _activeTab = signal<CommunityTab>('Home');
   private readonly _filter = signal<FeedFilter>('For You');
+  private readonly _eventsFilter = signal<EventsFilter>('All');
   private readonly _viewMode = signal<ViewMode>('Feed');
   private readonly _destinationFilterIndex = signal(0);
   private readonly _hasUpcomingTrip = signal(true);
@@ -49,6 +58,8 @@ export class CommunityHomeStore {
   private readonly _followedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _savedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _joinedIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _savedCollectionTab = signal<SavedCollectionTab>('All');
+  private readonly _removedSavedCollectionIds = signal<ReadonlySet<string>>(new Set());
   private readonly _helpfulOnIds = signal<ReadonlySet<string>>(new Set());
   private readonly _openCommentPostIds = signal<ReadonlySet<string>>(new Set(['p1']));
   private readonly _commentLikeKeys = signal<ReadonlySet<string>>(new Set());
@@ -61,6 +72,7 @@ export class CommunityHomeStore {
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
+  private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
 
   private readonly _inCrew = signal(false);
   private readonly _crewMessages = signal<CrewMessage[]>(PARIS_CREW_MESSAGES);
@@ -76,8 +88,29 @@ export class CommunityHomeStore {
   readonly trending = computed(() => this.data.trending);
   readonly events = computed(() => this.data.events);
 
+  private readonly remainingSavedCollection = computed(() =>
+    this.data.savedCollection.filter((item) => !this._removedSavedCollectionIds().has(item.id)),
+  );
+
+  readonly savedCollectionTab = this._savedCollectionTab.asReadonly();
+
+  readonly savedCollectionTabs: SavedCollectionTab[] = ['All', 'Tips', 'Trips', 'Spots'];
+
+  readonly savedCollectionItems = computed(() => {
+    const tab = this._savedCollectionTab();
+    return this.remainingSavedCollection().filter((item) => tab === 'All' || `${item.kind}s` === tab);
+  });
+
+  readonly savedCollectionEmpty = computed(() => this.savedCollectionItems().length === 0);
+
+  readonly savedCollectionCount = computed(() => {
+    const count = this.savedCollectionItems().length;
+    return `${count} ${count === 1 ? 'item saved' : 'items saved'}`;
+  });
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly filter = this._filter.asReadonly();
+  readonly eventsFilter = this._eventsFilter.asReadonly();
   readonly viewMode = this._viewMode.asReadonly();
   readonly hasUpcomingTrip = this._hasUpcomingTrip.asReadonly();
   readonly planText = this._planText.asReadonly();
@@ -98,6 +131,7 @@ export class CommunityHomeStore {
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
+  readonly discoverCategory = this._discoverCategory.asReadonly();
 
   readonly inCrew = this._inCrew.asReadonly();
   readonly crewMessages = this._crewMessages.asReadonly();
@@ -122,6 +156,19 @@ export class CommunityHomeStore {
   });
 
   readonly feedEmpty = computed(() => this._viewMode() === 'Feed' && this.visiblePosts().length === 0);
+
+  readonly visibleEventListings = computed(() => {
+    const filter = this._eventsFilter();
+    return this.data.eventListings.filter((event) => {
+      if (filter === 'Online') {
+        return event.isOnline;
+      }
+      if (filter === 'Near me') {
+        return !event.isOnline;
+      }
+      return true;
+    });
+  });
 
   readonly showSimilarTravelers = computed(
     () => this._viewMode() === 'Feed' && (this._filter() === 'For You' || this._filter() === 'Near My Trip'),
@@ -148,6 +195,16 @@ export class CommunityHomeStore {
   readonly addToTripKinds = ADD_TO_TRIP_KINDS;
   readonly currentUser = CURRENT_USER;
 
+  readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
+  readonly discoverCategories = DISCOVER_CATEGORIES;
+  readonly discoverFeature = DISCOVER_FEATURE;
+  readonly discoverTop = DISCOVER_TOP;
+
+  readonly filteredDiscoverCards = computed(() => {
+    const tag = DISCOVER_CATEGORY_TAGS[this._discoverCategory()];
+    return tag ? DISCOVER_CARDS.filter((card) => card.tag === tag) : DISCOVER_CARDS;
+  });
+
   selectTab(tab: CommunityTab): void {
     this._activeTab.set(tab);
     this._modal.set(null);
@@ -156,6 +213,14 @@ export class CommunityHomeStore {
 
   selectFilter(filter: FeedFilter): void {
     this._filter.set(filter);
+  }
+
+  selectDiscoverCategory(category: string): void {
+    this._discoverCategory.set(category);
+  }
+
+  selectEventsFilter(filter: EventsFilter): void {
+    this._eventsFilter.set(filter);
   }
 
   cycleDestinationFilter(): void {
@@ -312,6 +377,15 @@ export class CommunityHomeStore {
     const wasSaved = this._savedIds().has(id);
     this._savedIds.set(this.toggledSet(this._savedIds(), id));
     this.showToast(wasSaved ? 'Removed from saved' : 'Saved to your collection');
+  }
+
+  selectSavedCollectionTab(tab: SavedCollectionTab): void {
+    this._savedCollectionTab.set(tab);
+  }
+
+  removeSavedCollectionItem(id: string): void {
+    this._removedSavedCollectionIds.set(this.toggledSet(this._removedSavedCollectionIds(), id, true));
+    this.showToast('Removed from saved');
   }
 
   toggleHelpful(id: string): void {

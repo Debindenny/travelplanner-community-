@@ -1,0 +1,361 @@
+:host {
+  display: block;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.breadcrumb__back {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-muted);
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.breadcrumb__crumb {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+
+.breadcrumb__divider {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-hairline);
+}
+
+.breadcrumb__current {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.discover-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.discover-tab__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.discover-tab__head-text {
+  flex: 1;
+  min-width: 260px;
+}
+
+.discover-tab__eyebrow {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+.discover-tab__title {
+  margin: 8px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.discover-tab__subtitle {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+  max-width: 560px;
+}
+
+.discover-tab__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--success-text);
+  background: var(--success-bg);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.discover-tab__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: travl-pulse 2.2s infinite;
+}
+
+.discover-tab__pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.discover-tab__pill {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 800;
+  }
+}
+
+.discover-tab__top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 18px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.discover-tab__feature {
+  position: relative;
+  border: 0;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  min-height: 330px;
+  background-color: var(--text-primary);
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.14s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 18, 32, 0.05) 34%, rgba(11, 18, 32, 0.9));
+  }
+}
+
+.discover-tab__feature-tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
+  font-size: 10.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.06em;
+}
+
+.discover-tab__feature-text {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.discover-tab__feature-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+}
+
+.discover-tab__feature-meta {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.discover-tab__ranked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.discover-tab__ranked-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  border: 0;
+  transition: transform 0.14s ease;
+
+  &:hover {
+    transform: translateX(3px);
+  }
+}
+
+.discover-tab__ranked-thumb {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 13px;
+  background-size: cover;
+  background-position: center;
+}
+
+.discover-tab__ranked-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.discover-tab__ranked-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.discover-tab__ranked-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.38;
+}
+
+.discover-tab__ranked-meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.discover-tab__ranked-rank {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-hairline);
+}
+
+.discover-tab__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.discover-tab__card {
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+.discover-tab__card-cover {
+  position: relative;
+  display: block;
+  height: 136px;
+  background-size: cover;
+  background-position: center;
+}
+
+.discover-tab__card-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.5);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+}
+
+.discover-tab__card-body {
+  padding: 14px 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.discover-tab__card-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.42;
+}
+
+.discover-tab__card-meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.discover-tab__empty {
+  grid-column: 1 / -1;
+  padding: 40px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+}

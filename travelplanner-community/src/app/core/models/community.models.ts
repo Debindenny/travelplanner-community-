@@ -5,6 +5,8 @@ export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
 export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
+export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
+export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
 export interface CommunityStory {
   id: string;
@@ -102,6 +104,29 @@ export interface TrendingItem {
   image: string;
 }
 
+export interface DiscoverFeature {
+  title: string;
+  meta: string;
+  image: string;
+}
+
+export interface DiscoverRankedItem {
+  id: string;
+  rank: string;
+  tag: string;
+  title: string;
+  meta: string;
+  image: string;
+}
+
+export interface DiscoverCard {
+  id: string;
+  tag: string;
+  title: string;
+  meta: string;
+  image: string;
+}
+
 export interface UpcomingEvent {
   id: string;
   name: string;
@@ -130,6 +155,28 @@ export interface CrewMessage {
   options?: CrewPollOption[];
 }
 
+export type EventBadgeKind = 'Meetup' | 'Food' | 'Online';
+export type EventsFilter = 'All' | 'Near me' | 'Online';
+
+export interface EventListing {
+  id: string;
+  month: string;
+  day: string;
+  badge: EventBadgeKind;
+  title: string;
+  meta: string;
+  travelersGoing: number;
+  isOnline: boolean;
+  image: string;
+}
+
+export interface SavedCollectionItem {
+  id: string;
+  kind: SavedCollectionKind;
+  title: string;
+  meta: string;
+  image: string;
+}
 
 export interface ProfileMenuItem {
   icon: string;
@@ -214,4 +261,6 @@ export interface CommunityHomeData {
   travelersRail: TravelerRailItem[];
   trending: TrendingItem[];
   events: UpcomingEvent[];
+  savedCollection: SavedCollectionItem[];
+  eventListings: EventListing[];
 }

@@ -6,6 +6,9 @@ import { AiAssistantPanelComponent } from '../../../shared/components/ai-assista
 import { ComingSoonComponent } from '../../../shared/components/coming-soon/coming-soon.component';
 import { ToastComponent } from '../../../shared/components/toast/toast.component';
 import { HomeTabComponent } from './home-tab/home-tab.component';
+import { DiscoverTabComponent } from './discover-tab/discover-tab.component';
+import { SavedTabComponent } from './saved-tab/saved-tab.component';
+import { EventsTabComponent } from './events-tab/events-tab.component';
 import { ModalShellComponent } from './overlays/modal-shell/modal-shell.component';
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
@@ -25,6 +28,9 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     ComingSoonComponent,
     ToastComponent,
     HomeTabComponent,
+    DiscoverTabComponent,
+    SavedTabComponent,
+    EventsTabComponent,
     ModalShellComponent,
     ComposerTypeMenuComponent,
     ComposerFormComponent,

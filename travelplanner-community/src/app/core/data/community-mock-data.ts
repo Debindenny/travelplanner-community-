@@ -3,6 +3,9 @@ import {
   CommunityHomeData,
   ComposerFormDef,
   CrewMessage,
+  DiscoverCard,
+  DiscoverFeature,
+  DiscoverRankedItem,
   PostOptionsMenuItem,
   PostTypeOption,
   ProfileMenuItem,
@@ -185,6 +188,40 @@ export const PARIS_CREW_MESSAGES: CrewMessage[] = [
   { id: 'c5', kind: 'split', author: 'Priya Nair', text: 'Museum pass · €78 total', sub: '€19.50 each · 4 people', when: '10:44' },
 ];
 
+export const DISCOVER_LIVE_COUNT = '1,284 travelers browsing now';
+
+export const DISCOVER_CATEGORIES: string[] = ['All', 'Tips', 'Routes', 'Reels', 'Food', 'Budget'];
+
+export const DISCOVER_CATEGORY_TAGS: Readonly<Record<string, string>> = {
+  All: '',
+  Tips: 'TIP',
+  Routes: 'ROUTE',
+  Reels: 'REEL',
+  Food: 'FOOD',
+  Budget: 'BUDGET',
+};
+
+export const DISCOVER_FEATURE: DiscoverFeature = {
+  title: 'Kyoto in three unhurried days',
+  meta: 'Rhea Sharma · 840 saves · used by 312 travelers this week',
+  image: unsplashUrl('1493976040374-85c8e12f0c0e', 1200),
+};
+
+export const DISCOVER_TOP: DiscoverRankedItem[] = [
+  { id: 'dt1', rank: '01', tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '1.2K travelers used this', image: unsplashUrl('1511739001486-6bfe10ce785f', 300) },
+  { id: 'dt2', rank: '02', tag: 'ROUTE', title: 'Europe by night train under €400', meta: '611 saves · 14 days', image: unsplashUrl('1474487548417-781cb71495f3', 300) },
+  { id: 'dt3', rank: '03', tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', image: unsplashUrl('1499856871958-5b9627545d1a', 300) },
+];
+
+export const DISCOVER_CARDS: DiscoverCard[] = [
+  { id: 'dc1', tag: 'TIP', title: 'Book Eiffel summit slots, skip the lift queue', meta: '46 tips · 1.2K used', image: unsplashUrl('1511739001486-6bfe10ce785f', 600) },
+  { id: 'dc2', tag: 'ROUTE', title: 'Kyoto in three unhurried days', meta: 'Rhea Sharma · 840 saves', image: unsplashUrl('1493976040374-85c8e12f0c0e', 600) },
+  { id: 'dc3', tag: 'REEL', title: 'Sunset from Shibuya Sky', meta: 'Maya Kondo · 24K views', image: unsplashUrl('1540959733332-eab4deabeeaf', 600) },
+  { id: 'dc4', tag: 'FOOD', title: 'Montmartre food walks before 11:00', meta: '18 saved routes', image: unsplashUrl('1504674900247-0877df9cc836', 600) },
+  { id: 'dc5', tag: 'BUDGET', title: 'Europe by night train under €400', meta: 'Marco Villa · 611 saves', image: unsplashUrl('1474487548417-781cb71495f3', 600) },
+  { id: 'dc6', tag: 'TIP', title: 'Lisbon without a single taxi', meta: 'Iker Solano · 6 entries', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
+];
+
 export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [
   { label: 'Save post', hint: 'Add to a collection', message: 'Saved' },
   { label: 'Mute author', hint: 'Stop seeing posts, stay following', message: 'Muted for 30 days' },
@@ -361,6 +398,59 @@ export function buildCommunityHomeData(): CommunityHomeData {
     events: [
       { id: 'e1', month: 'JUN', day: '07', name: 'Paris Photography Walk', meta: 'Montmartre · 14 going' },
       { id: 'e2', month: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', meta: 'Shinjuku · 32 going' },
+    ],
+    savedCollection: [
+      { id: 'sv1', kind: 'Tip', title: 'Shibuya Sky · 17:30 slot', meta: 'Tokyo · saved 2h ago', image: unsplashUrl('1540959733332-eab4deabeeaf', 600) },
+      { id: 'sv2', kind: 'Trip', title: '7 Days in Japan', meta: 'Rhea Sharma · saved yesterday', image: unsplashUrl('1490806843957-31f4c9a91c65', 600) },
+      { id: 'sv3', kind: 'Spot', title: 'Louvre · Porte des Lions', meta: 'Paris · saved 3d ago', image: unsplashUrl('1565099824688-e93eb20fe622', 600) },
+      { id: 'sv4', kind: 'Tip', title: 'Tram 24E · Campolide', meta: 'Lisbon · saved 4d ago', image: unsplashUrl('1585208798174-6cedd86e019a', 600) },
+      { id: 'sv5', kind: 'Trip', title: '5 Days in Lisbon & Sintra', meta: 'Community trip · saved 1w ago', image: unsplashUrl('1555881400-74d7acaacd8b', 600) },
+    ],
+    eventListings: [
+      {
+        id: 'ev1',
+        month: 'JUN',
+        day: '07',
+        badge: 'Meetup',
+        title: 'Paris Photography Walk',
+        meta: 'Montmartre, Paris · 09:00 · Free',
+        travelersGoing: 14,
+        isOnline: false,
+        image: unsplashUrl('1499856871958-5b9627545d1a', 400),
+      },
+      {
+        id: 'ev2',
+        month: 'JUN',
+        day: '15',
+        badge: 'Food',
+        title: 'Tokyo Ramen Meetup',
+        meta: 'Shinjuku, Tokyo · 19:00 · ¥3,000',
+        travelersGoing: 32,
+        isOnline: false,
+        image: unsplashUrl('1540959733332-eab4deabeeaf', 400),
+      },
+      {
+        id: 'ev3',
+        month: 'JUN',
+        day: '22',
+        badge: 'Online',
+        title: 'Planning Japan 2027 — live Q&A',
+        meta: 'Online · 18:00 CET · Free',
+        travelersGoing: 128,
+        isOnline: true,
+        image: unsplashUrl('1490806843957-31f4c9a91c65', 400),
+      },
+      {
+        id: 'ev4',
+        month: 'JUL',
+        day: '04',
+        badge: 'Meetup',
+        title: 'Lisbon Sunset Miradouro Crawl',
+        meta: 'Graça, Lisbon · 18:30 · Free',
+        travelersGoing: 21,
+        isOnline: false,
+        image: unsplashUrl('1585208798174-6cedd86e019a', 400),
+      },
     ],
   };
 }

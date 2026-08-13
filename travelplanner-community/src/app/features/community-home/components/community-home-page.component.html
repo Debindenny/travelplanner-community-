@@ -16,6 +16,15 @@
         @case ('Home') {
           <app-home-tab />
         }
+        @case ('Discover') {
+          <app-discover-tab />
+        }
+        @case ('Saved') {
+          <app-saved-tab />
+        }
+        @case ('Events') {
+          <app-events-tab />
+        }
         @default {
           <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />
         }
