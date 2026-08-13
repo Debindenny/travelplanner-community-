@@ -15,4 +15,8 @@ export class DiscoverTabComponent {
   onOpen(title: string): void {
     this.store.showToast(`Opening “${title}”`);
   }
+
+  goHome(): void {
+    this.store.selectTab('Home');
+  }
 }
