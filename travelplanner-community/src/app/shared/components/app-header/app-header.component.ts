@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
 
 import { IconComponent } from '../icon/icon.component';
-import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { PROFILE_MENU_ITEMS } from '../../../core/data/community-mock-data';
 import { ProfileMenuItem, SearchSuggestion } from '../../../core/models/community.models';
 
 @Component({
   selector: 'app-header',
-  imports: [IconComponent, SearchBarComponent],
+  imports: [IconComponent],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
