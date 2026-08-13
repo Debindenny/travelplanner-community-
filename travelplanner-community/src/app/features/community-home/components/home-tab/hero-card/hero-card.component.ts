@@ -17,7 +17,6 @@ export class HeroCardComponent {
   readonly planText = model('');
 
   readonly exploreDestination = output<void>();
-  readonly findTravelers = output<void>();
   readonly openTrip = output<void>();
   readonly toggleHeroTrip = output<void>();
   readonly buildItinerary = output<void>();

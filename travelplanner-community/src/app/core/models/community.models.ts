@@ -110,12 +110,6 @@ export interface UpcomingEvent {
   day: string;
 }
 
-export interface SideCircle {
-  id: string;
-  name: string;
-  live: boolean;
-  image: string;
-}
 
 export interface ProfileMenuItem {
   icon: string;
@@ -200,5 +194,4 @@ export interface CommunityHomeData {
   travelersRail: TravelerRailItem[];
   trending: TrendingItem[];
   events: UpcomingEvent[];
-  sideCircles: SideCircle[];
 }

@@ -5,8 +5,6 @@
     (toggleFollow)="toggleFollowTraveler.emit($event)"
   />
 
-  <app-start-circle-card (createCircle)="createCircle.emit()" />
-
   <app-trending-card [trending]="trending()" [destination]="tripDestination()" (open)="openTrending.emit($event)" />
 
   <app-upcoming-events-card [events]="events()" [joinedIds]="joinedIds()" (toggleJoin)="toggleJoinEvent.emit($event)" />

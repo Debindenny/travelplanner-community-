@@ -22,7 +22,6 @@ export const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
   { icon: 'user', label: 'My travel profile', target: 'Home' },
   { icon: 'compass', label: 'My trips', target: 'Trips' },
   { icon: 'bookmark', label: 'Saved collections', target: 'Saved' },
-  { icon: 'users', label: 'Travel circles', target: 'Travel Circles' },
   { icon: 'calendar-check', label: 'Events', target: 'Events' },
   { icon: 'lock', label: 'Privacy & trip visibility', target: null },
   { icon: 'book', label: 'Community guidelines', target: null },
@@ -39,7 +38,6 @@ export const SEARCH_SUGGESTIONS: SearchSuggestion[] = [
 export const AI_PROMPTS: AiPrompt[] = [
   { text: 'What are travelers recommending in Paris right now?', target: 'Discover' },
   { text: 'Build a 3-day itinerary from my saved posts', target: 'Saved' },
-  { text: 'Find travelers visiting Barcelona around my dates', target: 'Travel Circles' },
   { text: 'Show community trips I can clone', target: 'Trips' },
 ];
 
@@ -335,11 +333,6 @@ export function buildCommunityHomeData(): CommunityHomeData {
     events: [
       { id: 'e1', month: 'JUN', day: '07', name: 'Paris Photography Walk', meta: 'Montmartre · 14 going' },
       { id: 'e2', month: 'JUN', day: '15', name: 'Tokyo Ramen Meetup', meta: 'Shinjuku · 32 going' },
-    ],
-    sideCircles: [
-      { id: 'c1', name: 'Japan Spring 2027', live: true, image: unsplashUrl('1493976040374-85c8e12f0c0e', 120) },
-      { id: 'c2', name: 'Paris June Crew', live: true, image: unsplashUrl('1502602898657-3e91760cbb34', 120) },
-      { id: 'c3', name: 'Slow Travel Europe', live: false, image: unsplashUrl('1474487548417-781cb71495f3', 120) },
     ],
   };
 }

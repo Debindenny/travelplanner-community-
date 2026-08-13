@@ -4,7 +4,6 @@
     [planText]="store.planText()"
     (planTextChange)="store.setPlanText($event)"
     (exploreDestination)="store.selectTab('Destinations')"
-    (findTravelers)="store.selectTab('Travel Circles')"
     (openTrip)="store.selectTab('Trips')"
     (toggleHeroTrip)="store.toggleHeroTrip()"
     (buildItinerary)="store.planTrip()"
@@ -75,7 +74,7 @@
         <app-similar-travelers
           [matches]="store.matches()"
           [followedIds]="store.followedIds()"
-          (seeAll)="store.selectTab('Travel Circles')"
+          (seeAll)="store.showToast('More travelers coming soon')"
           (viewProfile)="store.showToast('Opening ' + $event.name + '’s profile')"
           (toggleFollow)="onToggleFollowTraveler($event)"
         />
@@ -89,7 +88,6 @@
       [followedIds]="store.followedIds()"
       [joinedIds]="store.joinedIds()"
       (toggleFollowTraveler)="onToggleFollowTraveler($event)"
-      (createCircle)="store.showToast('Circle created')"
       (openTrending)="onOpenTrending($event)"
       (toggleJoinEvent)="onToggleJoinEvent($event)"
     />

@@ -64,7 +64,6 @@ export class CommunityHomeStore {
   readonly travelersRail = computed(() => this.data.travelersRail);
   readonly trending = computed(() => this.data.trending);
   readonly events = computed(() => this.data.events);
-  readonly sideCircles = computed(() => this.data.sideCircles);
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly filter = this._filter.asReadonly();

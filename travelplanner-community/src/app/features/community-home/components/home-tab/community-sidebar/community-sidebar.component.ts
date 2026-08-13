@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { TravelersRailCardComponent } from '../sidebar/travelers-rail-card/travelers-rail-card.component';
-import { StartCircleCardComponent } from '../sidebar/start-circle-card/start-circle-card.component';
 import { TrendingCardComponent } from '../sidebar/trending-card/trending-card.component';
 import { UpcomingEventsCardComponent } from '../sidebar/upcoming-events-card/upcoming-events-card.component';
 import { SidebarFooterLinksComponent } from '../sidebar/sidebar-footer-links/sidebar-footer-links.component';
@@ -15,7 +14,6 @@ import {
   selector: 'app-community-sidebar',
   imports: [
     TravelersRailCardComponent,
-    StartCircleCardComponent,
     TrendingCardComponent,
     UpcomingEventsCardComponent,
     SidebarFooterLinksComponent,
@@ -33,7 +31,6 @@ export class CommunitySidebarComponent {
   readonly tripDestination = input('Paris');
 
   readonly toggleFollowTraveler = output<TravelerRailItem>();
-  readonly createCircle = output<void>();
   readonly openTrending = output<TrendingItem>();
   readonly toggleJoinEvent = output<UpcomingEvent>();
 }
