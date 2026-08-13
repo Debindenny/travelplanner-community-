@@ -39,7 +39,6 @@
 }
 
 .breadcrumb__back-icon {
-  transform: rotate(180deg);
   display: flex;
 }
 
@@ -101,7 +100,7 @@
   height: 42px;
   padding: 0 20px;
   border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--accent);
   color: #fff;
   font-size: 13px;

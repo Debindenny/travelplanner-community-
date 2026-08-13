@@ -38,10 +38,10 @@ export class CommunityTravelCirclesComponent {
 
   buttonLabel(card: TravelCircleCard): string {
     const isMember = this.isMember(card.id);
-    if (card.cta === 'Join') {
-      return isMember ? 'Joined' : 'Join';
+    if (isMember) {
+      return 'Joined';
     }
-    return isMember ? 'Requested' : 'Request';
+    return card.cta === 'Join' ? 'Join' : 'Request';
   }
 
   onToggleMembership(card: TravelCircleCard): void {
