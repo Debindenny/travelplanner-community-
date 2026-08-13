@@ -11,7 +11,7 @@
       <span class="story-viewer__name">{{ story().name }}</span>
       <span class="story-viewer__place">{{ story().place }}</span>
     </span>
-    <span class="story-viewer__status">{{ story().status }}</span>
+    <span class="story-viewer__status" [class.story-viewer__status--live]="story().status === 'There now'">{{ story().status }}</span>
     <button type="button" class="story-viewer__close" (click)="close.emit()" aria-label="Close story">
       <app-icon name="x" [size]="16" />
     </button>

@@ -28,7 +28,9 @@ export type IconName =
   | 'user-plus'
   | 'chevron-right'
   | 'chevron-down'
-  | 'moon';
+  | 'moon'
+  | 'receipt'
+  | 'send';
 
 @Component({
   selector: 'app-icon',
@@ -128,6 +130,12 @@ export type IconName =
         }
         @case ('moon') {
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+        }
+        @case ('receipt') {
+          <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" /><path d="M16 8H8" /><path d="M16 12H8" /><path d="M13 16H8" />
+        }
+        @case ('send') {
+          <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
         }
       }
     </svg>

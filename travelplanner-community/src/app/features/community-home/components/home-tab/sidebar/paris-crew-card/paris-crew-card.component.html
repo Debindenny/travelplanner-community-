@@ -1,0 +1,138 @@
+<section class="surface-card paris-crew-card">
+  <div class="paris-crew-card__header">
+    <span class="paris-crew-card__icon-wrap">
+      <app-icon [name]="inCrew() ? 'message-circle' : 'users'" [size]="17" />
+    </span>
+    <span class="paris-crew-card__identity">
+      <span class="paris-crew-card__title">{{ inCrew() ? 'Paris Crew · 03–09 Jun' : 'Find your Paris crew' }}</span>
+      <span class="paris-crew-card__subtitle">{{ inCrew() ? '12 travelers · chat closes 09 Jun' : 'Matched on your destination and dates' }}</span>
+    </span>
+    @if (inCrew()) {
+      <span class="paris-crew-card__countdown">Ends in 6d</span>
+    }
+  </div>
+
+  @if (!inCrew()) {
+    <div class="paris-crew-card__invite">
+      <div class="paris-crew-card__faces-row">
+        <span class="paris-crew-card__faces">
+          @for (gradient of faceGradients; track $index) {
+            <span class="paris-crew-card__face" [style.background]="gradient" [style.margin-left.px]="$index ? -8 : 0"></span>
+          }
+        </span>
+        <span class="paris-crew-card__lobby-line">12 travelers in Paris on your dates</span>
+      </div>
+      <p class="paris-crew-card__copy">We place you with travelers whose destination and dates overlap yours. The chat closes when the trip ends.</p>
+      <div class="paris-crew-card__invite-actions">
+        <button type="button" class="paris-crew-card__join" (click)="join.emit()">Join the crew</button>
+        <button type="button" class="paris-crew-card__start" (click)="startCircle.emit()">Start one</button>
+      </div>
+    </div>
+  } @else {
+    <div class="paris-crew-card__messages">
+      @for (message of messages(); track message.id; let i = $index) {
+        <div class="paris-crew-card__row" [class.is-mine]="isMine(message)" [class.is-grouped]="!showAvatar(i) && !isMine(message)">
+          @if (showAvatar(i)) {
+            <span class="paris-crew-card__avatar" [style.background-image]="'url(' + avatarFor(message) + ')'"></span>
+          }
+          <span class="paris-crew-card__bubble-wrap">
+            @if (showAvatar(i)) {
+              <span class="paris-crew-card__author">{{ message.author }}</span>
+            }
+
+            @switch (message.kind) {
+              @case ('text') {
+                <span class="paris-crew-card__bubble">{{ message.text }}</span>
+              }
+              @case ('place') {
+                <span class="paris-crew-card__place-card">
+                  <span class="paris-crew-card__place-media" [style.background-image]="'url(' + message.image + ')'"></span>
+                  <span class="paris-crew-card__place-body">
+                    <span class="paris-crew-card__place-title">{{ message.text }}</span>
+                    <span class="paris-crew-card__place-sub">{{ message.sub }}</span>
+                    <button type="button" class="paris-crew-card__place-add" (click)="addPlaceToTrip.emit(message.id)">Add to my trip</button>
+                  </span>
+                </span>
+              }
+              @case ('poll') {
+                <span class="paris-crew-card__poll-card">
+                  <span class="paris-crew-card__poll-question">{{ message.text }}</span>
+                  @for (option of message.options; track option.id) {
+                    <button
+                      type="button"
+                      class="paris-crew-card__poll-option"
+                      [class.is-mine]="votedOptionFor(message.id) === option.id"
+                      (click)="votePoll.emit({ messageId: message.id, optionId: option.id })"
+                    >
+                      <span class="paris-crew-card__poll-bar" [style.width]="pollBarWidth(message.id, option.id, option.basePercent)"></span>
+                      <span class="paris-crew-card__poll-label">{{ option.label }}</span>
+                      <span class="paris-crew-card__poll-pct">{{ pollPercent(message.id, option.id, option.basePercent) }}</span>
+                    </button>
+                  }
+                </span>
+              }
+              @case ('meet') {
+                <span class="paris-crew-card__meet-card">
+                  <span class="paris-crew-card__meet-header">
+                    <span class="paris-crew-card__meet-icon">
+                      <app-icon name="calendar-check" [size]="15" />
+                    </span>
+                    <span class="paris-crew-card__meet-info">
+                      <span class="paris-crew-card__meet-title">{{ message.text }}</span>
+                      <span class="paris-crew-card__meet-sub">{{ message.sub }}</span>
+                    </span>
+                  </span>
+                  <span class="paris-crew-card__meet-actions">
+                    <button type="button" class="paris-crew-card__meet-yes" [class.is-going]="isGoing(message.id)" (click)="rsvp.emit(message.id)">
+                      {{ isGoing(message.id) ? 'Going' : 'I’m in' }}
+                    </button>
+                    <button type="button" class="paris-crew-card__meet-no" (click)="decline.emit()">Can’t make it</button>
+                  </span>
+                </span>
+              }
+              @case ('split') {
+                <span class="paris-crew-card__split-card">
+                  <span class="paris-crew-card__split-icon">
+                    <app-icon [name]="isSettled(message.id) ? 'check' : 'receipt'" [size]="15" />
+                  </span>
+                  <span class="paris-crew-card__split-info">
+                    <span class="paris-crew-card__split-title">{{ message.text }}</span>
+                    <span class="paris-crew-card__split-sub">{{ message.sub }}</span>
+                  </span>
+                  <button type="button" class="paris-crew-card__split-settle" [class.is-settled]="isSettled(message.id)" (click)="settle.emit(message.id)">
+                    {{ isSettled(message.id) ? 'Paid' : 'Settle' }}
+                  </button>
+                </span>
+              }
+            }
+
+            <span class="paris-crew-card__when">{{ message.when }}</span>
+          </span>
+        </div>
+      }
+    </div>
+
+    <div class="paris-crew-card__composer">
+      <div class="paris-crew-card__tools">
+        @for (tool of tools; track tool.kind) {
+          <button type="button" class="paris-crew-card__tool" [title]="tool.tip" (click)="addCard.emit(tool.kind)">
+            <app-icon [name]="tool.icon" [size]="15" />
+          </button>
+        }
+      </div>
+      <div class="paris-crew-card__input-row">
+        <input
+          class="paris-crew-card__input"
+          type="text"
+          [value]="draft()"
+          placeholder="Message the crew…"
+          (input)="onDraftInput($event)"
+          (keydown)="onDraftKeydown($event)"
+        />
+        <button type="button" class="paris-crew-card__send" [class.is-ready]="!!draft().trim()" (click)="send.emit()">
+          <app-icon name="send" [size]="15" />
+        </button>
+      </div>
+    </div>
+  }
+</section>

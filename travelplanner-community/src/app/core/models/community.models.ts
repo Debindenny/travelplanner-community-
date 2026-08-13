@@ -110,6 +110,26 @@ export interface UpcomingEvent {
   day: string;
 }
 
+export type CrewMessageKind = 'text' | 'place' | 'poll' | 'meet' | 'split';
+export type CrewCardKind = 'place' | 'poll' | 'meet' | 'split';
+
+export interface CrewPollOption {
+  id: string;
+  label: string;
+  basePercent: number;
+}
+
+export interface CrewMessage {
+  id: string;
+  kind: CrewMessageKind;
+  author: string;
+  text: string;
+  when: string;
+  sub?: string;
+  image?: string;
+  options?: CrewPollOption[];
+}
+
 
 export interface ProfileMenuItem {
   icon: string;

@@ -1,0 +1,530 @@
+:host {
+  display: block;
+}
+
+.paris-crew-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.paris-crew-card__header {
+  padding: 15px 18px;
+  border-bottom: 1px solid #f1f3f7;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.paris-crew-card__icon-wrap {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paris-crew-card__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paris-crew-card__title {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.paris-crew-card__subtitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.paris-crew-card__countdown {
+  flex: none;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #fff6ed;
+  color: #b54708;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.paris-crew-card__invite {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.paris-crew-card__faces-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paris-crew-card__faces {
+  display: flex;
+}
+
+.paris-crew-card__face {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex: none;
+  border: 2px solid #fff;
+  background-size: cover;
+}
+
+.paris-crew-card__lobby-line {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-muted);
+}
+
+.paris-crew-card__copy {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+
+.paris-crew-card__invite-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.paris-crew-card__join {
+  flex: 1;
+  height: 38px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--accent-deep);
+  }
+}
+
+.paris-crew-card__start {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #374151;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+}
+
+.paris-crew-card__messages {
+  max-height: 330px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface-sunken);
+}
+
+.paris-crew-card__row {
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+
+  &.is-mine {
+    justify-content: flex-end;
+  }
+
+  &.is-grouped {
+    padding-left: 37px;
+  }
+}
+
+.paris-crew-card__avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
+.paris-crew-card__bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 82%;
+
+  .is-mine & {
+    align-items: flex-end;
+  }
+}
+
+.paris-crew-card__author {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-faint);
+  padding-left: 2px;
+}
+
+.paris-crew-card__bubble {
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+
+  .is-mine & {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+  }
+}
+
+.paris-crew-card__when {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-hairline);
+  padding: 0 2px;
+}
+
+.paris-crew-card__place-card,
+.paris-crew-card__poll-card,
+.paris-crew-card__meet-card,
+.paris-crew-card__split-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.paris-crew-card__place-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.paris-crew-card__place-media {
+  display: block;
+  height: 96px;
+  background: center / cover;
+}
+
+.paris-crew-card__place-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.paris-crew-card__place-title {
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.paris-crew-card__place-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.paris-crew-card__place-add {
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--accent-soft-hover);
+  }
+}
+
+.paris-crew-card__poll-card {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.paris-crew-card__poll-question {
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.paris-crew-card__poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+
+  &.is-mine {
+    border-color: var(--accent);
+    background: #f5f9ff;
+  }
+}
+
+.paris-crew-card__poll-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: rgba(0, 96, 234, 0.1);
+  transition: width 0.3s ease;
+}
+
+.paris-crew-card__poll-label {
+  position: relative;
+  flex: 1;
+  text-align: left;
+}
+
+.paris-crew-card__poll-pct {
+  position: relative;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.paris-crew-card__meet-card {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.paris-crew-card__meet-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paris-crew-card__meet-icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paris-crew-card__meet-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.paris-crew-card__meet-title {
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.paris-crew-card__meet-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.paris-crew-card__meet-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.paris-crew-card__meet-yes {
+  flex: 1;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+
+  &.is-going {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-muted);
+  }
+}
+
+.paris-crew-card__meet-no {
+  flex: 1;
+  height: 32px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.paris-crew-card__split-card {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.paris-crew-card__split-icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paris-crew-card__split-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.paris-crew-card__split-title {
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.paris-crew-card__split-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.paris-crew-card__split-settle {
+  height: 30px;
+  padding: 0 12px;
+  flex: none;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+
+  &.is-settled {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-muted);
+  }
+}
+
+.paris-crew-card__composer {
+  padding: 11px 14px;
+  border-top: 1px solid #f1f3f7;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.paris-crew-card__tools {
+  display: flex;
+  gap: 6px;
+}
+
+.paris-crew-card__tool {
+  flex: 1;
+  height: 34px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: var(--accent);
+    background: #f7faff;
+  }
+}
+
+.paris-crew-card__input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paris-crew-card__input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-size: 12.5px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+.paris-crew-card__send {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 0;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #c6d3e4;
+  color: #fff;
+
+  &.is-ready {
+    background: var(--accent);
+  }
+}

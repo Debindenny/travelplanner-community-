@@ -1,4 +1,23 @@
 <aside class="community-sidebar">
+  <app-paris-crew-card
+    [inCrew]="inCrew()"
+    [messages]="crewMessages()"
+    [draft]="crewDraft()"
+    [votes]="crewVotes()"
+    [rsvpIds]="crewRsvpIds()"
+    [settledIds]="crewSettledIds()"
+    (join)="joinCrew.emit()"
+    (startCircle)="startCrewCircle.emit()"
+    (draftChange)="crewDraftChange.emit($event)"
+    (send)="sendCrewMessage.emit()"
+    (addCard)="addCrewCard.emit($event)"
+    (votePoll)="voteCrewPoll.emit($event)"
+    (rsvp)="rsvpCrewMeet.emit($event)"
+    (decline)="declineCrewMeet.emit()"
+    (settle)="settleCrewSplit.emit($event)"
+    (addPlaceToTrip)="addCrewPlaceToTrip.emit($event)"
+  />
+
   <app-travelers-rail-card
     [travelers]="travelersRail()"
     [followedIds]="followedIds()"
