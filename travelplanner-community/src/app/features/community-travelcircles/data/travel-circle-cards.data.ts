@@ -5,10 +5,10 @@ export interface TravelCircleCard {
   visibility: 'Public' | 'Invite only' | 'Friends';
   description: string;
   activity: string;
-  live: boolean;
   cta: 'Join' | 'Request';
   accent: string;
   accent2: string;
+  audience?: 'Everyone' | 'Women only' | 'Men only';
 }
 
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
@@ -19,7 +19,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     visibility: 'Invite only',
     description: 'Cherry-blossom trip planning — splitting JR passes and comparing machiya stays.',
     activity: 'Active 20m ago',
-    live: false,
     cta: 'Request',
     accent: '#8b5cf6',
     accent2: '#c2569b',
@@ -31,7 +30,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     visibility: 'Public',
     description: 'Safety notes, stays and meetups for women travelling alone.',
     activity: 'Active now',
-    live: true,
     cta: 'Join',
     accent: '#5b3fa0',
     accent2: '#8b5cf6',
@@ -43,7 +41,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     visibility: 'Public',
     description: 'Two weeks minimum, trains over flights, one city at a time.',
     activity: 'Active 1h ago',
-    live: false,
     cta: 'Join',
     accent: '#8b5cf6',
     accent2: '#8b5cf6',
@@ -55,7 +52,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     visibility: 'Invite only',
     description: 'Everyone here is in Paris the first week of June. Sharing a food walk and a museum day.',
     activity: 'Active 5m ago',
-    live: true,
     cta: 'Request',
     accent: '#c2569b',
     accent2: '#c2569b',
