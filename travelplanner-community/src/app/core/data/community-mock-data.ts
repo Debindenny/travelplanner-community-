@@ -364,7 +364,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         badge: 'Online',
         title: 'Planning Japan 2027 — live Q&A',
         meta: 'Online · 18:00 CET · Free',
-        travelersGoing: 21,
+        travelersGoing: 128,
         isOnline: true,
       },
       {
@@ -374,7 +374,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         badge: 'Meetup',
         title: 'Lisbon Sunset Miradouro Crawl',
         meta: 'Graça, Lisbon · 18:30 · Free',
-        travelersGoing: 9,
+        travelersGoing: 21,
         isOnline: false,
       },
     ],

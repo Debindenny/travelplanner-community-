@@ -30,4 +30,8 @@ export class EventsTabComponent {
   onShowDetails(event: EventListing): void {
     this.store.showToast(`Opening “${event.title}”`);
   }
+
+  onGoHome(): void {
+    this.store.selectTab('Home');
+  }
 }

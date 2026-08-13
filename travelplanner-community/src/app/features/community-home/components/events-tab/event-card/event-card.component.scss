@@ -61,17 +61,17 @@
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 800;
-  background: var(--accent-soft);
-  color: var(--accent-deep);
+  background: #EEF2FF;
+  color: #2563EB;
 
   &--food {
-    background: var(--accent-soft-hover);
-    color: var(--accent-deep);
+    background: #EFF4FF;
+    color: #2563EB;
   }
 
   &--online {
-    background: #f1ebfa;
-    color: var(--purple);
+    background: #F2ECFF;
+color: #7353BA;
   }
 }
 
