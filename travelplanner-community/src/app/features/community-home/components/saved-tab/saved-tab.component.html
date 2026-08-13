@@ -46,7 +46,7 @@
             <div class="saved-card__title">{{ item.title }}</div>
             <div class="saved-card__meta">{{ item.meta }}</div>
             <div class="saved-card__actions">
-              <button type="button" class="saved-card__add" (click)="onAddToTrip(item)">+ Add to trip</button>
+              <button type="button" class="saved-card__add" (click)="onAddToTrip(item)">Add to trip</button>
               <button type="button" class="saved-card__remove" aria-label="Remove from saved" (click)="store.removeSavedCollectionItem(item.id)">
                 <app-icon name="trash" [size]="14" />
               </button>
