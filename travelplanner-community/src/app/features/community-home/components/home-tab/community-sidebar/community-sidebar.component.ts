@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { TravelCrewCardComponent } from '../sidebar/travel-crew-card/travel-crew-card.component';
-import { JourneyCardComponent } from '../sidebar/journey-card/journey-card.component';
 import { TravelersRailCardComponent } from '../sidebar/travelers-rail-card/travelers-rail-card.component';
 import { StartCircleCardComponent } from '../sidebar/start-circle-card/start-circle-card.component';
 import { TrendingCardComponent } from '../sidebar/trending-card/trending-card.component';
@@ -10,7 +9,6 @@ import { SidebarFooterLinksComponent } from '../sidebar/sidebar-footer-links/sid
 import {
   CrewMessage,
   CrewMessageKind,
-  JourneyStat,
   TrendingItem,
   TravelerRailItem,
   UpcomingEvent,
@@ -20,7 +18,6 @@ import {
   selector: 'app-community-sidebar',
   imports: [
     TravelCrewCardComponent,
-    JourneyCardComponent,
     TravelersRailCardComponent,
     StartCircleCardComponent,
     TrendingCardComponent,
@@ -32,7 +29,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunitySidebarComponent {
-  readonly journeyStats = input<JourneyStat[]>([]);
   readonly travelersRail = input<TravelerRailItem[]>([]);
   readonly trending = input<TrendingItem[]>([]);
   readonly events = input<UpcomingEvent[]>([]);

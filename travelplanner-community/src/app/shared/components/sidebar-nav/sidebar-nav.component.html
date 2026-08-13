@@ -1,4 +1,11 @@
-<aside class="sidebar-nav">
+<aside class="sidebar-nav">  
+
+  
+  <button type="button" class="sidebar-nav__share" (click)="share.emit()">
+    <app-icon name="plus" [size]="16" />
+    Share with travelers
+  </button>
+
   <nav class="sidebar-nav__list">
     @for (item of subnavItems; track item.tab) {
       <button
@@ -18,6 +25,8 @@
     }
   </nav>
 
+  <app-journey-card [stats]="journeyStats()" />
+<!--
   <div class="sidebar-nav__circles">
     <div class="sidebar-nav__circles-label">YOUR CIRCLES</div>
     @for (circle of circles(); track circle.id) {
@@ -29,10 +38,6 @@
         }
       </button>
     }
-  </div>
+  </div> -->
 
-  <button type="button" class="sidebar-nav__share" (click)="share.emit()">
-    <app-icon name="plus" [size]="16" />
-    Share with travelers
-  </button>
 </aside>

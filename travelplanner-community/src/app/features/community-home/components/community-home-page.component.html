@@ -10,6 +10,7 @@
     <app-sidebar-nav
       [activeTab]="store.activeTab()"
       [circles]="store.sideCircles()"
+      [journeyStats]="store.journeyStats()"
       (selectTab)="store.selectTab($event)"
       (selectCircle)="onSelectCircle($event)"
       (share)="store.openComposerMenu()"

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { IconComponent } from '../icon/icon.component';
-import { CommunityTab, SideCircle } from '../../../core/models/community.models';
+import { JourneyCardComponent } from '../../../features/community-home/components/home-tab/sidebar/journey-card/journey-card.component';
+import { CommunityTab, JourneyStat, SideCircle } from '../../../core/models/community.models';
 
 interface SubnavItem {
   tab: CommunityTab;
@@ -11,7 +12,7 @@ interface SubnavItem {
 
 @Component({
   selector: 'app-sidebar-nav',
-  imports: [IconComponent],
+  imports: [IconComponent, JourneyCardComponent],
   templateUrl: './sidebar-nav.component.html',
   styleUrl: './sidebar-nav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +30,7 @@ export class SidebarNavComponent {
 
   readonly activeTab = input.required<CommunityTab>();
   readonly circles = input<SideCircle[]>([]);
+  readonly journeyStats = input<JourneyStat[]>([]);
 
   readonly selectTab = output<CommunityTab>();
   readonly selectCircle = output<SideCircle>();
