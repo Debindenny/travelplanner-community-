@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { DestinationCardComponent } from './destination-card/destination-card.component';
 import { CommunityHomeStore } from '../../store/community-home.store';
 import { CommunityDestination, DestinationSort } from '../../../../core/models/community.models';
 
 @Component({
   selector: 'app-destinations-tab',
-  imports: [DestinationCardComponent],
+  imports: [IconComponent, DestinationCardComponent],
   templateUrl: './destinations-tab.component.html',
   styleUrl: './destinations-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +19,10 @@ export class DestinationsTabComponent {
 
   isJoined(id: string): boolean {
     return this.store.joinedIds().has(id);
+  }
+
+  goHome(): void {
+    this.store.selectTab('Home');
   }
 
   onViewPosts(destination: CommunityDestination): void {
