@@ -10,6 +10,7 @@ import { DiscoverTabComponent } from './discover-tab/discover-tab.component';
 import { SavedTabComponent } from './saved-tab/saved-tab.component';
 import { EventsTabComponent } from './events-tab/events-tab.component';
 import { CommunityTravelCirclesComponent } from '../../community-travelcircles/components/community-travelcircles-page.component';
+import { CommunityTripsComponent } from '../../community-trips/components/community-trips-page.component';
 import { ModalShellComponent } from './overlays/modal-shell/modal-shell.component';
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
@@ -33,6 +34,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     SavedTabComponent,
     EventsTabComponent,
     CommunityTravelCirclesComponent,
+    CommunityTripsComponent,
     ModalShellComponent,
     ComposerTypeMenuComponent,
     ComposerFormComponent,
