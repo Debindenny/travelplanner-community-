@@ -2,6 +2,7 @@ import {
   AiPrompt,
   CommunityHomeData,
   ComposerFormDef,
+  CrewMessage,
   DiscoverCard,
   DiscoverFeature,
   DiscoverRankedItem,
@@ -159,6 +160,33 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
 ];
 
 export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'];
+
+export const PARIS_CREW_MESSAGES: CrewMessage[] = [
+  { id: 'c1', kind: 'text', author: 'Priya Nair', text: 'Landing Tuesday morning — anyone up for the Montmartre walk before the crowds?', when: '09:14' },
+  {
+    id: 'c2',
+    kind: 'place',
+    author: 'Marco Villa',
+    text: 'Louvre · Porte des Lions entrance',
+    sub: 'Skips the pyramid queue · Day 3',
+    when: '09:31',
+    image: unsplashUrl('1565099824688-e93eb20fe622', 500),
+  },
+  {
+    id: 'c3',
+    kind: 'poll',
+    author: 'Emma Ross',
+    text: 'Dinner Thursday — where?',
+    when: '10:02',
+    options: [
+      { id: 'a', label: 'Le Comptoir', basePercent: 52 },
+      { id: 'b', label: 'Marais street food', basePercent: 33 },
+      { id: 'c', label: 'Cook at the flat', basePercent: 15 },
+    ],
+  },
+  { id: 'c4', kind: 'meet', author: 'Aarav Menon', text: 'Coffee at Saint-Jean', sub: 'Wed 08:30 · Montmartre', when: '10:20' },
+  { id: 'c5', kind: 'split', author: 'Priya Nair', text: 'Museum pass · €78 total', sub: '€19.50 each · 4 people', when: '10:44' },
+];
 
 export const DISCOVER_LIVE_COUNT = '1,284 travelers browsing now';
 

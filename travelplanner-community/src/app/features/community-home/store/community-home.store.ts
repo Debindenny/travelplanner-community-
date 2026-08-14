@@ -3,6 +3,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
+  PARIS_CREW_MESSAGES,
   DISCOVER_CARDS,
   DISCOVER_CATEGORIES,
   DISCOVER_CATEGORY_TAGS,
@@ -12,10 +13,13 @@ import {
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
+import { unsplashUrl } from '../../../shared/utils/unsplash';
 import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
+  CrewCardKind,
+  CrewMessage,
   DestinationSort,
   DiscoverDetailPayload,
   EventsFilter,
@@ -73,6 +77,13 @@ export class CommunityHomeStore {
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
 
+  private readonly _inCrew = signal(false);
+  private readonly _crewMessages = signal<CrewMessage[]>(PARIS_CREW_MESSAGES);
+  private readonly _crewDraft = signal('');
+  private readonly _crewVotes = signal<Readonly<Record<string, string>>>({});
+  private readonly _crewRsvpIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _crewSettledIds = signal<ReadonlySet<string>>(new Set());
+
   readonly stories = computed(() => this.data.stories);
   readonly journeyStats = computed(() => this.data.journeyStats);
   readonly matches = computed(() => this.data.matches);
@@ -125,6 +136,13 @@ export class CommunityHomeStore {
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
+
+  readonly inCrew = this._inCrew.asReadonly();
+  readonly crewMessages = this._crewMessages.asReadonly();
+  readonly crewDraft = this._crewDraft.asReadonly();
+  readonly crewVotes = this._crewVotes.asReadonly();
+  readonly crewRsvpIds = this._crewRsvpIds.asReadonly();
+  readonly crewSettledIds = this._crewSettledIds.asReadonly();
 
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
   readonly destinationSort = this._destinationSort.asReadonly();
@@ -493,6 +511,88 @@ export class CommunityHomeStore {
 
   closeModal(): void {
     this._modal.set(null);
+  }
+
+  joinCrew(): void {
+    this._inCrew.set(true);
+    this.showToast('You’re in · Paris Crew, 03–09 Jun');
+  }
+
+  setCrewDraft(text: string): void {
+    this._crewDraft.set(text);
+  }
+
+  sendCrewMessage(): void {
+    const text = this._crewDraft().trim();
+    if (!text) {
+      return;
+    }
+    const message: CrewMessage = { id: `u${this._crewMessages().length}`, kind: 'text', author: CURRENT_USER.name, text, when: 'Now' };
+    this._crewMessages.set([...this._crewMessages(), message]);
+    this._crewDraft.set('');
+  }
+
+  addCrewCard(kind: CrewCardKind): void {
+    const id = `u${this._crewMessages().length}`;
+    const cardByKind: Record<CrewCardKind, CrewMessage> = {
+      place: {
+        id,
+        kind: 'place',
+        author: CURRENT_USER.name,
+        text: 'Shakespeare & Company',
+        sub: 'Bookshop · 5th arrondissement',
+        when: 'Now',
+        image: unsplashUrl('1502602898657-3e91760cbb34', 500),
+      },
+      poll: {
+        id,
+        kind: 'poll',
+        author: CURRENT_USER.name,
+        text: 'Museum day — which one?',
+        when: 'Now',
+        options: [
+          { id: 'a', label: 'Louvre', basePercent: 0 },
+          { id: 'b', label: 'Orsay', basePercent: 0 },
+        ],
+      },
+      meet: { id, kind: 'meet', author: CURRENT_USER.name, text: 'Sunset at Pont Neuf', sub: 'Fri 20:30 · Île de la Cité', when: 'Now' },
+      split: { id, kind: 'split', author: CURRENT_USER.name, text: 'Taxi from CDG · €62', sub: '€15.50 each · 4 people', when: 'Now' },
+    };
+
+    this._crewMessages.set([...this._crewMessages(), cardByKind[kind]]);
+
+    const toastByKind: Record<CrewCardKind, string> = {
+      place: 'Place shared with the crew',
+      poll: 'Poll posted',
+      meet: 'Meet-up proposed',
+      split: 'Cost added to split',
+    };
+    this.showToast(toastByKind[kind]);
+  }
+
+  voteCrewPoll(messageId: string, optionId: string): void {
+    this._crewVotes.set({ ...this._crewVotes(), [messageId]: optionId });
+    this.showToast('Vote counted');
+  }
+
+  rsvpCrewMeet(messageId: string): void {
+    const wasGoing = this._crewRsvpIds().has(messageId);
+    this._crewRsvpIds.set(this.toggledSet(this._crewRsvpIds(), messageId));
+    this.showToast(wasGoing ? 'RSVP removed' : 'You’re in');
+  }
+
+  declineCrewMeet(): void {
+    this.showToast('Marked as can’t make it');
+  }
+
+  settleCrewSplit(messageId: string): void {
+    const wasSettled = this._crewSettledIds().has(messageId);
+    this._crewSettledIds.set(this.toggledSet(this._crewSettledIds(), messageId));
+    this.showToast(wasSettled ? 'Marked unpaid' : 'Marked as paid');
+  }
+
+  addCrewPlaceToTrip(): void {
+    this.showToast('Added to Paris · 03–09 June');
   }
 
   showToast(message: string): void {

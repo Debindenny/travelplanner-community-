@@ -61,7 +61,7 @@
     }
     @case ('addToTrip') {
       @if (store.activeAddToTripPayload(); as trip) {
-        <app-modal-shell titleIcon="plus" title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
+        <app-modal-shell title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
           <app-add-to-trip-modal
             [spot]="trip.spot"
             [spotMeta]="trip.meta"

@@ -31,7 +31,9 @@ export type IconName =
   | 'arrow-left'
   | 'moon'
   | 'trash'
-  | 'shield';
+  | 'shield'
+  | 'receipt'
+  | 'send';
 
 @Component({
   selector: 'app-icon',
@@ -134,6 +136,12 @@ export type IconName =
         }
         @case ('moon') {
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+        }
+        @case ('receipt') {
+          <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" /><path d="M16 8H8" /><path d="M16 12H8" /><path d="M13 16H8" />
+        }
+        @case ('send') {
+          <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
         }
         @case ('trash') {
           <path d="M3 6h18" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
