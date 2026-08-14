@@ -47,11 +47,6 @@
 }
 
 .trips-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
   margin-bottom: 18px;
 }
 
@@ -72,16 +67,31 @@
   letter-spacing: -0.01em;
 }
 
+.trips-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 8px;
+}
+
 .trips-header__subtitle {
-  margin: 8px 0 0;
-  max-width: 520px;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.5;
   color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trips-header__share {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   flex: none;
   height: 42px;
   padding: 0 20px;

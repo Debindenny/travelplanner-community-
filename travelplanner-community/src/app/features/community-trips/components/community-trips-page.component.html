@@ -6,14 +6,14 @@
 </div>
 
 <div class="trips-header">
-  <div class="trips-header__copy">
-    <span class="trips-header__eyebrow">Community trips</span>
-    <h1 class="trips-header__title">Real itineraries you can clone</h1>
+  <span class="trips-header__eyebrow">Community trips</span>
+  <h1 class="trips-header__title">Real itineraries you can clone</h1>
+  <div class="trips-header__row">
     <p class="trips-header__subtitle">
       Every trip here was actually travelled. Clone one and TRAVL AI reshapes it to your dates and pace.
     </p>
+    <button type="button" class="trips-header__share" (click)="onShareTrip()">Share a trip</button>
   </div>
-  <button type="button" class="trips-header__share" (click)="onShareTrip()">Share a trip</button>
 </div>
 
 <div class="trips-filters">
