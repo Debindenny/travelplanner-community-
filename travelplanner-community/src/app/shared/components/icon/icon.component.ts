@@ -30,10 +30,10 @@ export type IconName =
   | 'chevron-down'
   | 'arrow-left'
   | 'moon'
-  | 'trash'
-  | 'shield'
   | 'receipt'
-  | 'send';
+  | 'send'
+  | 'trash'
+  | 'shield';
 
 @Component({
   selector: 'app-icon',
@@ -45,7 +45,7 @@ export type IconName =
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
+      [attr.stroke-width]="strokeWidth()"
       stroke-linecap="round"
       stroke-linejoin="round"
     >
@@ -157,4 +157,5 @@ export type IconName =
 export class IconComponent {
   readonly name = input.required<IconName | string>();
   readonly size = input<number>(16);
+  readonly strokeWidth = input<number>(2);
 }
