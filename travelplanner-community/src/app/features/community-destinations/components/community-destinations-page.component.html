@@ -1,0 +1,75 @@
+<div class="destinations-header">
+  <div class="breadcrumb">
+    <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">
+      <app-icon name="chevron-right" [size]="14" class="breadcrumb__back-icon" />
+    </button>
+    <span class="breadcrumb__crumb">Community</span>
+    <span class="breadcrumb__divider">/</span>
+    <span class="breadcrumb__current">Destinations</span>
+  </div>
+
+  <div class="destinations-header__row">
+    <div class="destinations-header__copy">
+      <span class="destinations-header__eyebrow">Destination Communities</span>
+      <h1 class="destinations-header__title">Join the place, not just the trip</h1>
+      <p class="destinations-header__subtitle">
+        Every destination has its own feed of tips, trips and meetups from travelers there right now.
+      </p>
+    </div>
+    <div class="destinations-header__sorts">
+      @for (option of sorts; track option) {
+        <button
+          type="button"
+          class="sort-chip"
+          [class.sort-chip--active]="sort() === option"
+          (click)="selectSort(option)"
+        >
+          {{ option }}
+        </button>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="destination-grid">
+  @for (card of sortedCards(); track card.id) {
+    <article class="destination-card">
+      <div class="destination-card__cover" [style.background-image]="'url(' + card.coverUrl + ')'">
+        <span class="destination-card__live">
+          <span class="destination-card__live-dot"></span>
+          {{ card.livePlanningCount }} planning
+        </span>
+        @if (card.hot) {
+          <span class="destination-card__hot">HOT</span>
+        }
+        <div class="destination-card__overlay">
+          <span class="destination-card__name">{{ card.name }}</span>
+          <span class="destination-card__members">{{ card.travelerCountLabel }}</span>
+        </div>
+      </div>
+
+      <div class="destination-card__body">
+        <div class="destination-card__stats">
+          @for (stat of card.stats; track stat.label) {
+            <span class="destination-card__stat">
+              <span class="destination-card__stat-value">{{ stat.value }}</span>
+              <span class="destination-card__stat-label">{{ stat.label }}</span>
+            </span>
+          }
+        </div>
+
+        <div class="destination-card__actions">
+          <button type="button" class="destination-card__view" (click)="onViewPosts(card)">View posts</button>
+          <button
+            type="button"
+            class="destination-card__join"
+            [class.destination-card__join--active]="isJoined(card.id)"
+            (click)="onToggleJoin(card)"
+          >
+            {{ joinLabel(card) }}
+          </button>
+        </div>
+      </div>
+    </article>
+  }
+</div>
