@@ -35,7 +35,9 @@
 </div>
 
 <div class="ccm__footer">
-  @if (!ready()) {
+  @if (ready()) {
+    <span class="ccm__footer-hint">Ready to create</span>
+  } @else {
     <span class="ccm__footer-hint">Name your circle to continue</span>
   }
   <span class="ccm__spacer"></span>
