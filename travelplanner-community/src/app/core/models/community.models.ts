@@ -4,7 +4,7 @@ export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'discoverDetail';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
@@ -127,6 +127,13 @@ export interface DiscoverCard {
   image: string;
 }
 
+export interface DiscoverDetailPayload {
+  tag: string;
+  title: string;
+  meta: string;
+  image: string;
+}
+
 export interface UpcomingEvent {
   id: string;
   name: string;
@@ -231,6 +238,7 @@ export interface ModalState {
   formType?: string;
   story?: StoryViewerPayload;
   addToTrip?: AddToTripPayload;
+  discoverItem?: DiscoverDetailPayload;
 }
 
 export interface CommunityHomeData {

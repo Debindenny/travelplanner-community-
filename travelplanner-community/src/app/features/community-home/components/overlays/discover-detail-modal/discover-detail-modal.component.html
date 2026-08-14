@@ -1,0 +1,20 @@
+<div class="discover-detail__banner" [style.background-image]="'url(' + item().image + ')'">
+  <span class="discover-detail__scrim"></span>
+  <span class="discover-detail__tag">{{ item().tag }}</span>
+  <button type="button" class="discover-detail__close" (click)="close.emit()" aria-label="Close">
+    <app-icon name="x" [size]="16" />
+  </button>
+  <span class="discover-detail__banner-text">
+    <span class="discover-detail__title">{{ item().title }}</span>
+    <span class="discover-detail__meta">{{ item().meta }}</span>
+  </span>
+</div>
+
+<div class="discover-detail__body">
+  <p class="discover-detail__description">{{ description() }}</p>
+</div>
+
+<div class="discover-detail__footer">
+  <button type="button" class="discover-detail__cancel" (click)="close.emit()">Close</button>
+  <button type="button" class="discover-detail__confirm" (click)="addToTrip.emit()">+ Add to trip</button>
+</div>

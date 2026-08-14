@@ -114,6 +114,17 @@
         <app-post-options-modal (selectItem)="store.runPostOptionsAction($event.message)" />
       </app-modal-shell>
     }
+    @case ('discoverDetail') {
+      @if (store.activeDiscoverItem(); as item) {
+        <app-modal-shell width="480px" [showHeader]="false" (close)="store.closeModal()">
+          <app-discover-detail-modal
+            [item]="item"
+            (close)="store.closeModal()"
+            (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.meta, image: item.image })"
+          />
+        </app-modal-shell>
+      }
+    }
   }
 
   <app-toast [message]="store.toast()" />

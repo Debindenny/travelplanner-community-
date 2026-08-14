@@ -35,7 +35,7 @@
       type="button"
       class="discover-tab__feature"
       [style.background-image]="'url(' + store.discoverFeature.image + ')'"
-      (click)="onOpen(store.discoverFeature.title)"
+      (click)="onOpen({ tag: 'MOST USED THIS WEEK', title: store.discoverFeature.title, meta: store.discoverFeature.meta, image: store.discoverFeature.image })"
     >
       <span class="discover-tab__feature-tag">MOST USED THIS WEEK</span>
       <span class="discover-tab__feature-text">
@@ -46,7 +46,7 @@
 
     <div class="discover-tab__ranked">
       @for (item of store.discoverTop; track item.id) {
-        <button type="button" class="discover-tab__ranked-item surface-card" (click)="onOpen(item.title)">
+        <button type="button" class="discover-tab__ranked-item surface-card" (click)="onOpen(item)">
           <span class="discover-tab__ranked-thumb" [style.background-image]="'url(' + item.image + ')'"></span>
           <span class="discover-tab__ranked-text">
             <span class="discover-tab__ranked-tag">{{ item.tag }}</span>
@@ -61,7 +61,7 @@
 
   <div class="discover-tab__grid">
     @for (card of store.filteredDiscoverCards(); track card.id) {
-      <button type="button" class="discover-tab__card surface-card" (click)="onOpen(card.title)">
+      <button type="button" class="discover-tab__card surface-card" (click)="onOpen(card)">
         <span class="discover-tab__card-cover" [style.background-image]="'url(' + card.image + ')'">
           <span class="discover-tab__card-tag">{{ card.tag }}</span>
         </span>
