@@ -32,6 +32,32 @@
     </div>
     <p class="ccm__hint">{{ visibilityHint() }}</p>
   </div>
+
+  <div class="ccm__field">
+    <span class="ccm__label">Who is it for</span>
+    <div class="ccm__audience-list">
+      @for (option of audienceOptions; track option.value) {
+        <button
+          type="button"
+          class="ccm__audience-card"
+          [class.is-active]="audience() === option.value"
+          (click)="audience.set(option.value)"
+        >
+          <span class="ccm__audience-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
+            <app-icon [name]="option.icon" [size]="16" />
+          </span>
+          <span class="ccm__audience-copy">
+            <span class="ccm__audience-title">{{ option.label }}</span>
+            <span class="ccm__audience-desc">{{ option.description }}</span>
+          </span>
+          @if (audience() === option.value) {
+            <app-icon name="check" [size]="16" class="ccm__audience-check" />
+          }
+        </button>
+      }
+    </div>
+    <p class="ccm__hint">Gendered circles exist for safety, not exclusion. Members must have a verified profile to join one.</p>
+  </div>
 </div>
 
 <div class="ccm__footer">

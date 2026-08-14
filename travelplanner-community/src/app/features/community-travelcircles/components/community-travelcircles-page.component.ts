@@ -13,6 +13,28 @@ const ACCENT_PALETTE: Array<[string, string]> = [
   ['#2aa98b', '#0060ea'],
 ];
 
+function minutesSinceActivity(activity: string): number {
+  const text = activity.toLowerCase();
+  if (text.includes('now')) {
+    return 0;
+  }
+  const match = text.match(/(\d+)\s*(m|h|d)\b/);
+  if (!match) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const value = Number(match[1]);
+  switch (match[2]) {
+    case 'm':
+      return value;
+    case 'h':
+      return value * 60;
+    case 'd':
+      return value * 60 * 24;
+    default:
+      return Number.POSITIVE_INFINITY;
+  }
+}
+
 @Component({
   selector: 'app-community-travelcircles',
   imports: [IconComponent, ModalShellComponent, CreateCircleModalComponent],
@@ -34,6 +56,10 @@ export class CommunityTravelCirclesComponent {
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
+  }
+
+  isRecentlyActive(card: TravelCircleCard): boolean {
+    return minutesSinceActivity(card.activity) < 60;
   }
 
   buttonLabel(card: TravelCircleCard): string {
@@ -76,10 +102,10 @@ export class CommunityTravelCirclesComponent {
       visibility: payload.visibility,
       description: payload.description || 'A new circle for planning together.',
       activity: 'Active now',
-      live: true,
       cta: payload.visibility === 'Invite only' ? 'Request' : 'Join',
       accent,
       accent2,
+      audience: payload.audience,
     };
 
     this._cards.set([newCard, ...this._cards()]);

@@ -89,6 +89,71 @@
   line-height: 1.5;
 }
 
+.ccm__audience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ccm__audience-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &.is-active {
+    border: 1.5px solid var(--accent);
+    background: rgba(0, 96, 234, 0.05);
+  }
+}
+
+.ccm__audience-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ccm__audience-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ccm__audience-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ccm__audience-desc {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+
+.ccm__audience-check {
+  flex: none;
+  color: var(--accent);
+}
+
 .ccm__footer {
   padding: 14px 22px;
   border-top: 1px solid var(--border-soft);

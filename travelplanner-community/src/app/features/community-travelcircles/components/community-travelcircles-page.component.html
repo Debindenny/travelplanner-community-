@@ -33,7 +33,7 @@
 
       <div class="circle-card__bottom">
         <span class="circle-card__activity">
-          <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="card.live"></span>
+          <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="isRecentlyActive(card)"></span>
           {{ card.activity }}
         </span>
         <button
