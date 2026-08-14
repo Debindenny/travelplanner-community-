@@ -19,6 +19,21 @@
         @case ('Destinations') {
           <app-destinations-tab />
         }
+        @case ('Discover') {
+          <app-discover-tab />
+        }
+        @case ('Events') {
+          <app-events-tab />
+        }
+        @case ('Saved') {
+          <app-saved-tab />
+        }
+        @case ('Travel Circles') {
+          <app-community-travelcircles />
+        }
+        @case ('Trips') {
+          <app-community-trips />
+        }
         @default {
           <app-coming-soon [tab]="store.activeTab()" (goHome)="goHome()" />
         }
