@@ -1,8 +1,6 @@
 <div class="circles-header">
   <div class="breadcrumb">
-    <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">
-      <app-icon name="arrow-left" [size]="14" class="breadcrumb__back-icon" />
-    </button>
+    <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">←</button>
     <span class="breadcrumb__crumb">Community</span>
     <span class="breadcrumb__divider">/</span>
     <span class="breadcrumb__current">Travel Circles</span>
@@ -40,6 +38,7 @@
           type="button"
           class="circle-card__cta"
           [class.circle-card__cta--active]="isMember(card.id)"
+          [class.circle-card__cta--owner]="isOwner(card)"
           (click)="onToggleMembership(card)"
         >
           {{ buttonLabel(card) }}

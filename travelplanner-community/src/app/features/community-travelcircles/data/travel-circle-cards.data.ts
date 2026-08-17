@@ -9,6 +9,7 @@ export interface TravelCircleCard {
   accent: string;
   accent2: string;
   audience?: 'Everyone' | 'Women only' | 'Men only';
+  initialStatus?: 'joined' | 'owner';
 }
 
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
@@ -33,6 +34,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     cta: 'Join',
     accent: '#5b3fa0',
     accent2: '#8b5cf6',
+    initialStatus: 'joined',
   },
   {
     id: 'tc3',
@@ -44,6 +46,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     cta: 'Join',
     accent: '#8b5cf6',
     accent2: '#8b5cf6',
+    initialStatus: 'joined',
   },
   {
     id: 'tc4',
@@ -55,5 +58,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     cta: 'Request',
     accent: '#c2569b',
     accent2: '#c2569b',
+    initialStatus: 'owner',
   },
 ];
