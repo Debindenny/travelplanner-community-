@@ -199,8 +199,19 @@
   }
 }
 
+.saved-card__open {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
 .saved-card__cover {
   position: relative;
+  display: block;
   height: 116px;
   background-size: cover;
   background-position: center;
@@ -228,31 +239,38 @@
   align-items: center;
 }
 
-.saved-card__body {
-  padding: 14px 15px 16px;
+.saved-card__title-block {
+  padding: 14px 15px 0;
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 3px;
 }
 
 .saved-card__title {
   font-size: 13.5px;
   font-weight: 800;
   line-height: 1.42;
+  color: var(--text-primary);
 }
 
 .saved-card__meta {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-faint);
-  margin-top: 3px;
+}
+
+.saved-card__body {
+  padding: 0 15px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .saved-card__actions {
   display: flex;
   gap: 8px;
   margin-top: auto;
-  padding-top: 13px;
+  padding-top: 14px;
 }
 
 .saved-card__add {

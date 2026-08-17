@@ -104,6 +104,17 @@
         <app-post-options-modal (selectItem)="store.runPostOptionsAction($event.message)" />
       </app-modal-shell>
     }
+    @case ('savedDetail') {
+      @if (store.activeSavedItem(); as item) {
+        <app-modal-shell width="420px" [showHeader]="false" (close)="store.closeModal()">
+          <app-saved-detail-modal
+            [item]="item"
+            (close)="store.closeModal()"
+            (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.tag + ' · ' + item.place, image: item.image })"
+          />
+        </app-modal-shell>
+      }
+    }
   }
 
   <app-toast [message]="store.toast()" />

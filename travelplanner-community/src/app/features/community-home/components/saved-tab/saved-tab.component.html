@@ -39,15 +39,24 @@
     <div class="saved-tab__grid">
       @for (item of store.savedCollectionItems(); track item.id) {
         <div class="saved-card">
-          <div class="saved-card__cover" [style.background-image]="'url(' + item.image + ')'">
-            <span class="saved-card__kind">{{ item.kind }}</span>
-          </div>
+          <button type="button" class="saved-card__open" (click)="onOpen(item)">
+            <span class="saved-card__cover" [style.background-image]="'url(' + item.image + ')'">
+              <span class="saved-card__kind">{{ item.kind }}</span>
+            </span>
+            <span class="saved-card__title-block">
+              <span class="saved-card__title">{{ item.title }}</span>
+              <span class="saved-card__meta">{{ item.meta }}</span>
+            </span>
+          </button>
           <div class="saved-card__body">
-            <div class="saved-card__title">{{ item.title }}</div>
-            <div class="saved-card__meta">{{ item.meta }}</div>
             <div class="saved-card__actions">
               <button type="button" class="saved-card__add" (click)="onAddToTrip(item)">Add to trip</button>
-              <button type="button" class="saved-card__remove" aria-label="Remove from saved" (click)="store.removeSavedCollectionItem(item.id)">
+              <button
+                type="button"
+                class="saved-card__remove"
+                aria-label="Remove from saved"
+                (click)="item.fromFeed ? store.toggleSave(item.id) : store.removeSavedCollectionItem(item.id)"
+              >
                 <app-icon name="trash" [size]="14" />
               </button>
             </div>
