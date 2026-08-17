@@ -19,6 +19,7 @@ import { AddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-tri
 import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-viewer-modal.component';
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
 import { DiscoverDetailModalComponent } from './overlays/discover-detail-modal/discover-detail-modal.component';
+import { SavedDetailModalComponent } from './overlays/saved-detail-modal/saved-detail-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
 import { AI_PROMPTS } from '../../../core/data/community-mock-data';
 import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/community.models';
@@ -45,6 +46,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     StoryViewerModalComponent,
     PostOptionsModalComponent,
     DiscoverDetailModalComponent,
+    SavedDetailModalComponent,
   ],
   templateUrl: './community-home-page.component.html',
   styleUrl: './community-home-page.component.scss',

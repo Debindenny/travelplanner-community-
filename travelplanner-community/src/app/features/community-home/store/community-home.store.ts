@@ -24,7 +24,10 @@ import {
   EventsFilter,
   FeedFilter,
   ModalState,
+  SavedCollectionCard,
+  SavedCollectionKind,
   SavedCollectionTab,
+  SavedDetailPayload,
   StoryViewerPayload,
   ViewMode,
 } from '../../../core/models/community.models';
@@ -37,6 +40,18 @@ const CURRENT_USER = {
 
 const DESTINATION_FILTERS = ['All', 'Paris', 'Tokyo', 'Bali'];
 const TOAST_DURATION_MS = 2400;
+
+const POST_KIND_TO_SAVED_KIND: Partial<Record<CommunityPost['kind'], SavedCollectionKind>> = {
+  INSIGHT: 'Tip',
+  QUESTION: 'Tip',
+  POLL: 'Tip',
+  PHOTO: 'Spot',
+  VIDEO: 'Spot',
+  MEETUP: 'Spot',
+  ITINERARY: 'Trip',
+};
+
+const SAVED_PLACEHOLDER_IMAGE = unsplashUrl('1493976040374-85c8e12f0c0e', 600);
 
 @Injectable({ providedIn: 'root' })
 export class CommunityHomeStore {
@@ -96,9 +111,26 @@ export class CommunityHomeStore {
   readonly events = computed(() => this.data.events);
   readonly destinations = computed(() => this.data.destinations);
 
-  private readonly remainingSavedCollection = computed(() =>
-    this.data.savedCollection.filter((item) => !this._removedSavedCollectionIds().has(item.id)),
-  );
+  private readonly savedFeedItems = computed<SavedCollectionCard[]>(() => {
+    const saved = this._savedIds();
+    return this._posts()
+      .filter((post) => saved.has(post.id))
+      .map((post) => ({
+        id: post.id,
+        kind: POST_KIND_TO_SAVED_KIND[post.kind] ?? 'Tip',
+        title: post.title,
+        meta: `${post.author} · ${post.place || 'Community'}`,
+        image: post.image ?? SAVED_PLACEHOLDER_IMAGE,
+        fromFeed: true,
+      }));
+  });
+
+  private readonly remainingSavedCollection = computed<SavedCollectionCard[]>(() => {
+    const staticItems = this.data.savedCollection
+      .filter((item) => !this._removedSavedCollectionIds().has(item.id))
+      .map((item) => ({ ...item, fromFeed: false }));
+    return [...this.savedFeedItems(), ...staticItems];
+  });
 
   readonly savedCollectionTab = this._savedCollectionTab.asReadonly();
 
@@ -191,6 +223,7 @@ export class CommunityHomeStore {
   readonly activeStory = computed(() => this._modal()?.story ?? null);
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
   readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
+  readonly activeSavedItem = computed(() => this._modal()?.savedItem ?? null);
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -225,6 +258,7 @@ export class CommunityHomeStore {
     const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
     return `Adds to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}, ${date}`;
   });
+
   readonly currentUser = CURRENT_USER;
 
   readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
@@ -587,6 +621,22 @@ export class CommunityHomeStore {
   openAddToTrip(payload: AddToTripPayload): void {
     this._addDay.set(1);
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
+  }
+
+  openSavedItem(item: SavedCollectionCard): void {
+    const [place, used] = item.meta.split('·').map((part) => part.trim());
+    const payload: SavedDetailPayload = {
+      tag: item.kind.toUpperCase(),
+      place: place || 'Saved',
+      title: item.title,
+      image: item.image,
+      used: used || '',
+      facts: [
+        { label: 'TYPE', value: item.kind },
+        { label: 'SAVED', value: used || 'Recently' },
+      ],
+    };
+    this._modal.set({ kind: 'savedDetail', savedItem: payload });
   }
 
   pickTrip(tripId: string): void {
