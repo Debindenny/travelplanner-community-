@@ -1,7 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import {
-  ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
   DISCOVER_CATEGORIES,
   DISCOVER_LIVE_COUNT,
@@ -63,9 +62,7 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
   private readonly _addDay = signal(1);
-  private readonly _addSlot = signal('Anytime');
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
   private readonly _discoverQuery = signal('');
   private readonly _discoverPlace = signal(DISCOVER_PLACES[0]);
@@ -102,9 +99,7 @@ export class CommunityHomeStore {
   readonly formMediaAttached = this._formMediaAttached.asReadonly();
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
-  readonly addKind = this._addKind.asReadonly();
   readonly addDay = this._addDay.asReadonly();
-  readonly addSlot = this._addSlot.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
   readonly discoverQuery = this._discoverQuery.asReadonly();
   readonly discoverPlace = this._discoverPlace.asReadonly();
@@ -152,7 +147,6 @@ export class CommunityHomeStore {
   });
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
-  readonly addToTripKinds = ADD_TO_TRIP_KINDS;
 
   private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
@@ -166,25 +160,11 @@ export class CommunityHomeStore {
     })),
   );
 
-  readonly addSlots = ['Morning', 'Afternoon', 'Evening', 'Anytime'];
-
-  readonly addPreviewHead = computed(() => {
-    const day = this.activeItinerary()[this._addDay() - 1];
-    return `DAY ${this._addDay()} · ${day?.date ?? ''} · AFTER ADDING`;
+  readonly addConfirmationLine = computed(() => {
+    const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
+    const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
+    return `Adds to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}, ${date}`;
   });
-
-  readonly addPreviewRows = computed(() => {
-    const day = this.activeItinerary()[this._addDay() - 1];
-    const spot = this._modal()?.addToTrip?.spot ?? 'This place';
-    const at = { Morning: '09:00', Afternoon: '14:00', Evening: '19:30', Anytime: '—' }[this._addSlot()] ?? '—';
-    const rows = [...(day?.items ?? []), { time: at, name: spot, isNew: true }];
-    return rows
-      .slice()
-      .sort((a, b) => (a.time === '—' ? 1 : 0) - (b.time === '—' ? 1 : 0) || a.time.localeCompare(b.time))
-      .map((row) => ({ time: row.time, name: row.name, isNew: !!('isNew' in row && row.isNew) }));
-  });
-
-  readonly addTargetSummary = computed(() => `${this._addKind()} · Day ${this._addDay()} · ${this._addSlot()}`);
   readonly currentUser = CURRENT_USER;
 
   readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
@@ -529,7 +509,6 @@ export class CommunityHomeStore {
 
   openAddToTrip(payload: AddToTripPayload): void {
     this._addDay.set(1);
-    this._addSlot.set('Anytime');
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
   }
 
@@ -540,14 +519,6 @@ export class CommunityHomeStore {
 
   pickAddDay(day: number): void {
     this._addDay.set(day);
-  }
-
-  pickAddSlot(slot: string): void {
-    this._addSlot.set(slot);
-  }
-
-  pickAddKind(kind: string): void {
-    this._addKind.set(kind);
   }
 
   confirmAddToTrip(): void {
