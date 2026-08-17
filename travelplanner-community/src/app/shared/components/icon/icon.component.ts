@@ -26,7 +26,11 @@ export type IconName =
   | 'bar-chart'
   | 'user-plus'
   | 'chevron-right'
-  | 'chevron-down';
+  | 'chevron-down'
+  | 'utensils'
+  | 'bed'
+  | 'bus'
+  | 'plane';
 
 @Component({
   selector: 'app-icon',
@@ -120,6 +124,18 @@ export type IconName =
         }
         @case ('chevron-down') {
           <path d="m6 9 6 6 6-6" />
+        }
+        @case ('utensils') {
+          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+        }
+        @case ('bed') {
+          <path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />
+        }
+        @case ('bus') {
+          <rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 12h18" /><circle cx="7.5" cy="18" r="1.5" /><circle cx="16.5" cy="18" r="1.5" />
+        }
+        @case ('plane') {
+          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.3.5-.1 1.1.4 1.4L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.5.9.7 1.4.4l.5-.3c.4-.2.6-.6.5-1.1Z" />
         }
       }
     </svg>
