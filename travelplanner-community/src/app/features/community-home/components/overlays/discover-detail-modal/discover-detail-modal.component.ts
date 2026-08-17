@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { IconComponent } from '../../../../../shared/components/icon/icon.component';
-import { DiscoverDetailPayload } from '../../../../../core/models/community.models';
+import { DiscoverItem } from '../../../../../core/models/community.models';
+import { avatarPhotoUrl } from '../../../../../shared/utils/unsplash';
 
 @Component({
   selector: 'app-discover-detail-modal',
@@ -11,13 +12,16 @@ import { DiscoverDetailPayload } from '../../../../../core/models/community.mode
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscoverDetailModalComponent {
-  readonly item = input.required<DiscoverDetailPayload>();
+  readonly item = input.required<DiscoverItem>();
+  readonly saved = input(false);
+  readonly following = input(false);
 
   readonly close = output<void>();
   readonly addToTrip = output<void>();
+  readonly toggleSave = output<void>();
+  readonly toggleFollow = output<void>();
 
-  readonly description = computed(() => {
-    const tag = this.item().tag.toLowerCase();
-    return `Shared with the community as a ${tag} and used by travelers planning a similar trip. Save it or add it straight into your itinerary.`;
-  });
+  authorAvatar(): string {
+    return avatarPhotoUrl(this.item().author, 76);
+  }
 }

@@ -103,20 +103,22 @@
   color: var(--accent);
 }
 
-.add-to-trip__kinds {
+.add-to-trip__days {
   display: flex;
-  flex-wrap: wrap;
   gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
-.chip-pill {
-  height: 32px;
-  padding: 0 13px;
+.add-to-trip__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   flex: none;
-  white-space: nowrap;
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 700;
+  min-width: 78px;
+  padding: 10px 12px;
+  border-radius: 12px;
   cursor: pointer;
   border: 1px solid var(--border);
   background: #fff;
@@ -124,9 +126,39 @@
 
   &.is-active {
     border-color: var(--accent);
-    background: #f2f7ff;
-    color: var(--accent);
+    background: var(--accent);
+    color: #fff;
   }
+}
+
+.add-to-trip__day-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.add-to-trip__day-date {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.add-to-trip__day-count {
+  font-size: 9.5px;
+  font-weight: 700;
+  opacity: 0.65;
+}
+
+.add-to-trip__confirm-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: var(--surface-sunken);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
 .add-to-trip__footer {

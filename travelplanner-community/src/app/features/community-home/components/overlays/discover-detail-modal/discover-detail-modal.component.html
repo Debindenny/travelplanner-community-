@@ -6,15 +6,50 @@
   </button>
   <span class="discover-detail__banner-text">
     <span class="discover-detail__title">{{ item().title }}</span>
-    <span class="discover-detail__meta">{{ item().meta }}</span>
+    <span class="discover-detail__place"><app-icon name="map-pin" [size]="12" />{{ item().place }}</span>
   </span>
 </div>
 
 <div class="discover-detail__body">
-  <p class="discover-detail__description">{{ description() }}</p>
+  <div class="discover-detail__author">
+    <span class="discover-detail__author-avatar" [style.background-image]="'url(' + authorAvatar() + ')'"></span>
+    <span class="discover-detail__author-copy">
+      <span class="discover-detail__author-name">{{ item().author }}</span>
+      <span class="discover-detail__author-line">{{ item().authorLine }}</span>
+    </span>
+    <button type="button" class="discover-detail__follow" [class.is-following]="following()" (click)="toggleFollow.emit()">
+      {{ following() ? 'Following' : 'Follow' }}
+    </button>
+  </div>
+
+  <p class="discover-detail__text">{{ item().body }}</p>
+
+  <div class="discover-detail__facts" [style.grid-template-columns]="'repeat(' + item().facts.length + ', 1fr)'">
+    @for (fact of item().facts; track fact.label) {
+      <span class="discover-detail__fact">
+        <span class="discover-detail__fact-label">{{ fact.label }}</span>
+        <span class="discover-detail__fact-value">{{ fact.value }}</span>
+      </span>
+    }
+  </div>
+
+  @if (item().points.length) {
+    <div class="discover-detail__points">
+      <span class="discover-detail__points-label">WHY TRAVELERS USE IT</span>
+      @for (point of item().points; track point) {
+        <span class="discover-detail__point">
+          <span class="discover-detail__point-dot"></span>
+          <span>{{ point }}</span>
+        </span>
+      }
+    </div>
+  }
 </div>
 
 <div class="discover-detail__footer">
-  <button type="button" class="discover-detail__cancel" (click)="close.emit()">Close</button>
-  <button type="button" class="discover-detail__confirm" (click)="addToTrip.emit()">+ Add to trip</button>
+  <span class="discover-detail__used">{{ item().used }} by travelers</span>
+  <button type="button" class="discover-detail__save" [class.is-saved]="saved()" (click)="toggleSave.emit()">
+    {{ saved() ? 'Saved' : 'Save' }}
+  </button>
+  <button type="button" class="discover-detail__confirm" (click)="addToTrip.emit()">Add to itinerary</button>
 </div>

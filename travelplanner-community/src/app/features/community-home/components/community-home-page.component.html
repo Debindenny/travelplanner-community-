@@ -83,10 +83,10 @@
             [spotImage]="trip.image"
             [trips]="store.tripPickOptions"
             [tripPick]="store.tripPick()"
-            [addKinds]="store.addToTripKinds"
-            [addKind]="store.addKind()"
+            [days]="store.addDays()"
+            [confirmationLine]="store.addConfirmationLine()"
             (pickTrip)="store.pickTrip($event)"
-            (pickKind)="store.pickAddKind($event)"
+            (pickDay)="store.pickAddDay($event)"
             (cancel)="store.closeModal()"
             (confirm)="store.confirmAddToTrip()"
           />
@@ -119,8 +119,12 @@
         <app-modal-shell width="480px" [showHeader]="false" (close)="store.closeModal()">
           <app-discover-detail-modal
             [item]="item"
+            [saved]="store.savedIds().has(item.id)"
+            [following]="store.followedIds().has('di_' + item.author)"
             (close)="store.closeModal()"
-            (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.meta, image: item.image })"
+            (toggleSave)="store.toggleSave(item.id)"
+            (toggleFollow)="store.toggleFollow('di_' + item.author, item.author)"
+            (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.tag + ' · ' + item.place, image: item.image })"
           />
         </app-modal-shell>
       }
