@@ -140,6 +140,19 @@
         </app-modal-shell>
       }
     }
+    @case ('destinationDetail') {
+      @if (store.activeDestinationItem(); as destination) {
+        <app-modal-shell width="440px" [showHeader]="false" (close)="store.closeModal()">
+          <app-destination-detail-modal
+            [destination]="destination"
+            [joined]="store.joinedIds().has(destination.id)"
+            (close)="store.closeModal()"
+            (toggleJoin)="store.toggleJoin(destination.id, destination.name)"
+            (openPost)="store.showToast('Opening: ' + $event.title)"
+          />
+        </app-modal-shell>
+      }
+    }
   }
 
   <app-toast [message]="store.toast()" />

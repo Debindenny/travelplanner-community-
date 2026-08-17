@@ -23,7 +23,7 @@
     </div>
 
     <div class="destination-card__actions">
-      <button type="button" class="destination-card__view" (click)="viewPosts.emit()">View posts</button>
+      <button type="button" class="destination-card__view" (click)="viewDetails.emit()">View details</button>
       <button type="button" class="destination-card__join" [class.is-joined]="joined()" (click)="toggleJoin.emit()">
         {{ joined() ? 'Joined' : 'Join' }}
       </button>

@@ -15,6 +15,7 @@ import {
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 import {
   AddToTripPayload,
+  CommunityDestination,
   CommunityPost,
   CommunityTab,
   CrewCardKind,
@@ -224,6 +225,7 @@ export class CommunityHomeStore {
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
   readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
   readonly activeSavedItem = computed(() => this._modal()?.savedItem ?? null);
+  readonly activeDestinationItem = computed(() => this._modal()?.destinationItem ?? null);
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -661,6 +663,10 @@ export class CommunityHomeStore {
 
   openDiscoverItem(item: DiscoverItem): void {
     this._modal.set({ kind: 'discoverDetail', discoverItem: item });
+  }
+
+  openDestinationDetail(destination: CommunityDestination): void {
+    this._modal.set({ kind: 'destinationDetail', destinationItem: destination });
   }
 
   openPostOptions(): void {

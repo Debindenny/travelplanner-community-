@@ -587,6 +587,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '412', label: 'Trips' },
           { value: '96', label: 'Events' },
         ],
+        recentPosts: [
+          { title: 'Montmartre photography walk before the crowds.', author: 'Camille Roy', kind: 'meetup' },
+          { title: 'Louvre on a Friday late-night, or first thing on a Tuesday?', author: 'Daniel Rossi', kind: 'question' },
+        ],
       },
       {
         id: 'ds2',
@@ -600,6 +604,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '780', label: 'Trips' },
           { value: '132', label: 'Events' },
         ],
+        recentPosts: [
+          { title: 'Book the 17:30 Shibuya Sky slot three weeks ahead.', author: 'Maya Kondo', kind: 'tip' },
+          { title: 'Anyone doing a ramen crawl through Golden Gai this month?', author: 'Owen Park', kind: 'question' },
+        ],
       },
       {
         id: 'ds3',
@@ -611,6 +619,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '2.2K', label: 'Tips' },
           { value: '301', label: 'Trips' },
           { value: '48', label: 'Events' },
+        ],
+        recentPosts: [
+          { title: 'Ubud vs Canggu for a first-timer working remotely?', author: 'Priya Nair', kind: 'question' },
+          { title: 'Sunrise trek up Batur — book the guide the night before.', author: 'Liam Foster', kind: 'tip' },
         ],
       },
       {
@@ -624,6 +636,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '224', label: 'Trips' },
           { value: '31', label: 'Events' },
         ],
+        recentPosts: [
+          { title: 'The 24E tram from Campolide beats the touristy 28.', author: 'Iker Solano', kind: 'tip' },
+          { title: 'Sunset meetup at Miradouro da Graça this Friday.', author: 'Sofia Almeida', kind: 'meetup' },
+        ],
       },
       {
         id: 'ds5',
@@ -636,6 +652,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '141', label: 'Trips' },
           { value: '18', label: 'Events' },
         ],
+        recentPosts: [
+          { title: 'Ring Road in 6 days is tight — here is the pace that worked.', author: 'Erik Halvorsen', kind: 'tip' },
+          { title: 'Chasing the northern lights in September — worth it?', author: 'Nora Fjeld', kind: 'question' },
+        ],
       },
       {
         id: 'ds6',
@@ -647,6 +667,10 @@ export function buildCommunityHomeData(): CommunityHomeData {
           { value: '1.1K', label: 'Tips' },
           { value: '187', label: 'Trips' },
           { value: '22', label: 'Events' },
+        ],
+        recentPosts: [
+          { title: 'Haggle at the souks — start at a third of the asking price.', author: 'Yasmine Idrissi', kind: 'tip' },
+          { title: 'Day trip to the Atlas Mountains — driver or organised tour?', author: 'Marco Villa', kind: 'question' },
         ],
       },
     ],

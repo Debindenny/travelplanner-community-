@@ -13,6 +13,6 @@ export class DestinationCardComponent {
   readonly destination = input.required<CommunityDestination>();
   readonly joined = input(false);
 
-  readonly viewPosts = output<void>();
+  readonly viewDetails = output<void>();
   readonly toggleJoin = output<void>();
 }

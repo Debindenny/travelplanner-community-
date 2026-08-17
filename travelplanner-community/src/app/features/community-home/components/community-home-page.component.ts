@@ -20,6 +20,7 @@ import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-v
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
 import { DiscoverDetailModalComponent } from './overlays/discover-detail-modal/discover-detail-modal.component';
 import { SavedDetailModalComponent } from './overlays/saved-detail-modal/saved-detail-modal.component';
+import { DestinationDetailModalComponent } from './overlays/destination-detail-modal/destination-detail-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
 import { AI_PROMPTS } from '../../../core/data/community-mock-data';
 import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/community.models';
@@ -47,6 +48,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     PostOptionsModalComponent,
     DiscoverDetailModalComponent,
     SavedDetailModalComponent,
+    DestinationDetailModalComponent,
   ],
   templateUrl: './community-home-page.component.html',
   styleUrl: './community-home-page.component.scss',

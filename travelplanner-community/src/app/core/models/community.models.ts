@@ -5,7 +5,7 @@ export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type DestinationSort = 'Popular' | 'Near me';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'discoverDetail' | 'savedDetail';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'discoverDetail' | 'savedDetail' | 'destinationDetail';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
@@ -188,6 +188,12 @@ export interface DestinationStat {
   value: string;
 }
 
+export interface DestinationRecentPost {
+  title: string;
+  author: string;
+  kind: string;
+}
+
 export interface CommunityDestination {
   id: string;
   name: string;
@@ -196,6 +202,7 @@ export interface CommunityDestination {
   hot?: string;
   image: string;
   stats: DestinationStat[];
+  recentPosts: DestinationRecentPost[];
 }
 
 export interface SavedCollectionCard extends SavedCollectionItem {
@@ -291,6 +298,7 @@ export interface ModalState {
   addToTrip?: AddToTripPayload;
   discoverItem?: DiscoverItem;
   savedItem?: SavedDetailPayload;
+  destinationItem?: CommunityDestination;
 }
 
 export interface CommunityHomeData {

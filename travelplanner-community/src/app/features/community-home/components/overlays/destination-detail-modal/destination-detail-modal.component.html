@@ -1,0 +1,43 @@
+<div class="destination-detail__banner" [style.background-image]="'url(' + destination().image + ')'">
+  <span class="destination-detail__scrim"></span>
+  <button type="button" class="destination-detail__close" (click)="close.emit()" aria-label="Close">
+    <app-icon name="x" [size]="16" />
+  </button>
+  <span class="destination-detail__banner-text">
+    <span class="destination-detail__name">{{ destination().name }}</span>
+    <span class="destination-detail__members">{{ destination().members }}</span>
+  </span>
+</div>
+
+<div class="destination-detail__body">
+  <div class="destination-detail__facts">
+    @for (stat of destination().stats; track stat.label) {
+      <span class="destination-detail__fact">
+        <span class="destination-detail__fact-label">{{ stat.label | uppercase }}</span>
+        <span class="destination-detail__fact-value">{{ stat.value }}</span>
+      </span>
+    }
+  </div>
+
+  @if (destination().recentPosts.length) {
+    <div class="destination-detail__posts">
+      <span class="destination-detail__posts-label">RECENT POSTS</span>
+      @for (post of destination().recentPosts; track post.title) {
+        <button type="button" class="destination-detail__post" (click)="openPost.emit(post)">
+          <span class="destination-detail__post-copy">
+            <span class="destination-detail__post-title">{{ post.title }}</span>
+            <span class="destination-detail__post-meta">{{ post.author }} · {{ post.kind }}</span>
+          </span>
+          <app-icon name="chevron-right" [size]="16" />
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<div class="destination-detail__footer">
+  <span class="destination-detail__live">{{ destination().livePlanning }} right now</span>
+  <button type="button" class="destination-detail__join" [class.is-joined]="joined()" (click)="toggleJoin.emit()">
+    {{ joined() ? 'Joined' : 'Join community' }}
+  </button>
+</div>
