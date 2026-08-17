@@ -16,6 +16,7 @@ import { ModalShellComponent } from './overlays/modal-shell/modal-shell.componen
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
 import { AddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-trip-modal.component';
+import { UseAsInspirationModalComponent } from './overlays/use-as-inspiration-modal/use-as-inspiration-modal.component';
 import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-viewer-modal.component';
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
 import { DiscoverDetailModalComponent } from './overlays/discover-detail-modal/discover-detail-modal.component';
@@ -44,6 +45,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     ComposerTypeMenuComponent,
     ComposerFormComponent,
     AddToTripModalComponent,
+    UseAsInspirationModalComponent,
     StoryViewerModalComponent,
     PostOptionsModalComponent,
     DiscoverDetailModalComponent,
@@ -59,13 +61,7 @@ export class CommunityHomePageComponent {
 
   readonly aiPrompts = AI_PROMPTS;
 
-  readonly auroraX = signal(50);
-  readonly auroraY = signal(35);
-
-  onAmbientMouseMove(event: MouseEvent): void {
-    this.auroraX.set((event.clientX / window.innerWidth) * 100);
-    this.auroraY.set((event.clientY / window.innerHeight) * 100);
-  }
+  readonly aiOpen = signal(false);
 
   onProfileMenuItem(item: ProfileMenuItem): void {
     if (item.target) {
@@ -76,12 +72,12 @@ export class CommunityHomePageComponent {
   }
 
   onAiPrompt(prompt: AiPrompt): void {
-    this.store.closeAiPanel();
+    this.aiOpen.set(false);
     this.store.selectTab(prompt.target);
   }
 
   onAiAsk(question: string): void {
-    this.store.closeAiPanel();
+    this.aiOpen.set(false);
     this.store.showToast(`Asking TRAVL AI: ${question}`);
   }
 

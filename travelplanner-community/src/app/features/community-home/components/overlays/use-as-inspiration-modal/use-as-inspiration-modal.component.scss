@@ -1,0 +1,128 @@
+:host {
+  display: block;
+}
+
+.remix__body {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.remix__banner {
+  border-radius: 12px;
+  padding: 14px;
+  background: linear-gradient(100deg, #f3f7ff, #f7f2ff);
+  border: 1px solid #e4e9fa;
+}
+
+.remix__banner-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.remix__banner-copy {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.remix__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.remix__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.remix__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.remix__field-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.remix__input {
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0 13px;
+  font-size: 13.5px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 96, 234, 0.1);
+  }
+}
+
+.remix__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chip-pill {
+  height: 32px;
+  padding: 0 13px;
+  flex: none;
+  white-space: nowrap;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-muted);
+
+  &.is-active {
+    border-color: var(--accent);
+    background: #f2f7ff;
+    color: var(--accent);
+  }
+}
+
+.remix__footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--surface-sunken);
+}
+
+.remix__cancel {
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+}
+
+.remix__confirm {
+  height: 38px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(100deg, #0060ea, #6b3fa0);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}

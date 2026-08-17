@@ -2,10 +2,9 @@ export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Tra
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
 export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
-export type DestinationSort = 'Popular' | 'Near me';
-export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
+export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION' | 'TRAVEL BUDDY';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'discoverDetail' | 'savedDetail' | 'destinationDetail';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'remix' | 'story' | 'postOptions';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
@@ -65,8 +64,8 @@ export interface CommunityPost {
   image?: string;
   isVideo?: boolean;
   helpfulBase: number;
-  cta: PostCta;
-  ctaLabel: string;
+  cta?: PostCta;
+  ctaLabel?: string;
   comments: PostComment[];
   poll?: PollOption[];
   pollVotesBase?: number;
@@ -272,10 +271,19 @@ export interface TripPickOption {
   dates: string;
 }
 
+export type PostOptionsAction = 'toggleSave' | 'copyLink' | 'mute' | 'block' | 'report';
+
 export interface PostOptionsMenuItem {
+  action: PostOptionsAction;
   label: string;
   hint: string;
   message: string;
+}
+
+export interface PostOptionsContext {
+  postId: string;
+  author: string;
+  saved: boolean;
 }
 
 export interface StoryViewerPayload {
@@ -291,14 +299,17 @@ export interface AddToTripPayload {
   image: string;
 }
 
+export interface RemixPayload {
+  author: string;
+}
+
 export interface ModalState {
   kind: ModalKind;
   formType?: string;
   story?: StoryViewerPayload;
   addToTrip?: AddToTripPayload;
-  discoverItem?: DiscoverItem;
-  savedItem?: SavedDetailPayload;
-  destinationItem?: CommunityDestination;
+  remix?: RemixPayload;
+  postOptions?: PostOptionsContext;
 }
 
 export interface CommunityHomeData {

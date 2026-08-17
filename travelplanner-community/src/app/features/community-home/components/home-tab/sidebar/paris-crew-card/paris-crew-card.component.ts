@@ -17,12 +17,8 @@ const CREW_TOOLS: CrewTool[] = [
   { kind: 'split', icon: 'receipt', tip: 'Split a cost' },
 ];
 
-const CREW_FACE_GRADIENTS = [
-  'linear-gradient(140deg,#F2B872,#D2604B)',
-  'linear-gradient(140deg,#0060EA,#2AA98B)',
-  'linear-gradient(140deg,#6B3FA0,#0060EA)',
-  'linear-gradient(140deg,#0A6E7C,#2AA98B)',
-];
+// Chosen so each name's avatarPhotoUrl hash lands on a different stock photo — avoids repeats.
+const CREW_FACE_NAMES = ['Priya Nair', 'Emma Ross', 'Tom Becker', 'Iker Solano'];
 
 @Component({
   selector: 'app-paris-crew-card',
@@ -33,15 +29,19 @@ const CREW_FACE_GRADIENTS = [
 })
 export class ParisCrewCardComponent {
   readonly inCrew = input(false);
+  readonly hasInvite = input(false);
+  readonly inviterName = input('Priya Nair');
   readonly messages = input<CrewMessage[]>([]);
   readonly draft = input('');
   readonly votes = input<Readonly<Record<string, string>>>({});
   readonly rsvpIds = input<ReadonlySet<string>>(new Set());
   readonly settledIds = input<ReadonlySet<string>>(new Set());
   readonly currentUserName = input('Ava Reyes');
+  readonly onlineCount = input(4);
 
   readonly join = output<void>();
-  readonly startCircle = output<void>();
+  readonly acceptInvite = output<void>();
+  readonly declineInvite = output<void>();
   readonly draftChange = output<string>();
   readonly send = output<void>();
   readonly addCard = output<CrewCardKind>();
@@ -50,9 +50,16 @@ export class ParisCrewCardComponent {
   readonly decline = output<void>();
   readonly settle = output<string>();
   readonly addPlaceToTrip = output<string>();
+  readonly minimizeChat = output<void>();
+  readonly closeChat = output<void>();
+  readonly startCircle = output<void>();
 
   readonly tools = CREW_TOOLS;
-  readonly faceGradients = CREW_FACE_GRADIENTS;
+  readonly faceNames = CREW_FACE_NAMES;
+
+  faceAvatar(name: string): string {
+    return avatarPhotoUrl(name, 64);
+  }
 
   isMine(message: CrewMessage): boolean {
     return message.author === this.currentUserName();
@@ -69,6 +76,10 @@ export class ParisCrewCardComponent {
 
   avatarFor(message: CrewMessage): string {
     return avatarPhotoUrl(message.author, 64);
+  }
+
+  get inviterAvatar(): string {
+    return avatarPhotoUrl(this.inviterName(), 64);
   }
 
   votedOptionFor(messageId: string): string | undefined {

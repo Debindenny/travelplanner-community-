@@ -35,6 +35,8 @@ export class CommunitySidebarComponent {
   readonly tripDestination = input('Paris');
 
   readonly inCrew = input(false);
+  readonly hasCrewInvite = input(false);
+  readonly crewChatOpen = input(true);
   readonly crewMessages = input<CrewMessage[]>([]);
   readonly crewDraft = input('');
   readonly crewVotes = input<Readonly<Record<string, string>>>({});
@@ -42,11 +44,13 @@ export class CommunitySidebarComponent {
   readonly crewSettledIds = input<ReadonlySet<string>>(new Set());
 
   readonly toggleFollowTraveler = output<TravelerRailItem>();
+  readonly createCircle = output<void>();
   readonly openTrending = output<TrendingItem>();
   readonly toggleJoinEvent = output<UpcomingEvent>();
 
   readonly joinCrew = output<void>();
-  readonly startCrewCircle = output<void>();
+  readonly acceptCrewInvite = output<void>();
+  readonly declineCrewInvite = output<void>();
   readonly crewDraftChange = output<string>();
   readonly sendCrewMessage = output<void>();
   readonly addCrewCard = output<CrewCardKind>();
@@ -55,4 +59,6 @@ export class CommunitySidebarComponent {
   readonly declineCrewMeet = output<void>();
   readonly settleCrewSplit = output<string>();
   readonly addCrewPlaceToTrip = output<string>();
+  readonly minimizeCrewChat = output<void>();
+  readonly closeCrewChat = output<void>();
 }

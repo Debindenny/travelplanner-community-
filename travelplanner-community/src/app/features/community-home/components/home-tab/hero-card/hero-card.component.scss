@@ -114,6 +114,16 @@
   }
 }
 
+.hero__button--ghost {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 700;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+}
+
 .hero__button--text {
   background: transparent;
   color: rgba(255, 255, 255, 0.8);

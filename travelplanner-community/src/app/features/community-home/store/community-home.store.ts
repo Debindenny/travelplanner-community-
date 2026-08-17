@@ -5,10 +5,9 @@ import {
   PARIS_CREW_MESSAGES,
   DISCOVER_CATEGORIES,
   DISCOVER_LIVE_COUNT,
-  DISCOVER_PLACES,
-  DISCOVER_POOL,
-  DISCOVER_SORTS,
-  TRIP_ITINERARIES,
+  DISCOVER_TOP,
+  REMIX_INTERESTS,
+  REMIX_PACES,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
@@ -25,8 +24,8 @@ import {
   EventsFilter,
   FeedFilter,
   ModalState,
-  SavedCollectionCard,
-  SavedCollectionKind,
+  PostOptionsMenuItem,
+  RemixPayload,
   SavedCollectionTab,
   SavedDetailPayload,
   StoryViewerPayload,
@@ -69,12 +68,12 @@ export class CommunityHomeStore {
   private readonly _hasUpcomingTrip = signal(true);
   private readonly _planText = signal('');
   private readonly _profileOpen = signal(false);
-  private readonly _aiOpen = signal(false);
   private readonly _modal = signal<ModalState | null>(null);
   private readonly _toast = signal<string | null>(null);
 
   private readonly _followedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _savedIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _likedStoryIds = signal<ReadonlySet<string>>(new Set());
   private readonly _joinedIds = signal<ReadonlySet<string>>(new Set());
   private readonly _savedCollectionTab = signal<SavedCollectionTab>('All');
   private readonly _removedSavedCollectionIds = signal<ReadonlySet<string>>(new Set());
@@ -89,7 +88,11 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addDay = signal(1);
+  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
+  private readonly _remixDates = signal('Oct 12 – Oct 19');
+  private readonly _remixTravelers = signal('2 adults');
+  private readonly _remixPace = signal(REMIX_PACES[1]);
+  private readonly _remixInterests = signal<ReadonlySet<string>>(new Set(['Food', 'Museums']));
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
   private readonly _discoverQuery = signal('');
   private readonly _discoverPlace = signal(DISCOVER_PLACES[0]);
@@ -98,6 +101,8 @@ export class CommunityHomeStore {
   private readonly _discoverSortOpen = signal(false);
 
   private readonly _inCrew = signal(false);
+  private readonly _crewInvite = signal(true);
+  private readonly _crewChatOpen = signal(true);
   private readonly _crewMessages = signal<CrewMessage[]>(PARIS_CREW_MESSAGES);
   private readonly _crewDraft = signal('');
   private readonly _crewVotes = signal<Readonly<Record<string, string>>>({});
@@ -156,11 +161,11 @@ export class CommunityHomeStore {
   readonly hasUpcomingTrip = this._hasUpcomingTrip.asReadonly();
   readonly planText = this._planText.asReadonly();
   readonly profileOpen = this._profileOpen.asReadonly();
-  readonly aiOpen = this._aiOpen.asReadonly();
   readonly modal = this._modal.asReadonly();
   readonly toast = this._toast.asReadonly();
   readonly followedIds = this._followedIds.asReadonly();
   readonly savedIds = this._savedIds.asReadonly();
+  readonly likedStoryIds = this._likedStoryIds.asReadonly();
   readonly joinedIds = this._joinedIds.asReadonly();
   readonly helpfulOnIds = this._helpfulOnIds.asReadonly();
   readonly openCommentPostIds = this._openCommentPostIds.asReadonly();
@@ -171,7 +176,11 @@ export class CommunityHomeStore {
   readonly formMediaAttached = this._formMediaAttached.asReadonly();
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
-  readonly addDay = this._addDay.asReadonly();
+  readonly addKind = this._addKind.asReadonly();
+  readonly remixDates = this._remixDates.asReadonly();
+  readonly remixTravelers = this._remixTravelers.asReadonly();
+  readonly remixPace = this._remixPace.asReadonly();
+  readonly remixInterests = this._remixInterests.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
   readonly discoverQuery = this._discoverQuery.asReadonly();
   readonly discoverPlace = this._discoverPlace.asReadonly();
@@ -180,6 +189,8 @@ export class CommunityHomeStore {
   readonly discoverSortOpen = this._discoverSortOpen.asReadonly();
 
   readonly inCrew = this._inCrew.asReadonly();
+  readonly crewInvite = this._crewInvite.asReadonly();
+  readonly crewChatOpen = this._crewChatOpen.asReadonly();
   readonly crewMessages = this._crewMessages.asReadonly();
   readonly crewDraft = this._crewDraft.asReadonly();
   readonly crewVotes = this._crewVotes.asReadonly();
@@ -223,9 +234,8 @@ export class CommunityHomeStore {
 
   readonly activeStory = computed(() => this._modal()?.story ?? null);
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
-  readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
-  readonly activeSavedItem = computed(() => this._modal()?.savedItem ?? null);
-  readonly activeDestinationItem = computed(() => this._modal()?.destinationItem ?? null);
+  readonly activeRemixPayload = computed(() => this._modal()?.remix ?? null);
+  readonly activePostOptionsContext = computed(() => this._modal()?.postOptions ?? null);
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -242,25 +252,9 @@ export class CommunityHomeStore {
   });
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
-
-  private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
-
-  readonly addDays = computed(() =>
-    this.activeItinerary().map((day, index) => ({
-      label: `DAY ${index + 1}`,
-      date: day.date,
-      count: `${day.items.length} ${day.items.length === 1 ? 'item' : 'items'}`,
-      active: this._addDay() === index + 1,
-      day: index + 1,
-    })),
-  );
-
-  readonly addConfirmationLine = computed(() => {
-    const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
-    const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
-    return `Adds to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}, ${date}`;
-  });
-
+  readonly addToTripKinds = ADD_TO_TRIP_KINDS;
+  readonly remixPaces = REMIX_PACES;
+  readonly remixInterestOptions = REMIX_INTERESTS;
   readonly currentUser = CURRENT_USER;
 
   readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
@@ -395,14 +389,6 @@ export class CommunityHomeStore {
     this._profileOpen.set(false);
   }
 
-  toggleAiPanel(): void {
-    this._aiOpen.set(!this._aiOpen());
-  }
-
-  closeAiPanel(): void {
-    this._aiOpen.set(false);
-  }
-
   toggleHeroTrip(): void {
     this._hasUpcomingTrip.set(!this._hasUpcomingTrip());
   }
@@ -475,8 +461,6 @@ export class CommunityHomeStore {
       title: firstField,
       body: form.fields.length > 1 ? lastField : '',
       helpfulBase: 0,
-      cta: 'save',
-      ctaLabel: 'Save to collection',
       comments: [],
       authoredByMe: true,
     };
@@ -533,6 +517,10 @@ export class CommunityHomeStore {
     const wasSaved = this._savedIds().has(id);
     this._savedIds.set(this.toggledSet(this._savedIds(), id));
     this.showToast(wasSaved ? 'Removed from saved' : 'Saved to your collection');
+  }
+
+  toggleLikeStory(id: string): void {
+    this._likedStoryIds.set(this.toggledSet(this._likedStoryIds(), id));
   }
 
   selectSavedCollectionTab(tab: SavedCollectionTab): void {
@@ -604,8 +592,7 @@ export class CommunityHomeStore {
         this.openAddToTrip({ spot: post.title, meta: `Activity · ${post.place}`, image: post.image ?? '' });
         return;
       case 'remix':
-        this._modal.set({ kind: 'addToTrip' });
-        this.showToast('Building your version…');
+        this.openRemix({ author: post.author });
         return;
       case 'join':
         this.toggleJoin(post.id, post.title);
@@ -650,6 +637,31 @@ export class CommunityHomeStore {
     this._addDay.set(day);
   }
 
+  openRemix(payload: RemixPayload): void {
+    this._modal.set({ kind: 'remix', remix: payload });
+  }
+
+  setRemixDates(value: string): void {
+    this._remixDates.set(value);
+  }
+
+  setRemixTravelers(value: string): void {
+    this._remixTravelers.set(value);
+  }
+
+  pickRemixPace(pace: string): void {
+    this._remixPace.set(pace);
+  }
+
+  toggleRemixInterest(interest: string): void {
+    this._remixInterests.set(this.toggledSet(this._remixInterests(), interest));
+  }
+
+  confirmRemix(): void {
+    this._modal.set(null);
+    this.showToast('Building your version…');
+  }
+
   confirmAddToTrip(): void {
     const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
     const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
@@ -661,21 +673,18 @@ export class CommunityHomeStore {
     this._modal.set({ kind: 'story', story });
   }
 
-  openDiscoverItem(item: DiscoverItem): void {
-    this._modal.set({ kind: 'discoverDetail', discoverItem: item });
+  openPostOptions(postId: string, author: string): void {
+    this._modal.set({ kind: 'postOptions', postOptions: { postId, author, saved: this._savedIds().has(postId) } });
   }
 
-  openDestinationDetail(destination: CommunityDestination): void {
-    this._modal.set({ kind: 'destinationDetail', destinationItem: destination });
-  }
-
-  openPostOptions(): void {
-    this._modal.set({ kind: 'postOptions' });
-  }
-
-  runPostOptionsAction(message: string): void {
+  runPostOptionsAction(item: PostOptionsMenuItem): void {
+    const context = this._modal()?.postOptions;
     this._modal.set(null);
-    this.showToast(message);
+    if (item.action === 'toggleSave' && context) {
+      this.toggleSave(context.postId);
+      return;
+    }
+    this.showToast(item.message);
   }
 
   closeModal(): void {
@@ -684,7 +693,34 @@ export class CommunityHomeStore {
 
   joinCrew(): void {
     this._inCrew.set(true);
+    this._crewInvite.set(false);
+    this._crewChatOpen.set(true);
     this.showToast('You’re in · Paris Crew, 03–09 Jun');
+  }
+
+  acceptCrewInvite(): void {
+    this._inCrew.set(true);
+    this._crewInvite.set(false);
+    this._crewChatOpen.set(true);
+    this.showToast('You’re in · Paris Crew, 03–09 Jun');
+  }
+
+  declineCrewInvite(): void {
+    this._crewInvite.set(false);
+    this.showToast('Invite declined');
+  }
+
+  openCrewChat(): void {
+    this._crewChatOpen.set(true);
+  }
+
+  minimizeCrewChat(): void {
+    this._crewChatOpen.set(false);
+  }
+
+  closeCrewChat(): void {
+    this._crewChatOpen.set(false);
+    this.showToast('Chat minimised · tap the bubble to reopen');
   }
 
   setCrewDraft(text: string): void {
@@ -778,7 +814,7 @@ export class CommunityHomeStore {
       'Ask Question': 'QUESTION',
       'Start a Poll': 'POLL',
       'Host a Meetup': 'MEETUP',
-      'Find Travel Buddy': 'QUESTION',
+      'Find Travel Buddy': 'TRAVEL BUDDY',
     };
     return kindByFormType[formType] ?? 'INSIGHT';
   }

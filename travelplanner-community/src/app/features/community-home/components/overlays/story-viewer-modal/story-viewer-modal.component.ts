@@ -13,13 +13,13 @@ import { StoryViewerPayload } from '../../../../../core/models/community.models'
 export class StoryViewerModalComponent {
   readonly story = input.required<StoryViewerPayload>();
   readonly followed = input(false);
-  readonly saved = input(false);
+  readonly liked = input(false);
 
   readonly close = output<void>();
   readonly toggleFollow = output<void>();
   readonly openTrip = output<void>();
   readonly message = output<void>();
-  readonly toggleSave = output<void>();
+  readonly toggleLike = output<void>();
 
   readonly note = computed(() => {
     const story = this.story();

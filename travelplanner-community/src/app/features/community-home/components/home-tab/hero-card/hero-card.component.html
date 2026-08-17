@@ -14,6 +14,7 @@
         </div>
         <div class="hero__actions">
           <button type="button" class="hero__button hero__button--solid" (click)="exploreDestination.emit()">Explore Paris</button>
+          <button type="button" class="hero__button hero__button--ghost" (click)="findTravelers.emit()">Find travelers</button>
           <button type="button" class="hero__button hero__button--text" (click)="openTrip.emit()">Open my trip →</button>
         </div>
       </div>
@@ -24,25 +25,7 @@
         <button type="button" class="hero__button hero__button--solid" (click)="openTrip.emit()">Plan a trip</button>
       </div>
     }
-
-    <div class="hero__planner">
-      <div class="hero__planner-label">
-        <app-icon name="sparkles" [size]="14" />
-        <span>ITINERARY INSPIRATION</span>
-      </div>
-      <input
-        class="hero__planner-input"
-        type="text"
-        [value]="planText()"
-        (input)="planText.set($any($event.target).value)"
-        placeholder="e.g. 5 relaxed days in Bali"
-        aria-label="Trip planner"
-      />
-      <button type="button" class="hero__planner-submit" (click)="buildItinerary.emit()">Build my itinerary</button>
-    </div>
   </div>
 
-  <button type="button" class="hero__toggle" (click)="toggleHeroTrip.emit()">
-    {{ hasTrip() ? 'Preview: no upcoming trip' : 'Preview: upcoming trip' }}
-  </button>
+
 </section>

@@ -40,6 +40,7 @@ export const SEARCH_SUGGESTIONS: SearchSuggestion[] = [
 export const AI_PROMPTS: AiPrompt[] = [
   { text: 'What are travelers recommending in Paris right now?', target: 'Discover' },
   { text: 'Build a 3-day itinerary from my saved posts', target: 'Saved' },
+  { text: 'Find travelers visiting Barcelona around my dates', target: 'Travel Circles' },
   { text: 'Show community trips I can clone', target: 'Trips' },
 ];
 
@@ -159,20 +160,9 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
 
 export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Transport', 'Flight'];
 
-export const TRIP_ITINERARIES: Record<string, { date: string; items: { time: string; name: string }[] }[]> = {
-  t1: [
-    { date: 'Wed 03', items: [{ time: '15:00', name: 'Check in · Hôtel Bachaumont' }, { time: '19:00', name: 'Dinner in Le Marais' }] },
-    { date: 'Thu 04', items: [{ time: '09:30', name: 'Louvre · Denon wing' }] },
-    { date: 'Fri 05', items: [{ time: '10:00', name: 'Montmartre walk' }, { time: '20:30', name: 'Seine at dusk' }] },
-    { date: 'Sat 06', items: [{ time: '11:00', name: 'Flight home · CDG' }] },
-  ],
-  t2: [
-    { date: 'Apr 04', items: [{ time: '14:00', name: 'Land · Haneda' }] },
-    { date: 'Apr 05', items: [{ time: '09:00', name: 'Shibuya + Harajuku' }, { time: '17:30', name: 'Shibuya Sky' }] },
-    { date: 'Apr 06', items: [{ time: '08:00', name: 'Shinkansen to Kyoto' }] },
-    { date: 'Apr 07', items: [{ time: '10:00', name: 'Fushimi Inari' }] },
-  ],
-};
+export const REMIX_PACES: string[] = ['Slow', 'Balanced', 'Packed'];
+
+export const REMIX_INTERESTS: string[] = ['Food', 'Museums', 'Nature', 'Nightlife', 'Photography', 'Shopping'];
 
 export const PARIS_CREW_MESSAGES: CrewMessage[] = [
   { id: 'c1', kind: 'text', author: 'Priya Nair', text: 'Landing Tuesday morning — anyone up for the Montmartre walk before the crowds?', when: '09:14' },
@@ -345,10 +335,11 @@ export const DISCOVER_POOL: DiscoverItem[] = [
 ];
 
 export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [
-  { label: 'Save post', hint: 'Add to a collection', message: 'Saved' },
-  { label: 'Mute author', hint: 'Stop seeing posts, stay following', message: 'Muted for 30 days' },
-  { label: 'Block traveler', hint: 'They can’t message or see your trips', message: 'Traveler blocked' },
-  { label: 'Report post', hint: 'Community guidelines & safety', message: 'Report sent to moderation' },
+  { action: 'toggleSave', label: 'Save post', hint: 'Add to a collection', message: 'Saved' },
+  { action: 'copyLink', label: 'Copy link', hint: 'Share this post anywhere', message: 'Link copied · share to a circle or outside TRAVL PLANR' },
+  { action: 'mute', label: 'Mute author', hint: 'Stop seeing posts, stay following', message: 'Muted for 30 days' },
+  { action: 'block', label: 'Block traveler', hint: 'They can’t message or see your trips', message: 'Traveler blocked' },
+  { action: 'report', label: 'Report post', hint: 'Community guidelines & safety', message: 'Report sent to moderation' },
 ];
 
 export function buildCommunityHomeData(): CommunityHomeData {
@@ -471,6 +462,51 @@ export function buildCommunityHomeData(): CommunityHomeData {
         comments: [{ id: 'p5c1', author: 'Aarav Menon', text: 'I land on the 4th — count me in.', when: '3h ago', likes: 5 }],
       },
       {
+        id: 'p7',
+        kind: 'INSIGHT',
+        tone: '#0060EA',
+        tags: ['Tips'],
+        place: 'Bali',
+        author: 'Sofia Marchetti',
+        initials: 'SM',
+        avatarGradient: GRADIENTS[3],
+        meta: 'Went last month · Ubud, Bali',
+        title: 'Rent the scooter in Ubud, not at the airport.',
+        body: 'Half the price and they deliver to your stay. Ask for the helmet with the visor — the afternoon rain is constant in shoulder season.',
+        image: unsplashUrl('1537996194471-e657df975ab4', 1000),
+        helpfulBase: 96,
+        cta: 'addToTrip',
+        ctaLabel: 'Add to trip',
+        comments: [{ id: 'p7c1', author: 'Tom Becker', text: 'Confirmed — €4/day in Ubud vs €9 at Denpasar.', when: '2d ago', likes: 14 }],
+      },
+      {
+        id: 'p8',
+        kind: 'ITINERARY',
+        tone: '#2AA98B',
+        tags: ['Trip Plans'],
+        place: 'Lisbon',
+        author: 'Iker Solano',
+        initials: 'IS',
+        avatarGradient: GRADIENTS[4],
+        meta: 'Travelled May 2026 · shared publicly',
+        title: '5 days in Lisbon & Sintra without a single taxi.',
+        body: 'Trams, one regional train and a lot of walking. The Sintra day is the only one that needs planning.',
+        route: [
+          { city: 'Lisbon', nights: '3 nights', hasNext: true },
+          { city: 'Sintra', nights: '2 nights', hasNext: false },
+        ],
+        stats: [
+          { label: 'Days', value: '5' },
+          { label: 'Cities', value: '2' },
+          { label: 'Activities', value: '9' },
+          { label: 'Per person', value: '€620' },
+        ],
+        helpfulBase: 143,
+        cta: 'remix',
+        ctaLabel: 'Make my version',
+        comments: [{ id: 'p8c1', author: 'Emma Ross', text: 'The 24E tram tip alone saved me an hour.', when: '4d ago', likes: 19 }],
+      },
+      {
         id: 'p6',
         kind: 'QUESTION',
         tone: '#0060EA',
@@ -483,8 +519,6 @@ export function buildCommunityHomeData(): CommunityHomeData {
         title: 'Louvre on a Friday late-night, or first thing on a Tuesday?',
         body: 'Two hours is all I want to give it. I care about the Italian paintings and not much else.',
         helpfulBase: 27,
-        cta: 'answer',
-        ctaLabel: 'Answer this',
         comments: [
           {
             id: 'p6c1',
