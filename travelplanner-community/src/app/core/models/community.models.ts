@@ -102,34 +102,31 @@ export interface TrendingItem {
   image: string;
 }
 
-export interface DiscoverFeature {
-  title: string;
-  meta: string;
-  image: string;
+export type DiscoverPlace = 'All places' | 'Paris' | 'Tokyo' | 'Kyoto' | 'Lisbon' | 'Europe';
+export type DiscoverSort = 'Most used' | 'Newest' | 'Most saved';
+
+export interface DiscoverFact {
+  label: string;
+  value: string;
 }
 
-export interface DiscoverRankedItem {
-  id: string;
-  rank: string;
-  tag: string;
-  title: string;
-  meta: string;
-  image: string;
-}
-
-export interface DiscoverCard {
+export interface DiscoverItem {
   id: string;
   tag: string;
+  category: string;
+  place: string;
   title: string;
-  meta: string;
+  used: string;
+  blurb: string;
+  author: string;
+  authorLine: string;
+  body: string;
+  facts: DiscoverFact[];
+  points: string[];
   image: string;
-}
-
-export interface DiscoverDetailPayload {
-  tag: string;
-  title: string;
-  meta: string;
-  image: string;
+  useCount: number;
+  saveCount: number;
+  freshness: number;
 }
 
 export interface UpcomingEvent {
@@ -220,7 +217,7 @@ export interface ModalState {
   formType?: string;
   story?: StoryViewerPayload;
   addToTrip?: AddToTripPayload;
-  discoverItem?: DiscoverDetailPayload;
+  discoverItem?: DiscoverItem;
 }
 
 export interface CommunityHomeData {

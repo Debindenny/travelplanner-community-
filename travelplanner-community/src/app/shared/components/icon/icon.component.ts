@@ -25,7 +25,8 @@ export type IconName =
   | 'book'
   | 'bar-chart'
   | 'user-plus'
-  | 'chevron-right';
+  | 'chevron-right'
+  | 'chevron-down';
 
 @Component({
   selector: 'app-icon',
@@ -116,6 +117,9 @@ export type IconName =
         }
         @case ('chevron-right') {
           <path d="m9 6 6 6-6 6" />
+        }
+        @case ('chevron-down') {
+          <path d="m6 9 6 6 6-6" />
         }
       }
     </svg>

@@ -3,12 +3,11 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
-  DISCOVER_CARDS,
   DISCOVER_CATEGORIES,
-  DISCOVER_CATEGORY_TAGS,
-  DISCOVER_FEATURE,
   DISCOVER_LIVE_COUNT,
-  DISCOVER_TOP,
+  DISCOVER_PLACES,
+  DISCOVER_POOL,
+  DISCOVER_SORTS,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
@@ -16,7 +15,7 @@ import {
   AddToTripPayload,
   CommunityPost,
   CommunityTab,
-  DiscoverDetailPayload,
+  DiscoverItem,
   FeedFilter,
   ModalState,
   StoryViewerPayload,
@@ -65,6 +64,11 @@ export class CommunityHomeStore {
   private readonly _tripPick = signal('t1');
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
+  private readonly _discoverQuery = signal('');
+  private readonly _discoverPlace = signal(DISCOVER_PLACES[0]);
+  private readonly _discoverSort = signal(DISCOVER_SORTS[0]);
+  private readonly _discoverPlaceOpen = signal(false);
+  private readonly _discoverSortOpen = signal(false);
 
   readonly stories = computed(() => this.data.stories);
   readonly journeyStats = computed(() => this.data.journeyStats);
@@ -97,6 +101,11 @@ export class CommunityHomeStore {
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
+  readonly discoverQuery = this._discoverQuery.asReadonly();
+  readonly discoverPlace = this._discoverPlace.asReadonly();
+  readonly discoverSort = this._discoverSort.asReadonly();
+  readonly discoverPlaceOpen = this._discoverPlaceOpen.asReadonly();
+  readonly discoverSortOpen = this._discoverSortOpen.asReadonly();
 
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
 
@@ -143,12 +152,64 @@ export class CommunityHomeStore {
 
   readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
   readonly discoverCategories = DISCOVER_CATEGORIES;
-  readonly discoverFeature = DISCOVER_FEATURE;
-  readonly discoverTop = DISCOVER_TOP;
+  readonly discoverPlaces = DISCOVER_PLACES;
+  readonly discoverSorts = DISCOVER_SORTS;
 
-  readonly filteredDiscoverCards = computed(() => {
-    const tag = DISCOVER_CATEGORY_TAGS[this._discoverCategory()];
-    return tag ? DISCOVER_CARDS.filter((card) => card.tag === tag) : DISCOVER_CARDS;
+  readonly discoverShown = computed(() => {
+    const category = this._discoverCategory();
+    const place = this._discoverPlace();
+    const sort = this._discoverSort();
+    const query = this._discoverQuery().trim().toLowerCase();
+
+    const filtered = DISCOVER_POOL.filter((item) => {
+      const matchesCategory = category === 'All' || item.category === category;
+      const matchesPlace = place === 'All places' || item.place === place;
+      const matchesQuery =
+        !query || `${item.title} ${item.blurb} ${item.place} ${item.tag} ${item.author}`.toLowerCase().includes(query);
+      return matchesCategory && matchesPlace && matchesQuery;
+    });
+
+    return filtered.slice().sort((a, b) => {
+      if (sort === 'Newest') {
+        return b.freshness - a.freshness;
+      }
+      if (sort === 'Most saved') {
+        return b.saveCount - a.saveCount;
+      }
+      return b.useCount - a.useCount;
+    });
+  });
+
+  readonly discoverPlaceOptions = computed(() => {
+    const selected = this._discoverPlace();
+    return DISCOVER_PLACES.map((place) => ({
+      label: place,
+      active: selected === place,
+      count: place === 'All places' ? DISCOVER_POOL.length : DISCOVER_POOL.filter((item) => item.place === place).length,
+    }));
+  });
+
+  readonly discoverSortOptions = computed(() => {
+    const selected = this._discoverSort();
+    return DISCOVER_SORTS.map((sort) => ({ label: sort, active: selected === sort }));
+  });
+
+  readonly discoverResultLine = computed(() => {
+    const count = this.discoverShown().length;
+    const place = this._discoverPlace();
+    const suffix = place !== 'All places' ? ` in ${place}` : '';
+    return `${count} ${count === 1 ? 'result' : 'results'}${suffix}`;
+  });
+
+  readonly discoverFiltersActive = computed(
+    () => !!this._discoverQuery() || this._discoverPlace() !== 'All places' || this._discoverCategory() !== 'All',
+  );
+
+  readonly discoverEmpty = computed(() => this.discoverShown().length === 0);
+
+  readonly discoverEmptyTitle = computed(() => {
+    const query = this._discoverQuery().trim();
+    return query ? `Nothing matches "${query}"` : 'Nothing matches those filters';
   });
 
   selectTab(tab: CommunityTab): void {
@@ -163,6 +224,38 @@ export class CommunityHomeStore {
 
   selectDiscoverCategory(category: string): void {
     this._discoverCategory.set(category);
+  }
+
+  setDiscoverQuery(query: string): void {
+    this._discoverQuery.set(query);
+  }
+
+  toggleDiscoverPlaceMenu(): void {
+    this._discoverPlaceOpen.set(!this._discoverPlaceOpen());
+    this._discoverSortOpen.set(false);
+  }
+
+  pickDiscoverPlace(place: string): void {
+    this._discoverPlace.set(place);
+    this._discoverPlaceOpen.set(false);
+  }
+
+  toggleDiscoverSortMenu(): void {
+    this._discoverSortOpen.set(!this._discoverSortOpen());
+    this._discoverPlaceOpen.set(false);
+  }
+
+  pickDiscoverSort(sort: string): void {
+    this._discoverSort.set(sort);
+    this._discoverSortOpen.set(false);
+  }
+
+  clearDiscoverFilters(): void {
+    this._discoverQuery.set('');
+    this._discoverPlace.set(DISCOVER_PLACES[0]);
+    this._discoverCategory.set(DISCOVER_CATEGORIES[0]);
+    this._discoverSort.set(DISCOVER_SORTS[0]);
+    this.showToast('Filters cleared');
   }
 
   cycleDestinationFilter(): void {
@@ -419,7 +512,7 @@ export class CommunityHomeStore {
     this._modal.set({ kind: 'story', story });
   }
 
-  openDiscoverItem(item: DiscoverDetailPayload): void {
+  openDiscoverItem(item: DiscoverItem): void {
     this._modal.set({ kind: 'discoverDetail', discoverItem: item });
   }
 
