@@ -8,7 +8,7 @@
   </div>
 
   <div class="add-to-trip__section">
-    <span class="add-to-trip__label">ADD TO WHICH TRIP</span>
+    <span class="add-to-trip__label">WHICH TRIP</span>
     @for (trip of trips(); track trip.id) {
       <button type="button" class="add-to-trip__trip" [class.is-picked]="tripPick() === trip.id" (click)="pickTrip.emit(trip.id)">
         <span class="add-to-trip__trip-copy">
@@ -36,40 +36,13 @@
     </div>
   </div>
 
-  <div class="add-to-trip__section">
-    <span class="add-to-trip__label">WHAT IS IT</span>
-    <div class="add-to-trip__kinds-grid">
-      @for (kind of addKinds(); track kind) {
-        <button type="button" class="add-to-trip__kind" [class.is-active]="addKind() === kind" (click)="pickKind.emit(kind)">{{ kind }}</button>
-      }
-    </div>
-  </div>
-
-  <div class="add-to-trip__section">
-    <span class="add-to-trip__label">WHEN THAT DAY</span>
-    <div class="add-to-trip__kinds">
-      @for (slot of slots(); track slot) {
-        <button type="button" class="chip-pill" [class.is-active]="addSlot() === slot" (click)="pickSlot.emit(slot)">{{ slot }}</button>
-      }
-    </div>
-  </div>
-
-  <div class="add-to-trip__preview">
-    <span class="add-to-trip__preview-head">{{ previewHead() }}</span>
-    @for (row of previewRows(); track row.name) {
-      <span class="add-to-trip__preview-row" [class.is-new]="row.isNew">
-        <span class="add-to-trip__preview-time">{{ row.time }}</span>
-        <span class="add-to-trip__preview-name">{{ row.name }}</span>
-        @if (row.isNew) {
-          <span class="add-to-trip__preview-badge">NEW</span>
-        }
-      </span>
-    }
+  <div class="add-to-trip__confirm-line">
+    <app-icon name="check" [size]="14" />
+    <span>{{ confirmationLine() }}</span>
   </div>
 </div>
 
 <div class="add-to-trip__footer">
-  <span class="add-to-trip__target">{{ targetSummary() }}</span>
   <button type="button" class="add-to-trip__cancel" (click)="cancel.emit()">Cancel</button>
   <button type="button" class="add-to-trip__confirm" (click)="confirm.emit()">Add to your itinerary</button>
 </div>
