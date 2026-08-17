@@ -13,6 +13,7 @@ import { ModalShellComponent } from './overlays/modal-shell/modal-shell.componen
 import { ComposerTypeMenuComponent } from './overlays/composer-type-menu/composer-type-menu.component';
 import { ComposerFormComponent } from './overlays/composer-form/composer-form.component';
 import { AddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-trip-modal.component';
+import { UseAsInspirationModalComponent } from './overlays/use-as-inspiration-modal/use-as-inspiration-modal.component';
 import { StoryViewerModalComponent } from './overlays/story-viewer-modal/story-viewer-modal.component';
 import { PostOptionsModalComponent } from './overlays/post-options-modal/post-options-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
@@ -35,6 +36,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     ComposerTypeMenuComponent,
     ComposerFormComponent,
     AddToTripModalComponent,
+    UseAsInspirationModalComponent,
     StoryViewerModalComponent,
     PostOptionsModalComponent,
   ],

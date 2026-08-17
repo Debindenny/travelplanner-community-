@@ -10,6 +10,8 @@ import {
   DISCOVER_FEATURE,
   DISCOVER_LIVE_COUNT,
   DISCOVER_TOP,
+  REMIX_INTERESTS,
+  REMIX_PACES,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
@@ -23,6 +25,7 @@ import {
   EventsFilter,
   FeedFilter,
   ModalState,
+  RemixPayload,
   SavedCollectionTab,
   StoryViewerPayload,
   ViewMode,
@@ -72,6 +75,10 @@ export class CommunityHomeStore {
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
   private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
+  private readonly _remixDates = signal('Oct 12 – Oct 19');
+  private readonly _remixTravelers = signal('2 adults');
+  private readonly _remixPace = signal(REMIX_PACES[1]);
+  private readonly _remixInterests = signal<ReadonlySet<string>>(new Set(['Food', 'Museums']));
   private readonly _discoverCategory = signal(DISCOVER_CATEGORIES[0]);
 
   private readonly _inCrew = signal(false);
@@ -131,6 +138,10 @@ export class CommunityHomeStore {
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
+  readonly remixDates = this._remixDates.asReadonly();
+  readonly remixTravelers = this._remixTravelers.asReadonly();
+  readonly remixPace = this._remixPace.asReadonly();
+  readonly remixInterests = this._remixInterests.asReadonly();
   readonly discoverCategory = this._discoverCategory.asReadonly();
 
   readonly inCrew = this._inCrew.asReadonly();
@@ -176,6 +187,7 @@ export class CommunityHomeStore {
 
   readonly activeStory = computed(() => this._modal()?.story ?? null);
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
+  readonly activeRemixPayload = computed(() => this._modal()?.remix ?? null);
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -193,6 +205,8 @@ export class CommunityHomeStore {
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
   readonly addToTripKinds = ADD_TO_TRIP_KINDS;
+  readonly remixPaces = REMIX_PACES;
+  readonly remixInterestOptions = REMIX_INTERESTS;
   readonly currentUser = CURRENT_USER;
 
   readonly discoverLiveCount = DISCOVER_LIVE_COUNT;
@@ -352,7 +366,7 @@ export class CommunityHomeStore {
         { label: 'Per person', value: '—' },
       ];
       post.cta = 'remix';
-      post.ctaLabel = 'Make my version';
+      post.ctaLabel = 'Use as inspiration';
     }
 
     this._posts.set([post, ...this._posts()]);
@@ -448,8 +462,7 @@ export class CommunityHomeStore {
         this.openAddToTrip({ spot: post.title, meta: `Activity · ${post.place}`, image: post.image ?? '' });
         return;
       case 'remix':
-        this._modal.set({ kind: 'addToTrip' });
-        this.showToast('Building your version…');
+        this.openRemix({ author: post.author });
         return;
       case 'join':
         this.toggleJoin(post.id, post.title);
@@ -474,6 +487,31 @@ export class CommunityHomeStore {
 
   pickAddKind(kind: string): void {
     this._addKind.set(kind);
+  }
+
+  openRemix(payload: RemixPayload): void {
+    this._modal.set({ kind: 'remix', remix: payload });
+  }
+
+  setRemixDates(value: string): void {
+    this._remixDates.set(value);
+  }
+
+  setRemixTravelers(value: string): void {
+    this._remixTravelers.set(value);
+  }
+
+  pickRemixPace(pace: string): void {
+    this._remixPace.set(pace);
+  }
+
+  toggleRemixInterest(interest: string): void {
+    this._remixInterests.set(this.toggledSet(this._remixInterests(), interest));
+  }
+
+  confirmRemix(): void {
+    this._modal.set(null);
+    this.showToast('Building your version…');
   }
 
   confirmAddToTrip(): void {

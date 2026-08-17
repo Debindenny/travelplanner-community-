@@ -161,6 +161,10 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
 
 export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'];
 
+export const REMIX_PACES: string[] = ['Relaxed', 'Balanced', 'Packed'];
+
+export const REMIX_INTERESTS: string[] = ['Food', 'Museums', 'Nature', 'Nightlife', 'Shopping', 'Photography'];
+
 export const PARIS_CREW_MESSAGES: CrewMessage[] = [
   { id: 'c1', kind: 'text', author: 'Priya Nair', text: 'Landing Tuesday morning — anyone up for the Montmartre walk before the crowds?', when: '09:14' },
   {
@@ -327,7 +331,7 @@ export function buildCommunityHomeData(): CommunityHomeData {
         ],
         helpfulBase: 186,
         cta: 'remix',
-        ctaLabel: 'Make my version',
+        ctaLabel: 'Use as inspiration',
         comments: [{ id: 'p4c1', author: 'Marco Villa', text: 'Cloned this and swapped Osaka for Nara. Held up perfectly.', when: '1d ago', likes: 34 }],
       },
       {
