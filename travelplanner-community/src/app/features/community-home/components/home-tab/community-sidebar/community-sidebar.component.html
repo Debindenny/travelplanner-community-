@@ -1,30 +1,35 @@
 <aside class="community-sidebar">
-  <app-paris-crew-card
-    [inCrew]="inCrew()"
-    [messages]="crewMessages()"
-    [draft]="crewDraft()"
-    [votes]="crewVotes()"
-    [rsvpIds]="crewRsvpIds()"
-    [settledIds]="crewSettledIds()"
-    (join)="joinCrew.emit()"
-    (startCircle)="startCrewCircle.emit()"
-    (draftChange)="crewDraftChange.emit($event)"
-    (send)="sendCrewMessage.emit()"
-    (addCard)="addCrewCard.emit($event)"
-    (votePoll)="voteCrewPoll.emit($event)"
-    (rsvp)="rsvpCrewMeet.emit($event)"
-    (decline)="declineCrewMeet.emit()"
-    (settle)="settleCrewSplit.emit($event)"
-    (addPlaceToTrip)="addCrewPlaceToTrip.emit($event)"
-  />
+  @if (!inCrew() || crewChatOpen()) {
+    <app-paris-crew-card
+      [inCrew]="inCrew()"
+      [hasInvite]="hasCrewInvite()"
+      [messages]="crewMessages()"
+      [draft]="crewDraft()"
+      [votes]="crewVotes()"
+      [rsvpIds]="crewRsvpIds()"
+      [settledIds]="crewSettledIds()"
+      (join)="joinCrew.emit()"
+      (acceptInvite)="acceptCrewInvite.emit()"
+      (declineInvite)="declineCrewInvite.emit()"
+      (draftChange)="crewDraftChange.emit($event)"
+      (send)="sendCrewMessage.emit()"
+      (addCard)="addCrewCard.emit($event)"
+      (votePoll)="voteCrewPoll.emit($event)"
+      (rsvp)="rsvpCrewMeet.emit($event)"
+      (decline)="declineCrewMeet.emit()"
+      (settle)="settleCrewSplit.emit($event)"
+      (addPlaceToTrip)="addCrewPlaceToTrip.emit($event)"
+      (minimizeChat)="minimizeCrewChat.emit()"
+      (closeChat)="closeCrewChat.emit()"
+      (startCircle)="createCircle.emit()"
+    />
+  }
 
   <app-travelers-rail-card
     [travelers]="travelersRail()"
     [followedIds]="followedIds()"
     (toggleFollow)="toggleFollowTraveler.emit($event)"
   />
-
-  <app-start-circle-card (createCircle)="createCircle.emit()" />
 
   <app-trending-card [trending]="trending()" [destination]="tripDestination()" (open)="openTrending.emit($event)" />
 

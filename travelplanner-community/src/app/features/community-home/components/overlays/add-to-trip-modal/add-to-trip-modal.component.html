@@ -8,7 +8,7 @@
   </div>
 
   <div class="add-to-trip__section">
-    <span class="add-to-trip__label">ADD TO WHICH TRIP</span>
+    <span class="add-to-trip__label">WHICH TRIP</span>
     @for (trip of trips(); track trip.id) {
       <button type="button" class="add-to-trip__trip" [class.is-picked]="tripPick() === trip.id" (click)="pickTrip.emit(trip.id)">
         <span class="add-to-trip__trip-copy">
@@ -23,10 +23,13 @@
     }
   </div>
 
-  <div class="add-to-trip__kinds">
-    @for (kind of addKinds(); track kind) {
-      <button type="button" class="chip-pill" [class.is-active]="addKind() === kind" (click)="pickKind.emit(kind)">{{ kind }}</button>
-    }
+  <div class="add-to-trip__section">
+    <span class="add-to-trip__label">WHAT IS IT</span>
+    <div class="add-to-trip__kinds">
+      @for (kind of addKinds(); track kind) {
+        <button type="button" class="chip-pill" [class.is-active]="addKind() === kind" (click)="pickKind.emit(kind)">{{ kind }}</button>
+      }
+    </div>
   </div>
 </div>
 

@@ -30,8 +30,8 @@
       <app-icon name="message-circle" [size]="18" />
     </button>
     <span class="story-viewer__spacer"></span>
-    <button type="button" class="story-viewer__action" [class.is-saved]="saved()" (click)="toggleSave.emit()" aria-label="Save">
-      <app-icon name="bookmark" [size]="18" />
+    <button type="button" class="story-viewer__action" [class.is-liked]="liked()" (click)="toggleLike.emit()" aria-label="Like">
+      <app-icon name="heart" [size]="18" />
     </button>
   </span>
 </div>

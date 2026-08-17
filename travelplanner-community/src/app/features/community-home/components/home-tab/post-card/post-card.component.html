@@ -36,7 +36,7 @@
   @if (post().image) {
     <div class="post-card__media" [class.post-card__media--video]="post().isVideo" [style.background-image]="'url(' + post().image + ')'">
       @if (post().isVideo) {
-        <button type="button" class="post-card__play" aria-label="Play video">
+        <button type="button" class="post-card__play" aria-label="Play video" (click)="playVideo.emit()">
           <app-icon name="play" [size]="18" />
         </button>
       }
@@ -128,7 +128,7 @@
       Share
     </button>
     <span class="post-card__actions-spacer"></span>
-    @if (!post().poll) {
+    @if (!post().poll && post().cta) {
       <button
         type="button"
         class="post-card__cta"

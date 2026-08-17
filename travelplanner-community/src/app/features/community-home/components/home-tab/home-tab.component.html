@@ -56,11 +56,12 @@
             [votedOptionId]="store.votedOptionFor(post.id)"
             (toggleFollow)="store.toggleFollow(post.id, post.author)"
             (deletePost)="store.deletePost(post.id)"
-            (openOptions)="store.openPostOptions()"
+            (openOptions)="store.openPostOptions(post.id, post.author)"
             (toggleHelpful)="store.toggleHelpful(post.id)"
             (toggleComments)="store.toggleComments(post.id)"
             (toggleSave)="store.toggleSave(post.id)"
-            (share)="store.showToast('Link copied to clipboard')"
+            (share)="store.showToast('Link copied · share to a circle or outside TRAVL PLANR')"
+            (playVideo)="store.showToast('Playing \'' + post.title + '\'')"
             (runCta)="store.runPostCta(post)"
             (votePoll)="store.votePoll(post.id, $event)"
             (likeComment)="store.likeComment(post.id, $event)"
@@ -75,7 +76,7 @@
         <app-similar-travelers
           [matches]="store.matches()"
           [followedIds]="store.followedIds()"
-          (seeAll)="store.showToast('More travelers coming soon')"
+          (seeAll)="store.selectTab('Travel Circles')"
           (viewProfile)="store.showToast('Opening ' + $event.name + '’s profile')"
           (toggleFollow)="onToggleFollowTraveler($event)"
         />
@@ -89,6 +90,8 @@
       [followedIds]="store.followedIds()"
       [joinedIds]="store.joinedIds()"
       [inCrew]="store.inCrew()"
+      [hasCrewInvite]="store.crewInvite()"
+      [crewChatOpen]="store.crewChatOpen()"
       [crewMessages]="store.crewMessages()"
       [crewDraft]="store.crewDraft()"
       [crewVotes]="store.crewVotes()"
@@ -99,7 +102,8 @@
       (openTrending)="onOpenTrending($event)"
       (toggleJoinEvent)="onToggleJoinEvent($event)"
       (joinCrew)="store.joinCrew()"
-      (startCrewCircle)="store.showToast('Community creation coming soon')"
+      (acceptCrewInvite)="store.acceptCrewInvite()"
+      (declineCrewInvite)="store.declineCrewInvite()"
       (crewDraftChange)="store.setCrewDraft($event)"
       (sendCrewMessage)="store.sendCrewMessage()"
       (addCrewCard)="store.addCrewCard($event)"
@@ -108,6 +112,14 @@
       (declineCrewMeet)="store.declineCrewMeet()"
       (settleCrewSplit)="store.settleCrewSplit($event)"
       (addCrewPlaceToTrip)="store.addCrewPlaceToTrip()"
+      (minimizeCrewChat)="store.minimizeCrewChat()"
+      (closeCrewChat)="store.closeCrewChat()"
     />
   </div>
+
+  @if (store.inCrew() && !store.crewChatOpen()) {
+    <button type="button" class="crew-chat-fab" aria-label="Open Paris Crew chat" (click)="store.openCrewChat()">
+      <app-icon name="message-circle" [size]="22" />
+    </button>
+  }
 </div>

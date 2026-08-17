@@ -2,7 +2,7 @@ export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Tra
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
 export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
-export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
+export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION' | 'TRAVEL BUDDY';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
 export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'remix' | 'story' | 'postOptions';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
@@ -64,8 +64,8 @@ export interface CommunityPost {
   image?: string;
   isVideo?: boolean;
   helpfulBase: number;
-  cta: PostCta;
-  ctaLabel: string;
+  cta?: PostCta;
+  ctaLabel?: string;
   comments: PostComment[];
   poll?: PollOption[];
   pollVotesBase?: number;
@@ -227,10 +227,19 @@ export interface TripPickOption {
   dates: string;
 }
 
+export type PostOptionsAction = 'toggleSave' | 'copyLink' | 'mute' | 'block' | 'report';
+
 export interface PostOptionsMenuItem {
+  action: PostOptionsAction;
   label: string;
   hint: string;
   message: string;
+}
+
+export interface PostOptionsContext {
+  postId: string;
+  author: string;
+  saved: boolean;
 }
 
 export interface StoryViewerPayload {
@@ -256,6 +265,7 @@ export interface ModalState {
   story?: StoryViewerPayload;
   addToTrip?: AddToTripPayload;
   remix?: RemixPayload;
+  postOptions?: PostOptionsContext;
 }
 
 export interface CommunityHomeData {

@@ -31,7 +31,9 @@ export type IconName =
   | 'moon'
   | 'receipt'
   | 'send'
-  | 'trash';
+  | 'trash'
+  | 'minus'
+  | 'heart';
 
 @Component({
   selector: 'app-icon',
@@ -140,6 +142,12 @@ export type IconName =
         }
         @case ('trash') {
           <path d="M3 6h18" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        }
+        @case ('minus') {
+          <path d="M5 12h14" />
+        }
+        @case ('heart') {
+          <path d="M19.5 12.6 12 20l-7.5-7.4a4.8 4.8 0 0 1 7.5-5.9 4.8 4.8 0 0 1 7.5 5.9Z" />
         }
       }
     </svg>

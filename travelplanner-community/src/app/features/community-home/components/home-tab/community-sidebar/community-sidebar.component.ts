@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 import { ParisCrewCardComponent } from '../sidebar/paris-crew-card/paris-crew-card.component';
 import { TravelersRailCardComponent } from '../sidebar/travelers-rail-card/travelers-rail-card.component';
-import { StartCircleCardComponent } from '../sidebar/start-circle-card/start-circle-card.component';
 import { TrendingCardComponent } from '../sidebar/trending-card/trending-card.component';
 import { UpcomingEventsCardComponent } from '../sidebar/upcoming-events-card/upcoming-events-card.component';
 import { SidebarFooterLinksComponent } from '../sidebar/sidebar-footer-links/sidebar-footer-links.component';
@@ -19,7 +18,6 @@ import {
   imports: [
     ParisCrewCardComponent,
     TravelersRailCardComponent,
-    StartCircleCardComponent,
     TrendingCardComponent,
     UpcomingEventsCardComponent,
     SidebarFooterLinksComponent,
@@ -37,6 +35,8 @@ export class CommunitySidebarComponent {
   readonly tripDestination = input('Paris');
 
   readonly inCrew = input(false);
+  readonly hasCrewInvite = input(false);
+  readonly crewChatOpen = input(true);
   readonly crewMessages = input<CrewMessage[]>([]);
   readonly crewDraft = input('');
   readonly crewVotes = input<Readonly<Record<string, string>>>({});
@@ -49,7 +49,8 @@ export class CommunitySidebarComponent {
   readonly toggleJoinEvent = output<UpcomingEvent>();
 
   readonly joinCrew = output<void>();
-  readonly startCrewCircle = output<void>();
+  readonly acceptCrewInvite = output<void>();
+  readonly declineCrewInvite = output<void>();
   readonly crewDraftChange = output<string>();
   readonly sendCrewMessage = output<void>();
   readonly addCrewCard = output<CrewCardKind>();
@@ -58,4 +59,6 @@ export class CommunitySidebarComponent {
   readonly declineCrewMeet = output<void>();
   readonly settleCrewSplit = output<string>();
   readonly addCrewPlaceToTrip = output<string>();
+  readonly minimizeCrewChat = output<void>();
+  readonly closeCrewChat = output<void>();
 }

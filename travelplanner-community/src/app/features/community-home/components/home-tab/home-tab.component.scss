@@ -19,6 +19,35 @@
   }
 }
 
+.crew-chat-fab {
+  position: fixed;
+  left: 26px;
+  bottom: 26px;
+  z-index: 70;
+  width: 58px;
+  height: 58px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 30px rgba(0, 96, 234, 0.36), 0 2px 6px rgba(11, 18, 32, 0.18);
+  transition: transform 0.16s ease, background 0.16s ease;
+
+  &:hover {
+    background: var(--accent-deep);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.94);
+  }
+}
+
 .home-tab__feed {
   display: flex;
   flex-direction: column;

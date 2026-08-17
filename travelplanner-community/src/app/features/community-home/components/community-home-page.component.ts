@@ -49,13 +49,7 @@ export class CommunityHomePageComponent {
 
   readonly aiPrompts = AI_PROMPTS;
 
-  readonly auroraX = signal(50);
-  readonly auroraY = signal(35);
-
-  onAmbientMouseMove(event: MouseEvent): void {
-    this.auroraX.set((event.clientX / window.innerWidth) * 100);
-    this.auroraY.set((event.clientY / window.innerHeight) * 100);
-  }
+  readonly aiOpen = signal(false);
 
   onProfileMenuItem(item: ProfileMenuItem): void {
     if (item.target) {
@@ -66,12 +60,12 @@ export class CommunityHomePageComponent {
   }
 
   onAiPrompt(prompt: AiPrompt): void {
-    this.store.closeAiPanel();
+    this.aiOpen.set(false);
     this.store.selectTab(prompt.target);
   }
 
   onAiAsk(question: string): void {
-    this.store.closeAiPanel();
+    this.aiOpen.set(false);
     this.store.showToast(`Asking TRAVL AI: ${question}`);
   }
 

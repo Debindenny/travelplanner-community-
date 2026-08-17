@@ -148,8 +148,8 @@
   cursor: pointer;
   color: #fff;
 
-  &.is-saved {
-    color: var(--accent);
+  &.is-liked {
+    color: var(--danger);
   }
 }
 

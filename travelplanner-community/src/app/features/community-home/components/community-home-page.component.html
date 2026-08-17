@@ -1,6 +1,4 @@
-<div class="page-shell" (document:mousemove)="onAmbientMouseMove($event)">
-  <div class="page-aurora" aria-hidden="true" [style.--aurora-x.%]="auroraX()" [style.--aurora-y.%]="auroraY()"></div>
-
+<div class="page-shell">
   <app-header (selectMenuItem)="onProfileMenuItem($event)" (toggleTheme)="store.showToast('Dark mode is coming soon')" />
 
   <div class="page-grid">
@@ -32,7 +30,7 @@
     </main>
   </div>
 
-  <app-ai-assistant-panel [prompts]="aiPrompts" (selectPrompt)="onAiPrompt($event)" (ask)="onAiAsk($event)" />
+  <app-ai-assistant-panel [(open)]="aiOpen" [prompts]="aiPrompts" (selectPrompt)="onAiPrompt($event)" (ask)="onAiAsk($event)" />
 
   @switch (store.modal()?.kind) {
     @case ('composerMenu') {
@@ -84,26 +82,58 @@
         </app-modal-shell>
       }
     }
+    @case ('remix') {
+      @if (store.activeRemixPayload(); as remix) {
+        <app-modal-shell
+          titleIcon="sparkles"
+          title="Use as inspiration"
+          subtitle="TRAVL AI · personalised from a community trip"
+          (close)="store.closeModal()"
+        >
+          <app-use-as-inspiration-modal
+            [authorName]="remix.author"
+            [dates]="store.remixDates()"
+            [travelers]="store.remixTravelers()"
+            [paces]="store.remixPaces"
+            [pace]="store.remixPace()"
+            [interestOptions]="store.remixInterestOptions"
+            [interests]="store.remixInterests()"
+            (datesChange)="store.setRemixDates($event)"
+            (travelersChange)="store.setRemixTravelers($event)"
+            (pickPace)="store.pickRemixPace($event)"
+            (toggleInterest)="store.toggleRemixInterest($event)"
+            (cancel)="store.closeModal()"
+            (confirm)="store.confirmRemix()"
+          />
+        </app-modal-shell>
+      }
+    }
     @case ('story') {
       @if (store.activeStory(); as story) {
         <app-modal-shell width="400px" [showHeader]="false" (close)="store.closeModal()">
           <app-story-viewer-modal
             [story]="story"
             [followed]="store.followedIds().has('st_' + story.name)"
-            [saved]="store.savedIds().has('st_' + story.name)"
+            [liked]="store.likedStoryIds().has('st_' + story.name)"
             (close)="store.closeModal()"
             (toggleFollow)="store.toggleFollow('st_' + story.name, story.name)"
             (openTrip)="store.showToast('Opening ' + story.name + '’s ' + story.place + ' trip'); store.closeModal()"
             (message)="store.showToast('Message sent to ' + story.name); store.closeModal()"
-            (toggleSave)="store.toggleSave('st_' + story.name)"
+            (toggleLike)="store.toggleLikeStory('st_' + story.name)"
           />
         </app-modal-shell>
       }
     }
     @case ('postOptions') {
-      <app-modal-shell title="Post options" subtitle="You control what you see and who can reach you." (close)="store.closeModal()">
-        <app-post-options-modal (selectItem)="store.runPostOptionsAction($event.message)" />
-      </app-modal-shell>
+      @if (store.activePostOptionsContext(); as context) {
+        <app-modal-shell title="Post options" subtitle="You control what you see and who can reach you." (close)="store.closeModal()">
+          <app-post-options-modal
+            [authorName]="context.author"
+            [saved]="context.saved"
+            (selectItem)="store.runPostOptionsAction($event)"
+          />
+        </app-modal-shell>
+      }
     }
   }
 
