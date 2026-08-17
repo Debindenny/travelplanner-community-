@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ng", "serve", "--port", "4318"],
+      "port": 4318,
+      "cwd": "travlplanr/apps/web"
+    }
+  ]
+}
