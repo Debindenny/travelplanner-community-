@@ -4,7 +4,7 @@ export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions';
+export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'story' | 'postOptions' | 'eventDetail';
 
 export interface CommunityStory {
   id: string;
@@ -113,6 +113,22 @@ export interface UpcomingEvent {
 export type EventBadgeKind = 'Meetup' | 'Food' | 'Online';
 export type EventsFilter = 'All' | 'Near me' | 'Online';
 
+export interface EventScheduleItem {
+  time: string;
+  text: string;
+}
+
+export interface EventHost {
+  name: string;
+  role: string;
+  avatarGradient: string;
+}
+
+export interface EventLocation {
+  name: string;
+  note: string;
+}
+
 export interface EventListing {
   id: string;
   month: string;
@@ -122,6 +138,15 @@ export interface EventListing {
   meta: string;
   travelersGoing: number;
   isOnline: boolean;
+  image: string;
+  host: EventHost;
+  when: string;
+  cost: string;
+  groupMax: string;
+  spacesLeft: number;
+  description: string;
+  schedule: EventScheduleItem[];
+  location: EventLocation;
 }
 
 export interface SideCircle {
@@ -174,10 +199,45 @@ export interface ComposerFormDef {
   fields: ComposerFormField[];
 }
 
+export interface ItineraryItem {
+  time: string;
+  name: string;
+}
+
+export interface ItineraryDay {
+  date: string;
+  items: ItineraryItem[];
+}
+
 export interface TripPickOption {
   id: string;
   name: string;
   dates: string;
+  days: ItineraryDay[];
+}
+
+export interface AddKindOption {
+  label: string;
+  icon: string;
+}
+
+export interface AddDayOption {
+  index: number;
+  date: string;
+  count: number;
+}
+
+export type AddTimeSlot = 'Morning' | 'Afternoon' | 'Evening' | 'Anytime';
+
+export interface AddPreviewRow {
+  time: string;
+  name: string;
+  isNew: boolean;
+}
+
+export interface AddPreview {
+  head: string;
+  rows: AddPreviewRow[];
 }
 
 export interface PostOptionsMenuItem {
@@ -204,6 +264,7 @@ export interface ModalState {
   formType?: string;
   story?: StoryViewerPayload;
   addToTrip?: AddToTripPayload;
+  eventDetail?: EventListing;
 }
 
 export interface CommunityHomeData {

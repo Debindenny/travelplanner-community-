@@ -25,7 +25,11 @@ export type IconName =
   | 'book'
   | 'bar-chart'
   | 'user-plus'
-  | 'chevron-right';
+  | 'chevron-right'
+  | 'utensils'
+  | 'bed'
+  | 'bus'
+  | 'plane';
 
 @Component({
   selector: 'app-icon',
@@ -116,6 +120,18 @@ export type IconName =
         }
         @case ('chevron-right') {
           <path d="m9 6 6 6-6 6" />
+        }
+        @case ('utensils') {
+          <path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7" />
+        }
+        @case ('bed') {
+          <path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />
+        }
+        @case ('bus') {
+          <path d="M8 6v6" /><path d="M15 6v6" /><path d="M2 12h19.6" /><path d="M18 18h3a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v9a1 1 0 0 0 1 1h3" /><circle cx="7" cy="18" r="2" /><path d="M9 18h6" /><circle cx="16" cy="18" r="2" />
+        }
+        @case ('plane') {
+          <path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L13 8 4.8 6.2a.9.9 0 0 0-1.1.5l-.3.5a.9.9 0 0 0 .4 1.4L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3a.9.9 0 0 0 1.4.4l.5-.3a.9.9 0 0 0 .5-1.1Z" />
         }
       }
     </svg>

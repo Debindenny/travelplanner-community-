@@ -24,11 +24,11 @@ export class EventsTabComponent {
   }
 
   onJoinEvent(event: EventListing): void {
-    this.store.toggleJoin(event.id, event.title);
+    this.store.rsvpEvent(event);
   }
 
   onShowDetails(event: EventListing): void {
-    this.store.showToast(`Opening “${event.title}”`);
+    this.store.openEventDetail(event);
   }
 
   onGoHome(): void {

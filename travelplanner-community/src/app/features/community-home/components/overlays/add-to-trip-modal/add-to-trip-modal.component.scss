@@ -103,10 +103,148 @@
   color: var(--accent);
 }
 
+.add-to-trip__days {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.add-to-trip__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  min-width: 78px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  background: #fff;
+  color: var(--text-muted);
+
+  &.is-picked {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+.add-to-trip__day-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.add-to-trip__day-date {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.add-to-trip__day-count {
+  font-size: 9.5px;
+  font-weight: 700;
+  opacity: 0.65;
+}
+
 .add-to-trip__kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.add-to-trip__kind {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 6px;
+  border-radius: 11px;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  background: #fff;
+  color: var(--text-muted);
+
+  span {
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  &.is-picked {
+    border-color: var(--accent);
+    background: #f7faff;
+    color: var(--accent);
+  }
+}
+
+.add-to-trip__slots {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.add-to-trip__preview {
+  border: 1px solid #e4edfb;
+  border-radius: 13px;
+  background: #f7faff;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.add-to-trip__preview-head {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.add-to-trip__preview-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+
+  &.is-new {
+    background: #fff;
+    border: 1px solid #cfe0fa;
+  }
+}
+
+.add-to-trip__preview-time {
+  font-size: 10.5px;
+  font-weight: 800;
+  width: 58px;
+  flex: none;
+  color: var(--text-faint);
+}
+
+.add-to-trip__preview-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.add-to-trip__preview-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--accent);
+  background: #eaf1fe;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex: none;
 }
 
 .chip-pill {
@@ -133,9 +271,16 @@
   padding: 14px 22px;
   border-top: 1px solid var(--border-soft);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
   background: var(--surface-sunken);
+}
+
+.add-to-trip__target {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-faint);
 }
 
 .add-to-trip__cancel {
