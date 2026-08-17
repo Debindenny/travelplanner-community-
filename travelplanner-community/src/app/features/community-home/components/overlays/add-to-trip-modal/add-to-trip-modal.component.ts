@@ -17,9 +17,17 @@ export class AddToTripModalComponent {
   readonly tripPick = input('');
   readonly addKinds = input<string[]>([]);
   readonly addKind = input('');
+  readonly days = input<{ label: string; date: string; count: string; active: boolean; day: number }[]>([]);
+  readonly slots = input<string[]>([]);
+  readonly addSlot = input('');
+  readonly previewHead = input('');
+  readonly previewRows = input<{ time: string; name: string; isNew: boolean }[]>([]);
+  readonly targetSummary = input('');
 
   readonly pickTrip = output<string>();
   readonly pickKind = output<string>();
+  readonly pickDay = output<number>();
+  readonly pickSlot = output<string>();
   readonly cancel = output<void>();
   readonly confirm = output<void>();
 }

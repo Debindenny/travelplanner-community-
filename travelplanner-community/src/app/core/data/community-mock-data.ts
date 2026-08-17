@@ -154,10 +154,25 @@ export const COMPOSER_FORMS: Record<string, ComposerFormDef> = {
 
 export const TRIP_PICK_OPTIONS: TripPickOption[] = [
   { id: 't1', name: 'Paris · Long weekend', dates: 'Jun 03 – Jun 06 · 4 activities' },
-  { id: 't2', name: 'Japan 2027', dates: 'Draft · 9 activities' },
+  { id: 't2', name: 'Japan 2027', dates: 'Apr 04 – Apr 11 · 9 activities' },
 ];
 
-export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Tip'];
+export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Transport', 'Flight'];
+
+export const TRIP_ITINERARIES: Record<string, { date: string; items: { time: string; name: string }[] }[]> = {
+  t1: [
+    { date: 'Wed 03', items: [{ time: '15:00', name: 'Check in · Hôtel Bachaumont' }, { time: '19:00', name: 'Dinner in Le Marais' }] },
+    { date: 'Thu 04', items: [{ time: '09:30', name: 'Louvre · Denon wing' }] },
+    { date: 'Fri 05', items: [{ time: '10:00', name: 'Montmartre walk' }, { time: '20:30', name: 'Seine at dusk' }] },
+    { date: 'Sat 06', items: [{ time: '11:00', name: 'Flight home · CDG' }] },
+  ],
+  t2: [
+    { date: 'Apr 04', items: [{ time: '14:00', name: 'Land · Haneda' }] },
+    { date: 'Apr 05', items: [{ time: '09:00', name: 'Shibuya + Harajuku' }, { time: '17:30', name: 'Shibuya Sky' }] },
+    { date: 'Apr 06', items: [{ time: '08:00', name: 'Shinkansen to Kyoto' }] },
+    { date: 'Apr 07', items: [{ time: '10:00', name: 'Fushimi Inari' }] },
+  ],
+};
 
 export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [
   { label: 'Save post', hint: 'Add to a collection', message: 'Saved' },
