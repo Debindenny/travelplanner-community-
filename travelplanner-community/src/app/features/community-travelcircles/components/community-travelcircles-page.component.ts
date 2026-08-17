@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 
-import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
@@ -37,7 +36,7 @@ function minutesSinceActivity(activity: string): number {
 
 @Component({
   selector: 'app-community-travelcircles',
-  imports: [IconComponent, ModalShellComponent, CreateCircleModalComponent],
+  imports: [ModalShellComponent, CreateCircleModalComponent],
   templateUrl: './community-travelcircles-page.component.html',
   styleUrl: './community-travelcircles-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,10 +51,16 @@ export class CommunityTravelCirclesComponent {
 
   readonly showCreateModal = signal(false);
 
-  private readonly _memberIds = signal<ReadonlySet<string>>(new Set());
+  private readonly _memberIds = signal<ReadonlySet<string>>(
+    new Set(TRAVEL_CIRCLE_CARDS.filter((card) => card.initialStatus === 'joined').map((card) => card.id)),
+  );
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
+  }
+
+  isOwner(card: TravelCircleCard): boolean {
+    return card.initialStatus === 'owner';
   }
 
   isRecentlyActive(card: TravelCircleCard): boolean {
@@ -63,14 +68,20 @@ export class CommunityTravelCirclesComponent {
   }
 
   buttonLabel(card: TravelCircleCard): string {
-    const isMember = this.isMember(card.id);
-    if (isMember) {
-      return 'Joined';
+    if (this.isOwner(card)) {
+      return 'You created it';
     }
-    return card.cta === 'Join' ? 'Join' : 'Request';
+    if (this.isMember(card.id)) {
+      return card.cta === 'Join' ? 'Joined' : 'Requested';
+    }
+    return card.cta === 'Join' ? 'Join' : 'Request to join';
   }
 
   onToggleMembership(card: TravelCircleCard): void {
+    if (this.isOwner(card)) {
+      this.store.showToast('You created this circle — requests appear on your home feed');
+      return;
+    }
     const wasMember = this.isMember(card.id);
     const next = new Set(this._memberIds());
     if (wasMember) {
@@ -80,8 +91,11 @@ export class CommunityTravelCirclesComponent {
     }
     this._memberIds.set(next);
 
-    const verb = card.cta === 'Join' ? (wasMember ? 'Left' : 'Joined') : wasMember ? 'Cancelled request to join' : 'Requested to join';
-    this.store.showToast(`${verb} ${card.title}`);
+    if (card.cta === 'Join') {
+      this.store.showToast(wasMember ? `Left ${card.title}` : `Joined ${card.title}`);
+    } else {
+      this.store.showToast(wasMember ? 'Request withdrawn' : 'Request sent · the creator will review it');
+    }
   }
 
   onCreateCircle(): void {
