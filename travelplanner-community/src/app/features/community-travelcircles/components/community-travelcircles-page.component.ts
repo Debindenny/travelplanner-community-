@@ -2,8 +2,13 @@ import { ChangeDetectionStrategy, Component, inject, output, signal } from '@ang
 
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
+import { TravelerRailItem } from '../../../core/models/community.models';
+import { unsplashUrl } from '../../../shared/utils/unsplash';
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
+import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
+
+export type CirclesTab = 'Groups' | 'Travelers';
 
 const ACCENT_PALETTE: Array<[string, string]> = [
   ['#0060ea', '#2aa98b'],
@@ -11,6 +16,8 @@ const ACCENT_PALETTE: Array<[string, string]> = [
   ['#5b3fa0', '#8b5cf6'],
   ['#2aa98b', '#0060ea'],
 ];
+
+const NEW_CIRCLE_IMAGE = unsplashUrl('1565099824688-e93eb20fe622', 600);
 
 function minutesSinceActivity(activity: string): number {
   const text = activity.toLowerCase();
@@ -36,7 +43,7 @@ function minutesSinceActivity(activity: string): number {
 
 @Component({
   selector: 'app-community-travelcircles',
-  imports: [ModalShellComponent, CreateCircleModalComponent],
+  imports: [ModalShellComponent, CreateCircleModalComponent, CircleDetailModalComponent],
   templateUrl: './community-travelcircles-page.component.html',
   styleUrl: './community-travelcircles-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,14 +53,33 @@ export class CommunityTravelCirclesComponent {
 
   readonly goHome = output<void>();
 
+  readonly tabs: CirclesTab[] = ['Groups', 'Travelers'];
+  readonly activeTab = signal<CirclesTab>('Groups');
+  readonly travelersRail = this.store.travelersRail;
+
   private readonly _cards = signal<TravelCircleCard[]>(TRAVEL_CIRCLE_CARDS);
   readonly cards = this._cards.asReadonly();
 
   readonly showCreateModal = signal(false);
+  readonly viewedCircleId = signal<string | null>(null);
 
   private readonly _memberIds = signal<ReadonlySet<string>>(
     new Set(TRAVEL_CIRCLE_CARDS.filter((card) => card.initialStatus === 'joined').map((card) => card.id)),
   );
+
+  readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
+
+  selectTab(tab: CirclesTab): void {
+    this.activeTab.set(tab);
+  }
+
+  isFollowed(id: string): boolean {
+    return this.store.followedIds().has(id);
+  }
+
+  onToggleFollow(traveler: TravelerRailItem): void {
+    this.store.toggleFollow(traveler.id, traveler.name);
+  }
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
@@ -119,11 +145,22 @@ export class CommunityTravelCirclesComponent {
       cta: payload.visibility === 'Invite only' ? 'Request' : 'Join',
       accent,
       accent2,
+      image: NEW_CIRCLE_IMAGE,
+      members: [{ name: this.store.currentUser.name, location: 'You', role: 'Host' }],
       audience: payload.audience,
+      initialStatus: 'owner',
     };
 
     this._cards.set([newCard, ...this._cards()]);
     this.showCreateModal.set(false);
     this.store.showToast(`"${payload.name}" created`);
+  }
+
+  onViewCircle(card: TravelCircleCard): void {
+    this.viewedCircleId.set(card.id);
+  }
+
+  onCloseCircleDetail(): void {
+    this.viewedCircleId.set(null);
   }
 }

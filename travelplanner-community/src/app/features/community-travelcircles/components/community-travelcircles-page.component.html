@@ -14,39 +14,81 @@
     </div>
     <button type="button" class="circles-header__cta" (click)="onCreateCircle()">Create a circle</button>
   </div>
+
+  <div class="circles-tabs">
+    @for (tab of tabs; track tab) {
+      <button
+        type="button"
+        class="circles-tabs__item"
+        [class.is-active]="activeTab() === tab"
+        (click)="selectTab(tab)"
+      >
+        {{ tab }}
+      </button>
+    }
+  </div>
 </div>
 
-<div class="circle-grid">
-  @for (card of cards(); track card.id) {
-    <article class="circle-card">
-      <div class="circle-card__top">
-        <div>
-          <h3 class="circle-card__title">{{ card.title }}</h3>
-          <p class="circle-card__meta">{{ card.meta }}</p>
+@if (activeTab() === 'Groups') {
+  <div class="circle-grid">
+    @for (card of cards(); track card.id) {
+      <article class="circle-card">
+        <div class="circle-card__top">
+          <div>
+            <h3 class="circle-card__title">{{ card.title }}</h3>
+            <p class="circle-card__meta">{{ card.meta }}</p>
+          </div>
+          <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
         </div>
-        <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
-      </div>
 
-      <p class="circle-card__description">{{ card.description }}</p>
+        <p class="circle-card__description">{{ card.description }}</p>
 
-      <div class="circle-card__bottom">
-        <span class="circle-card__activity">
-          <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="isRecentlyActive(card)"></span>
-          {{ card.activity }}
+        <div class="circle-card__bottom">
+          <span class="circle-card__activity">
+            <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="isRecentlyActive(card)"></span>
+            {{ card.activity }}
+          </span>
+          <span class="circle-card__actions">
+            <button type="button" class="circle-card__view" (click)="onViewCircle(card)">View</button>
+            <button
+              type="button"
+              class="circle-card__cta"
+              [class.circle-card__cta--active]="isMember(card.id)"
+              [class.circle-card__cta--owner]="isOwner(card)"
+              (click)="onToggleMembership(card)"
+            >
+              {{ buttonLabel(card) }}
+            </button>
+          </span>
+        </div>
+      </article>
+    }
+  </div>
+} @else {
+  <div class="traveler-list">
+    @for (traveler of travelersRail(); track traveler.id) {
+      <div class="traveler-row">
+        <span class="traveler-row__identity">
+          <span class="traveler-row__name-row">
+            <span class="traveler-row__name">{{ traveler.name }}</span>
+            @if (traveler.matchPercent) {
+              <span class="traveler-row__percent">{{ traveler.matchPercent }}</span>
+            }
+          </span>
+          <span class="traveler-row__line">{{ traveler.home }} · {{ traveler.city }}, {{ traveler.dates }}</span>
         </span>
         <button
           type="button"
-          class="circle-card__cta"
-          [class.circle-card__cta--active]="isMember(card.id)"
-          [class.circle-card__cta--owner]="isOwner(card)"
-          (click)="onToggleMembership(card)"
+          class="traveler-row__follow"
+          [class.is-following]="isFollowed(traveler.id)"
+          (click)="onToggleFollow(traveler)"
         >
-          {{ buttonLabel(card) }}
+          {{ isFollowed(traveler.id) ? 'Unfollow' : 'Follow' }}
         </button>
       </div>
-    </article>
-  }
-</div>
+    }
+  </div>
+}
 
 @if (showCreateModal()) {
   <app-modal-shell
@@ -55,5 +97,19 @@
     (close)="onCancelCreateCircle()"
   >
     <app-create-circle-modal (cancel)="onCancelCreateCircle()" (create)="onCircleCreated($event)" />
+  </app-modal-shell>
+}
+
+@if (viewedCircle(); as circle) {
+  <app-modal-shell width="480px" [showHeader]="false" (close)="onCloseCircleDetail()">
+    <app-circle-detail-modal
+      [circle]="circle"
+      [actionLabel]="buttonLabel(circle)"
+      [isMember]="isMember(circle.id)"
+      [isOwner]="isOwner(circle)"
+      [isRecentlyActive]="isRecentlyActive(circle)"
+      (close)="onCloseCircleDetail()"
+      (toggleMembership)="onToggleMembership(circle)"
+    />
   </app-modal-shell>
 }

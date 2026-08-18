@@ -508,9 +508,12 @@ export function buildCommunityHomeData(): CommunityHomeData {
       { id: 'm3', name: 'Jonas Weber', home: 'Austria', dates: 'Jun 5 – 10', matchPercent: '71% match', tags: ['Cycling', 'Coffee', 'Jazz'], avatarGradient: 'linear-gradient(140deg,#6B3FA0,#0060EA)' },
     ],
     travelersRail: [
-      { id: 'r1', name: 'Priya Nair', line: 'Paris · Jun 3 – 8 · 88% match', avatarGradient: 'linear-gradient(140deg,#0A6E7C,#2AA98B)' },
-      { id: 'r2', name: 'Marco Villa', line: 'Paris · Jun 1 – 6 · 74% match', avatarGradient: 'linear-gradient(140deg,#4B2A63,#D2604B)' },
-      { id: 'r3', name: 'Emma Ross', line: 'Paris · Jun 4 – 11 · 69% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#6BA6C9)' },
+      { id: 'r1', name: 'Priya Nair', home: 'India', city: 'Paris', dates: 'Jun 3 – 8', matchPercent: '88% match', line: 'Paris · Jun 3 – 8 · 88% match', avatarGradient: 'linear-gradient(140deg,#0A6E7C,#2AA98B)' },
+      { id: 'r2', name: 'Aarav Menon', home: 'India', city: 'Paris', dates: 'Jun 4 – 9', matchPercent: '82% match', line: 'Paris · Jun 4 – 9 · 82% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#2AA98B)' },
+      { id: 'r3', name: 'Lea Fontaine', home: 'Canada', city: 'Paris', dates: 'Jun 2 – 7', matchPercent: '76% match', line: 'Paris · Jun 2 – 7 · 76% match', avatarGradient: 'linear-gradient(140deg,#D2604B,#F2B872)' },
+      { id: 'r4', name: 'Marco Villa', home: 'Italy', city: 'Paris', dates: 'Jun 1 – 6', matchPercent: '74% match', line: 'Paris · Jun 1 – 6 · 74% match', avatarGradient: 'linear-gradient(140deg,#4B2A63,#D2604B)' },
+      { id: 'r5', name: 'Emma Ross', home: 'UK', city: 'Paris', dates: 'Jun 4 – 11', matchPercent: '69% match', line: 'Paris · Jun 4 – 11 · 69% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#6BA6C9)' },
+      { id: 'r6', name: 'Sofia Marchetti', home: 'Italy', city: 'Paris', dates: 'Jun 5 – 10', line: 'Paris · Jun 5 – 10', avatarGradient: 'linear-gradient(140deg,#6B3FA0,#D2604B)' },
     ],
     trending: [
       { id: 'tr1', title: 'Eiffel Tower sunset reservations', meta: '46 tips this week', image: unsplashUrl('1511739001486-6bfe10ce785f', 300) },
