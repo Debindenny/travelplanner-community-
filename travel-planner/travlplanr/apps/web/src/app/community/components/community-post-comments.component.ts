@@ -7,46 +7,49 @@ import { CommunityCommentService, Comment } from '../services/community-comment.
     selector: 'app-community-post-comments',
     imports: [TranslatePipe],
     template: `
-    <!-- Comment Input -->
-    <div class="px-4 py-3 flex items-start gap-2 bg-gray-50 transition-all">
-      <img [src]="myAvatar || '/assets/images/default-avatar.svg'" [attr.alt]="'COMMUNITY.AVATAR_ALT' | translate" class="w-10 h-10 rounded-full object-cover shrink-0 bg-gray-50" />
-      <div class="flex-1 bg-white border border-gray-300 rounded-full flex items-center px-4 py-2 focus-within:border-gray-500 transition-colors">
-        <input
-          type="text"
-          [attr.placeholder]="'COMMUNITY.ADD_COMMENT_PLACEHOLDER' | translate"
-          class="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-500"
-          #commentInput
-          (keyup.enter)="submitComment(commentInput)"
-          [disabled]="loadingSubmit()"
-        />
-        @if (loadingSubmit()) {
-          <div class="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+    <div class="px-4 pt-4 pb-4 bg-slate-50/60 dark:bg-gray-900/30 border-t border-slate-100 dark:border-gray-700">
+
+      <!-- Comments List -->
+      <div class="max-h-80 overflow-y-auto flex flex-col gap-2.5 mb-3">
+        @if (loadingComments()) {
+          <div class="flex justify-center py-4">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        } @else if (comments().length > 0) {
+          @for (comment of comments(); track comment.id) {
+            <div class="flex gap-2.5">
+              <img [src]="comment.author_avatar || '/assets/images/default-avatar.svg'" class="w-8 h-8 rounded-full object-cover shrink-0 bg-slate-100" loading="lazy" decoding="async" />
+              <div class="flex flex-col gap-1 min-w-0">
+                <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-2xl rounded-tl-md px-3.5 py-2.5">
+                  <span class="block text-[12.5px] font-extrabold text-text-primary">{{ comment.author_name }}</span>
+                  <span class="block text-[13px] font-medium leading-relaxed text-text-muted mt-0.5">{{ comment.content }}</span>
+                </div>
+                <span class="text-[11px] font-semibold text-text-faint pl-3.5">{{ formatDate(comment.created_at) }}</span>
+              </div>
+            </div>
+          }
+        } @else {
+          <p class="text-xs font-semibold text-text-faint text-center py-4">{{ 'COMMUNITY.NO_COMMENTS_YET' | translate }}</p>
         }
       </div>
-    </div>
 
-    <!-- Comments List -->
-    <div class="px-4 pb-4 max-h-80 overflow-y-auto bg-gray-50 space-y-4">
-      @if (loadingComments()) {
-        <div class="flex justify-center py-4">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+      <!-- Comment Composer -->
+      <div class="flex items-center gap-2.5">
+        <img [src]="myAvatar || '/assets/images/default-avatar.svg'" [attr.alt]="'COMMUNITY.AVATAR_ALT' | translate" class="w-8 h-8 rounded-full object-cover shrink-0 bg-slate-100" />
+        <div class="flex-1 flex items-center bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-full px-3.5 focus-within:border-primary transition-colors">
+          <input
+            type="text"
+            [attr.placeholder]="'COMMUNITY.ADD_COMMENT_PLACEHOLDER' | translate"
+            class="flex-1 h-10 text-[13px] bg-transparent border-none outline-none focus:ring-0 placeholder:text-text-faint"
+            #commentInput
+            (keyup.enter)="submitComment(commentInput)"
+            [disabled]="loadingSubmit()"
+          />
+          @if (loadingSubmit()) {
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          }
         </div>
-      } @else if (comments().length > 0) {
-        @for (comment of comments(); track comment.id) {
-          <div class="flex gap-2 group transition-all">
-            <img [src]="comment.author_avatar || '/assets/images/default-avatar.svg'" class="w-10 h-10 rounded-full object-cover shrink-0 bg-gray-50" loading="lazy" decoding="async" />
-            <div class="bg-gray-100 rounded-bl-xl rounded-r-xl p-3 flex-1 group-hover:bg-gray-200 transition-colors">
-              <div class="flex justify-between items-start">
-                <span class="font-bold text-sm text-gray-900">{{ comment.author_name }}</span>
-                <span class="text-xs text-gray-500">{{ formatDate(comment.created_at) }}</span>
-              </div>
-              <p class="text-sm text-gray-800 mt-1">{{ comment.content }}</p>
-            </div>
-          </div>
-        }
-      } @else {
-        <p class="text-sm text-gray-500 text-center py-4">{{ 'COMMUNITY.NO_COMMENTS_YET' | translate }}</p>
-      }
+      </div>
     </div>
   `
 })

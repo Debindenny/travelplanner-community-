@@ -21,7 +21,7 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
     selector: 'app-community-hero',
     imports: [RouterLink, TranslatePipe],
     template: `
-    <div class="relative rounded-2xl overflow-hidden mb-5 h-36 sm:h-44 select-none">
+    <div class="relative rounded-2xl overflow-hidden mb-5 h-48 sm:h-64 select-none shadow-[0_10px_30px_rgba(11,18,32,0.12)]">
       <!-- Background image with Ken Burns -->
       <div
         class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
@@ -30,9 +30,9 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
         [class.opacity-0]="transitioning()"
       ></div>
       <!-- Gradient overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-tr from-black/90 via-black/50 to-transparent"></div>
       <!-- Destination dots -->
-      <div class="absolute bottom-3 right-3 flex gap-1">
+      <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
         @for (d of destinations(); track d.name; let i = $index) {
           <button
             (click)="goTo(i)"
@@ -42,27 +42,30 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
         }
       </div>
       <!-- Content -->
-      <div class="absolute inset-0 flex flex-col justify-end p-4">
-        <p class="text-2xs font-extrabold text-white/60 uppercase tracking-widest mb-1">📍 {{ destinations()[currentIndex()].name }}</p>
-        <h2 class="text-lg sm:text-xl font-extrabold text-white leading-tight mb-3 drop-shadow-sm">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
+      <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <p class="text-2xs font-extrabold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-[1.08] tracking-tight mb-4 drop-shadow-sm max-w-lg">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
         <div class="flex items-center gap-2 flex-wrap">
           <button
             (click)="onPost.emit()"
-            class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 transition-all hover:scale-105 active:scale-95"
+            class="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-sm transition-all hover:scale-105 active:scale-95"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             {{ 'COMMUNITY.HERO.POST' | translate }}
           </button>
           <button
             (click)="onMap.emit()"
-            class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 transition-all hover:scale-105 active:scale-95"
+            class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full border border-white/20 transition-all hover:scale-105 active:scale-95"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
             {{ 'COMMUNITY.HERO.EXPLORE_MAP' | translate }}
           </button>
           <a
             routerLink="/community/matching"
-            class="flex items-center gap-1.5 bg-primary/80 hover:bg-primary backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-primary/50 transition-all hover:scale-105 active:scale-95"
+            class="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm transition-all hover:scale-105 active:scale-95"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
             {{ 'COMMUNITY.HERO.FIND_BUDDIES' | translate }}

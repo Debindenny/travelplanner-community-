@@ -12,79 +12,70 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
     selector: 'app-community-stories-bar',
     imports: [TranslatePipe, CommunityStoryModalComponent, CommunityCreateStoryComponent],
     template: `
-    <div class="flex gap-3 overflow-x-auto no-scrollbar items-center max-w-2xl mx-auto py-2">
-      
-      <!-- Add Story Button -->
-      <div 
+    <div class="flex gap-4 overflow-x-auto no-scrollbar items-start max-w-2xl mx-auto py-2 px-1">
+
+      <!-- Add Story -->
+      <button
+        type="button"
         (click)="showCreateModal.set(true)"
-        class="group relative w-24 h-36 rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 shrink-0 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md active:scale-95"
+        class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 focus:outline-none"
       >
-        <!-- Background avatar blurred -->
-        <img 
-          [src]="myAvatar() || '/assets/images/default-avatar.svg'" 
-          class="absolute inset-0 w-full h-full object-cover blur-[1.5px] brightness-[0.55] transition-transform duration-500 group-hover:scale-110" 
-        />
-        <!-- Inner card content -->
-        <div class="absolute inset-0 flex flex-col items-center justify-between p-3 z-10">
-          <!-- Plus Icon -->
-          <div class="w-8 h-8 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center border-2 border-white shadow-md transform group-hover:scale-110 transition-transform mt-6">
-            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <span class="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
+          <img
+            [src]="myAvatar() || '/assets/images/default-avatar.svg'"
+            class="absolute inset-0 w-full h-full object-cover opacity-40"
+          />
+          <span class="relative z-10 w-7 h-7 rounded-full bg-primary group-hover:bg-primary-hover text-white flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-md transition-transform group-hover:scale-110">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M12 4v16m8-8H4" />
             </svg>
-          </div>
-          <span class="text-[9px] font-extrabold text-white uppercase tracking-wider text-center drop-shadow-md">{{ 'COMMUNITY.STORIES_BAR.YOUR_STORY' | translate }}</span>
-        </div>
-      </div>
+          </span>
+        </span>
+        <span class="text-2xs font-bold text-text-tertiary truncate max-w-full">{{ 'COMMUNITY.STORIES_BAR.YOUR_STORY' | translate }}</span>
+      </button>
 
       <!-- Skeletons (when loading) -->
       @if (isLoading()) {
         @for (i of [1, 2, 3, 4]; track i) {
-          <div class="w-24 h-36 rounded-2xl bg-slate-200/60 animate-pulse shrink-0 border border-slate-100"></div>
+          <div class="flex flex-col items-center gap-1.5 w-[72px] shrink-0">
+            <div class="w-16 h-16 rounded-full bg-slate-200/60 dark:bg-gray-700 animate-pulse"></div>
+            <div class="h-2 w-10 rounded bg-slate-200/60 dark:bg-gray-700 animate-pulse"></div>
+          </div>
         }
       }
 
-      <!-- Story Cards -->
+      <!-- Story rings -->
       @for (group of feed(); track group.author.id; let i = $index) {
         <button
+          type="button"
           (click)="openStory(i, group)"
-          class="group relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-md active:scale-95 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          [class.shadow-sm]="!isGroupSeen(group)"
-          [class.opacity-70]="isGroupSeen(group)"
+          class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
           [attr.aria-label]="'COMMUNITY.STORIES_BAR.VIEW_STORY_ARIA' | translate"
         >
-          <!-- Background preview image of first story -->
-          <img
-            [src]="group.stories[0].media_url"
-            class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            alt=""
-          />
-          <!-- Dark gradient overlay for readability -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/35"></div>
-
-          <!-- Author Profile photo (top left) — gradient ring if unseen, grey if seen -->
-          <div class="absolute top-2 left-2 z-10 w-8 h-8 rounded-full p-[1.5px] shadow-md"
+          <!-- Gradient ring if unseen, grey ring if seen -->
+          <span
+            class="relative w-16 h-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
             [class.bg-gradient-to-tr]="!isGroupSeen(group)"
-            [class.from-yellow-400]="!isGroupSeen(group)"
+            [class.from-amber-400]="!isGroupSeen(group)"
             [class.via-pink-500]="!isGroupSeen(group)"
             [class.to-fuchsia-600]="!isGroupSeen(group)"
-            [class.bg-slate-400]="isGroupSeen(group)"
+            [class.bg-slate-300]="isGroupSeen(group)"
+            [class.dark:bg-gray-600]="isGroupSeen(group)"
           >
-            <div class="w-full h-full rounded-full border border-white overflow-hidden bg-slate-100">
-              <img [src]="group.author.avatar || '/assets/images/default-avatar.svg'" class="w-full h-full object-cover" />
-            </div>
-          </div>
+            <span class="block w-full h-full rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-slate-100 dark:bg-gray-700">
+              <img [src]="group.stories[0].media_url" class="w-full h-full object-cover" alt="" />
+            </span>
 
-          <!-- Seen check overlay -->
-          @if (isGroupSeen(group)) {
-            <div class="absolute top-2 right-2 z-10 w-5 h-5 bg-white/90 rounded-full flex items-center justify-center shadow-sm">
-              <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            </div>
-          }
+            <!-- Seen check overlay -->
+            @if (isGroupSeen(group)) {
+              <span class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm border border-slate-100 dark:border-gray-700">
+                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </span>
+            }
+          </span>
 
-          <!-- Author Name (bottom left) -->
-          <div class="absolute bottom-2 left-2 right-2 z-10">
-            <p class="text-2xs font-extrabold text-white truncate drop-shadow-sm">{{ group.author.name }}</p>
-          </div>
+          <!-- Author name -->
+          <span class="text-2xs font-bold text-text-primary truncate max-w-full">{{ group.author.name }}</span>
         </button>
       }
 

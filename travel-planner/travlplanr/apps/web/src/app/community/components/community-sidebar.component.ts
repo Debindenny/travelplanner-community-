@@ -72,46 +72,64 @@ interface EnrichedMatch {
 
     <!-- Trending Hashtags -->
     <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-4 hover:shadow-md transition-all duration-300">
-      <div class="flex justify-between items-center mb-4 px-1">
-        <h2 class="text-xs font-extrabold text-text-tertiary uppercase tracking-wider">{{ 'COMMUNITY.TRENDING' | translate }}</h2>
-        <svg class="w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+      <div class="flex justify-between items-center mb-3 px-1">
+        <span class="text-[10.5px] font-extrabold tracking-[0.1em] text-text-tertiary uppercase">{{ 'COMMUNITY.TRENDING' | translate }}</span>
       </div>
       @if (isLoadingTags()) {
-        <div class="flex flex-wrap gap-2">
-          @for (i of [1, 2, 3, 4, 5]; track i) {
-            <div class="h-7 w-20 bg-slate-100 animate-pulse rounded-xl"></div>
+        <div class="flex flex-col gap-2.5">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+              <div class="flex-1 h-3 bg-slate-100 animate-pulse rounded"></div>
+            </div>
           }
         </div>
       } @else if (trendingTags().length === 0) {
         <p class="text-xs text-text-disabled text-center py-2">{{ 'COMMUNITY.SIDEBAR.NO_TRENDING_TOPICS' | translate }}</p>
       } @else {
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-col gap-1">
           @for (tag of trendingTags(); track tag.name) {
             <button
               [routerLink]="['/community']"
               [queryParams]="{ mode: 'search', q: tag.name }"
-              class="group px-3 py-1.5 bg-slate-50 hover:bg-primary text-text-secondary hover:text-white border border-slate-100 hover:border-primary rounded-xl text-xs font-bold transition-all hover:scale-102 flex items-center gap-1 focus:outline-none"
+              class="flex items-center gap-2.5 -mx-2 px-2 py-1.5 rounded-lg text-left hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors focus:outline-none"
             >
-              #{{ tag.name }} <span class="text-2xs text-text-tertiary group-hover:text-white/85 font-normal ml-1">{{ formatCount(tag.count) }}</span>
+              <span class="w-9 h-9 rounded-lg bg-primary-50 text-primary flex items-center justify-center font-extrabold text-sm shrink-0">#</span>
+              <span class="flex-1 min-w-0 flex flex-col">
+                <span class="text-[13px] font-bold text-text-primary truncate">#{{ tag.name }}</span>
+                <span class="text-[11.5px] font-semibold text-text-faint">{{ formatCount(tag.count) }}</span>
+              </span>
             </button>
           }
         </div>
       }
     </div>
 
+    <!-- Events & Meetups -->
+    <a
+      routerLink="/community/events"
+      class="flex items-center justify-between bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-4 hover:shadow-md transition-all duration-300"
+    >
+      <span class="flex flex-col">
+        <span class="text-[10.5px] font-extrabold tracking-[0.1em] text-text-tertiary uppercase mb-1">{{ 'COMMUNITY.SIDEBAR.EVENTS_LABEL' | translate }}</span>
+        <span class="text-[13px] font-bold text-text-primary">{{ 'COMMUNITY.SIDEBAR.EVENTS_CTA' | translate }}</span>
+      </span>
+      <svg class="w-4 h-4 text-text-disabled shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+
     <!-- Travel Buddy Matchmaker Widget -->
     <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-4 hover:shadow-md transition-all duration-300">
-      <div class="flex justify-between items-center mb-4 px-1">
-        <h2 class="text-xs font-extrabold text-text-tertiary uppercase tracking-wider">{{ 'COMMUNITY.TRAVEL_BUDDIES' | translate }}</h2>
+      <div class="flex justify-between items-center mb-3 px-1">
+        <span class="text-[10.5px] font-extrabold tracking-[0.1em] text-text-tertiary uppercase">{{ 'COMMUNITY.TRAVEL_BUDDIES' | translate }}</span>
         @if (matches().length > 0) {
           <span class="text-[9px] font-black text-primary bg-primary-50 px-2 py-0.5 rounded-full border border-primary-subtle/50">{{ (matches().length === 1 ? 'COMMUNITY.SIDEBAR.MATCH_COUNT' : 'COMMUNITY.SIDEBAR.MATCH_COUNT_PLURAL') | translate: { n: matches().length } }}</span>
         }
       </div>
 
       @if (isLoadingMatches()) {
-        <div class="space-y-3">
+        <div class="flex flex-col gap-3">
           @for (i of [1, 2]; track i) {
-            <div class="flex items-center gap-2.5 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 animate-pulse">
+            <div class="flex items-center gap-2.5 animate-pulse">
               <div class="w-9 h-9 rounded-full bg-slate-200 shrink-0"></div>
               <div class="flex-1 space-y-1.5">
                 <div class="h-3 bg-slate-200 rounded w-3/4"></div>
@@ -128,22 +146,20 @@ interface EnrichedMatch {
           </a>
         </div>
       } @else {
-        <div class="space-y-3">
+        <div class="flex flex-col gap-3">
           @for (buddy of matches(); track buddy.customerId) {
-            <div class="flex items-center justify-between bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-colors">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <img [src]="buddy.avatar || '/assets/images/default-avatar.svg'" class="w-9 h-9 rounded-full object-cover border border-white bg-slate-100 shadow-sm shrink-0" loading="lazy" decoding="async" />
-                <div class="min-w-0">
-                  <p class="text-xs font-extrabold text-text-primary truncate flex items-center gap-1.5">
-                    {{ buddy.name || ('COMMUNITY.SIDEBAR.DEFAULT_TRAVELER_NAME' | translate) }}
-                    <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">{{ buddy.matchScore }}%</span>
-                  </p>
-                  <p class="text-2xs text-text-secondary truncate mt-0.5">{{ (buddy.preferredDestinations || []).slice(0, 2).join(', ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</p>
-                </div>
+            <div class="flex items-center gap-2.5">
+              <img [src]="buddy.avatar || '/assets/images/default-avatar.svg'" class="w-9 h-9 rounded-full object-cover bg-slate-100 shrink-0" loading="lazy" decoding="async" />
+              <div class="flex-1 min-w-0 flex flex-col">
+                <span class="text-[13px] font-bold text-text-primary truncate flex items-center gap-1.5">
+                  {{ buddy.name || ('COMMUNITY.SIDEBAR.DEFAULT_TRAVELER_NAME' | translate) }}
+                  <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded shrink-0">{{ buddy.matchScore }}%</span>
+                </span>
+                <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ (buddy.preferredDestinations || []).slice(0, 2).join(', ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</span>
               </div>
               <button
                 (click)="openBuddyMessage(buddy)"
-                class="bg-primary hover:bg-primary-hover text-white px-2.5 py-1.5 rounded-lg text-2xs font-extrabold transition-all hover:scale-102 focus:outline-none shrink-0 ml-2"
+                class="h-8 px-3.5 rounded-lg text-[11.5px] font-extrabold whitespace-nowrap border border-primary text-primary bg-white dark:bg-gray-800 hover:bg-primary hover:text-white transition-colors focus:outline-none shrink-0"
               >
                 {{ 'COMMUNITY.SIDEBAR.CHAT' | translate }}
               </button>
