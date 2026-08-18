@@ -1,5 +1,4 @@
 import {
-  AddKindOption,
   AiPrompt,
   CommunityHomeData,
   ComposerFormDef,
@@ -176,15 +175,6 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
       { date: 'Apr 07', items: [{ time: '10:00', name: 'Fushimi Inari' }] },
     ],
   },
-];
-
-export const ADD_TO_TRIP_KINDS: AddKindOption[] = [
-  { label: 'Activity', icon: 'compass' },
-  { label: 'Place', icon: 'map-pin' },
-  { label: 'Restaurant', icon: 'utensils' },
-  { label: 'Hotel', icon: 'bed' },
-  { label: 'Transport', icon: 'bus' },
-  { label: 'Flight', icon: 'plane' },
 ];
 
 export const POST_OPTIONS_MENU_ITEMS: PostOptionsMenuItem[] = [

@@ -9,14 +9,13 @@
   background: rgba(11, 18, 32, 0.46);
   backdrop-filter: blur(3px);
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 24px 20px;
   overflow: auto;
   animation: travl-fade 0.14s ease;
 }
 
 .modal-shell {
+  margin: auto;
   max-width: 100%;
   background: var(--surface);
   border-radius: 18px;

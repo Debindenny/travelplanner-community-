@@ -1,15 +1,12 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import {
-  ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
 import {
-  AddPreview,
   AddToTripPayload,
-  AddTimeSlot,
   CommunityPost,
   CommunityTab,
   EventListing,
@@ -61,9 +58,7 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0].label);
   private readonly _addDay = signal(1);
-  private readonly _addSlot = signal<AddTimeSlot>('Anytime');
 
   readonly stories = computed(() => this.data.stories);
   readonly journeyStats = computed(() => this.data.journeyStats);
@@ -95,9 +90,7 @@ export class CommunityHomeStore {
   readonly formMediaAttached = this._formMediaAttached.asReadonly();
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
-  readonly addKind = this._addKind.asReadonly();
   readonly addDay = this._addDay.asReadonly();
-  readonly addSlot = this._addSlot.asReadonly();
 
   readonly destinationFilter = computed(() => DESTINATION_FILTERS[this._destinationFilterIndex()]);
 
@@ -149,18 +142,10 @@ export class CommunityHomeStore {
     })),
   );
 
-  readonly addTargetSummary = computed(() => `${this._addKind()} · Day ${this._addDay()} · ${this._addSlot()}`);
-
-  readonly addPreview = computed<AddPreview>(() => {
-    const day = this.selectedTrip().days[this._addDay() - 1] ?? { date: '', items: [] };
-    const slot = this._addSlot();
-    const slotTime: Record<AddTimeSlot, string> = { Morning: '09:00', Afternoon: '14:00', Evening: '19:30', Anytime: '—' };
-    const time = slotTime[slot];
-    const spot = this.activeAddToTripPayload()?.spot ?? 'This place';
-    const rows = [...day.items.map((item) => ({ ...item, isNew: false })), { time, name: spot, isNew: true }];
-    const rank = (t: string) => (t === '—' ? 4 : parseInt(t, 10));
-    rows.sort((a, b) => rank(a.time) - rank(b.time));
-    return { head: `DAY ${this._addDay()} · ${day.date} · AFTER ADDING`, rows };
+  readonly addConfirmationText = computed(() => {
+    const trip = this.selectedTrip();
+    const day = trip.days[this._addDay() - 1];
+    return `Adds to ${trip.name} · Day ${this._addDay()}, ${day?.date ?? ''}`;
   });
 
   readonly composerForm = computed(() => {
@@ -178,7 +163,6 @@ export class CommunityHomeStore {
   });
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
-  readonly addToTripKinds = ADD_TO_TRIP_KINDS;
   readonly currentUser = CURRENT_USER;
 
   selectTab(tab: CommunityTab): void {
@@ -439,9 +423,7 @@ export class CommunityHomeStore {
 
   openAddToTrip(payload: AddToTripPayload): void {
     this._tripPick.set('t1');
-    this._addKind.set(ADD_TO_TRIP_KINDS[0].label);
     this._addDay.set(1);
-    this._addSlot.set('Anytime');
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
   }
 
@@ -450,21 +432,13 @@ export class CommunityHomeStore {
     this._addDay.set(1);
   }
 
-  pickAddKind(kind: string): void {
-    this._addKind.set(kind);
-  }
-
   pickAddDay(day: number): void {
     this._addDay.set(day);
   }
 
-  pickAddSlot(slot: AddTimeSlot): void {
-    this._addSlot.set(slot);
-  }
-
   confirmAddToTrip(): void {
     const trip = this.selectedTrip();
-    const day = this.addPreview().head.split(' · ')[1] ?? '';
+    const day = trip.days[this._addDay() - 1]?.date ?? '';
     this._modal.set(null);
     this.showToast(`Added to ${trip.name} · Day ${this._addDay()}, ${day}`);
   }

@@ -36,46 +36,13 @@
     </div>
   </div>
 
-  <div class="add-to-trip__section">
-    <span class="add-to-trip__label">WHAT IS IT</span>
-    <div class="add-to-trip__kinds">
-      @for (kind of addKinds(); track kind.label) {
-        <button type="button" class="add-to-trip__kind" [class.is-picked]="addKind() === kind.label" (click)="pickKind.emit(kind.label)">
-          <app-icon [name]="kind.icon" [size]="15" />
-          <span>{{ kind.label }}</span>
-        </button>
-      }
-    </div>
+  <div class="add-to-trip__confirmation">
+    <app-icon name="check" [size]="14" />
+    <span>{{ confirmationText() }}</span>
   </div>
-
-  <div class="add-to-trip__section">
-    <span class="add-to-trip__label">WHEN THAT DAY</span>
-    <div class="add-to-trip__slots">
-      @for (slot of timeSlots; track slot) {
-        <button type="button" class="chip-pill" [class.is-active]="addSlot() === slot" (click)="pickSlot.emit(slot)">{{ slot }}</button>
-      }
-    </div>
-  </div>
-
-  @if (preview(); as preview) {
-    <div class="add-to-trip__preview">
-      <span class="add-to-trip__preview-head">{{ preview.head }}</span>
-      @for (row of preview.rows; track row.time + row.name) {
-        <span class="add-to-trip__preview-row" [class.is-new]="row.isNew">
-          <span class="add-to-trip__preview-time">{{ row.time }}</span>
-          <span class="add-to-trip__preview-name">{{ row.name }}</span>
-          @if (row.isNew) {
-            <span class="add-to-trip__preview-badge">NEW</span>
-          }
-        </span>
-      }
-    </div>
-  }
 </div>
 
 <div class="add-to-trip__footer">
-  <span class="add-to-trip__target">{{ targetSummary() }}</span>
-  <span class="add-to-trip__spacer"></span>
   <button type="button" class="add-to-trip__cancel" (click)="cancel.emit()">Cancel</button>
   <button type="button" class="add-to-trip__confirm" (click)="confirm.emit()">Add to your itinerary</button>
 </div>

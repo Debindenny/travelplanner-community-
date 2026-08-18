@@ -216,28 +216,10 @@ export interface TripPickOption {
   days: ItineraryDay[];
 }
 
-export interface AddKindOption {
-  label: string;
-  icon: string;
-}
-
 export interface AddDayOption {
   index: number;
   date: string;
   count: number;
-}
-
-export type AddTimeSlot = 'Morning' | 'Afternoon' | 'Evening' | 'Anytime';
-
-export interface AddPreviewRow {
-  time: string;
-  name: string;
-  isNew: boolean;
-}
-
-export interface AddPreview {
-  head: string;
-  rows: AddPreviewRow[];
 }
 
 export interface PostOptionsMenuItem {

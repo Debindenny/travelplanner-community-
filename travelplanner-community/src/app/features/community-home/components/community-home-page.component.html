@@ -73,17 +73,11 @@
             [spotImage]="trip.image"
             [trips]="store.tripPickOptions"
             [tripPick]="store.tripPick()"
-            [addKinds]="store.addToTripKinds"
-            [addKind]="store.addKind()"
             [days]="store.addDayOptions()"
             [addDay]="store.addDay()"
-            [addSlot]="store.addSlot()"
-            [preview]="store.addPreview()"
-            [targetSummary]="store.addTargetSummary()"
+            [confirmationText]="store.addConfirmationText()"
             (pickTrip)="store.pickTrip($event)"
-            (pickKind)="store.pickAddKind($event)"
             (pickDay)="store.pickAddDay($event)"
-            (pickSlot)="store.pickAddSlot($event)"
             (cancel)="store.closeModal()"
             (confirm)="store.confirmAddToTrip()"
           />
@@ -113,7 +107,7 @@
     }
     @case ('eventDetail') {
       @if (store.activeEventDetail(); as event) {
-        <app-modal-shell width="510px" [showHeader]="false" (close)="store.closeModal()">
+        <app-modal-shell width="min(510px, 100%)" [showHeader]="false" (close)="store.closeModal()">
           <app-event-detail-modal
             [event]="event"
             [joined]="store.joinedIds().has(event.id)"
