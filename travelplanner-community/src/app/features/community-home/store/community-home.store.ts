@@ -1,20 +1,18 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import {
-  ADD_TO_TRIP_KINDS,
-   COMPOSER_FORMS,
+  COMPOSER_FORMS,
   PARIS_CREW_MESSAGES,
   DISCOVER_CATEGORIES,
   DISCOVER_LIVE_COUNT,
   DISCOVER_PLACES,
   DISCOVER_POOL,
-  DISCOVER_SORTS, 
+  DISCOVER_SORTS,
   REMIX_INTERESTS,
   REMIX_PACES,
+  TRIP_ITINERARIES,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
-
- 
 } from '../../../core/data/community-mock-data';
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 import {
@@ -26,6 +24,7 @@ import {
   CrewMessage,
   DestinationSort,
   DiscoverItem,
+  EventListing,
   EventsFilter,
   FeedFilter,
   ModalState,
@@ -59,34 +58,6 @@ const POST_KIND_TO_SAVED_KIND: Partial<Record<CommunityPost['kind'], SavedCollec
 };
 
 const SAVED_PLACEHOLDER_IMAGE = unsplashUrl('1493976040374-85c8e12f0c0e', 600);
-
-const MONTH_INDEX: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
-};
-
-interface TripDay {
-  date: string;
-}
-
-function buildTripDays(dates: string): TripDay[] {
-  const [rangePart] = dates.split('·');
-  const [startRaw, endRaw] = (rangePart ?? '').trim().split(/[–-]/).map((part) => part.trim());
-  const [startMonth, startDay] = (startRaw ?? '').split(' ');
-  const [endMonth, endDay] = (endRaw ?? startRaw ?? '').split(' ');
-
-  const startIndex = MONTH_INDEX[startMonth] ?? 0;
-  const endIndex = MONTH_INDEX[endMonth] ?? startIndex;
-
-  const cursor = new Date(2027, startIndex, Number(startDay) || 1);
-  const end = new Date(2027, endIndex, Number(endDay) || Number(startDay) || 1);
-
-  const days: TripDay[] = [];
-  while (cursor <= end && days.length < 30) {
-    days.push({ date: cursor.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }) });
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return days.length ? days : [{ date: startRaw || 'Day 1' }];
-}
 
 @Injectable({ providedIn: 'root' })
 export class CommunityHomeStore {
@@ -123,7 +94,6 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
   private readonly _addDay = signal(1);
   private readonly _remixDates = signal('Oct 12 – Oct 19');
   private readonly _remixTravelers = signal('2 adults');
@@ -212,7 +182,7 @@ export class CommunityHomeStore {
   readonly formMediaAttached = this._formMediaAttached.asReadonly();
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
-  readonly addKind = this._addKind.asReadonly();
+  readonly addDay = this._addDay.asReadonly();
   readonly remixDates = this._remixDates.asReadonly();
   readonly remixTravelers = this._remixTravelers.asReadonly();
   readonly remixPace = this._remixPace.asReadonly();
@@ -275,27 +245,24 @@ export class CommunityHomeStore {
   readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
   readonly activeSavedItem = computed(() => this._modal()?.savedItem ?? null);
   readonly activeDestinationItem = computed(() => this._modal()?.destinationItem ?? null);
+  readonly activeEventDetail = computed(() => this._modal()?.eventDetail ?? null);
 
-  readonly activeItinerary = computed(() => {
-    const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
-    return buildTripDays(trip?.dates ?? '');
-  });
+  private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
-  readonly addDays = computed(() => {
-    const activeDay = this._addDay();
-    return this.activeItinerary().map((day, index) => ({
-      label: `Day ${index + 1}`,
+  readonly addDays = computed(() =>
+    this.activeItinerary().map((day, index) => ({
+      label: `DAY ${index + 1}`,
       date: day.date,
-      count: '',
-      active: index + 1 === activeDay,
+      count: `${day.items.length} ${day.items.length === 1 ? 'item' : 'items'}`,
+      active: this._addDay() === index + 1,
       day: index + 1,
-    }));
-  });
+    })),
+  );
 
   readonly addConfirmationLine = computed(() => {
     const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
     const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
-    return `Adding to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}${date ? `, ${date}` : ''}`;
+    return `Adds to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}, ${date}`;
   });
 
   readonly composerForm = computed(() => {
@@ -313,7 +280,6 @@ export class CommunityHomeStore {
   });
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
-  readonly addToTripKinds = ADD_TO_TRIP_KINDS;
   readonly remixPaces = REMIX_PACES;
   readonly remixInterestOptions = REMIX_INTERESTS;
   readonly currentUser = CURRENT_USER;
@@ -603,6 +569,16 @@ export class CommunityHomeStore {
     this.showToast(wasJoined ? `Left ${name}` : `You’re going to ${name}`);
   }
 
+  rsvpEvent(event: EventListing): void {
+    const wasJoined = this._joinedIds().has(event.id);
+    this._joinedIds.set(this.toggledSet(this._joinedIds(), event.id));
+    this.showToast(
+      wasJoined
+        ? `Spot released · ${event.title}`
+        : `You’re going · added to your ${event.isOnline ? 'calendar' : 'trip itinerary'}`,
+    );
+  }
+
   toggleComments(postId: string): void {
     this._openCommentPostIds.set(this.toggledSet(this._openCommentPostIds(), postId));
   }
@@ -669,12 +645,13 @@ export class CommunityHomeStore {
   }
 
   openAddToTrip(payload: AddToTripPayload): void {
+    this._tripPick.set('t1');
     this._addDay.set(1);
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
   }
 
   openSavedItem(item: SavedCollectionCard): void {
-    const [place, used] = item.meta.split('·').map((part: string) => part.trim());
+    const [place, used] = item.meta.split('·').map((part) => part.trim());
     const payload: SavedDetailPayload = {
       tag: item.kind.toUpperCase(),
       place: place || 'Saved',
@@ -689,6 +666,14 @@ export class CommunityHomeStore {
     this._modal.set({ kind: 'savedDetail', savedItem: payload });
   }
 
+  openDiscoverItem(item: DiscoverItem): void {
+    this._modal.set({ kind: 'discoverDetail', discoverItem: item });
+  }
+
+  openDestinationDetail(destination: CommunityDestination): void {
+    this._modal.set({ kind: 'destinationDetail', destinationItem: destination });
+  }
+
   pickTrip(tripId: string): void {
     this._tripPick.set(tripId);
     this._addDay.set(1);
@@ -696,18 +681,6 @@ export class CommunityHomeStore {
 
   pickAddDay(day: number): void {
     this._addDay.set(day);
-  }
-
-  pickAddKind(kind: string): void {
-    this._addKind.set(kind);
-  }
-
-  openDiscoverItem(item: DiscoverItem): void {
-    this._modal.set({ kind: 'discoverDetail', discoverItem: item });
-  }
-
-  openDestinationDetail(destination: CommunityDestination): void {
-    this._modal.set({ kind: 'destinationDetail', destinationItem: destination });
   }
 
   openRemix(payload: RemixPayload): void {
@@ -744,6 +717,10 @@ export class CommunityHomeStore {
 
   openStoryViewer(story: StoryViewerPayload): void {
     this._modal.set({ kind: 'story', story });
+  }
+
+  openEventDetail(event: EventListing): void {
+    this._modal.set({ kind: 'eventDetail', eventDetail: event });
   }
 
   openPostOptions(postId: string, author: string): void {

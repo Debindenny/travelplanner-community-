@@ -1,0 +1,93 @@
+<div class="event-detail">
+  <div
+    class="event-detail__banner"
+    [style.background-image]="'linear-gradient(180deg, rgba(11,18,32,.28) 0%, rgba(11,18,32,.02) 38%, rgba(11,18,32,.86) 100%), url(' + event().image + ')'"
+  >
+    <div class="event-detail__banner-top">
+      <span class="event-detail__badge">{{ event().badge }}</span>
+      <button type="button" class="event-detail__close" (click)="close.emit()" aria-label="Close">
+        <app-icon name="x" [size]="16" />
+      </button>
+    </div>
+
+    <div class="event-detail__head">
+      <div class="event-detail__date">
+        <span class="event-detail__date-month">{{ event().month }}</span>
+        <span class="event-detail__date-day">{{ event().day }}</span>
+      </div>
+      <div class="event-detail__head-copy">
+        <h2 class="event-detail__title">{{ event().title }}</h2>
+        <p class="event-detail__meta">{{ event().meta }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-detail__body">
+    <div class="event-detail__host">
+      <span class="event-detail__host-avatar" [style.background]="event().host.avatarGradient">{{ hostInitials() }}</span>
+      <span class="event-detail__host-copy">
+        <span class="event-detail__host-name">{{ event().host.name }} <span class="event-detail__host-tag">· host</span></span>
+        <span class="event-detail__host-role">{{ event().host.role }}</span>
+      </span>
+      <button type="button" class="event-detail__follow" [class.is-followed]="followed()" (click)="followHost.emit()">
+        {{ followed() ? 'Following' : 'Follow' }}
+      </button>
+    </div>
+
+    <p class="event-detail__description">{{ event().description }}</p>
+
+    <div class="event-detail__stats">
+      <div class="event-detail__stat">
+        <span class="event-detail__stat-label">WHEN</span>
+        <span class="event-detail__stat-value">{{ event().when }}</span>
+      </div>
+      <div class="event-detail__stat">
+        <span class="event-detail__stat-label">COST</span>
+        <span class="event-detail__stat-value">{{ event().cost }}</span>
+      </div>
+      <div class="event-detail__stat">
+        <span class="event-detail__stat-label">GROUP</span>
+        <span class="event-detail__stat-value">{{ event().groupMax }}</span>
+      </div>
+    </div>
+
+    <div class="event-detail__section">
+      <span class="event-detail__section-title">WHAT HAPPENS</span>
+      <ul class="event-detail__schedule">
+        @for (step of event().schedule; track step.time) {
+          <li class="event-detail__schedule-item">
+            <span class="event-detail__schedule-dot"></span>
+            <span class="event-detail__schedule-text">{{ step.time }} · {{ step.text }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="event-detail__location">
+      <app-icon name="map-pin" [size]="16" />
+      <span class="event-detail__location-copy">
+        <span class="event-detail__location-name">{{ event().location.name }}</span>
+        <span class="event-detail__location-note">{{ event().location.note }}</span>
+      </span>
+    </div>
+
+    <div class="event-detail__going">
+      <span class="event-detail__faces">
+        @for (gradient of faceGradients; track $index) {
+          <span class="event-detail__face" [style.background]="gradient"></span>
+        }
+      </span>
+      <span class="event-detail__going-line">{{ goingLine() }}</span>
+      <button type="button" class="event-detail__see-who" (click)="seeWho.emit()">See who</button>
+    </div>
+  </div>
+
+  <div class="event-detail__footer">
+    <span class="event-detail__spaces">{{ spacesLeftLine() }}</span>
+    <span class="event-detail__spacer"></span>
+    <button type="button" class="event-detail__add" (click)="addToTrip.emit()">Add to trip</button>
+    <button type="button" class="event-detail__join" [class.is-joined]="joined()" (click)="join.emit()">
+      {{ joined() ? 'You’re going' : 'Join this event' }}
+    </button>
+  </div>
+</div>

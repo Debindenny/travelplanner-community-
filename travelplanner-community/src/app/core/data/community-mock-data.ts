@@ -1,9 +1,11 @@
 import {
+  AddKindOption,
   AiPrompt,
   CommunityHomeData,
   ComposerFormDef,
   CrewMessage,
   DiscoverItem,
+  ItineraryDay,
   PostOptionsMenuItem,
   PostTypeOption,
   ProfileMenuItem,
@@ -158,7 +160,29 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
   { id: 't2', name: 'Japan 2027', dates: 'Apr 04 – Apr 11 · 9 activities' },
 ];
 
-export const ADD_TO_TRIP_KINDS: string[] = ['Activity', 'Place', 'Restaurant', 'Hotel', 'Transport', 'Flight'];
+export const ADD_TO_TRIP_KINDS: AddKindOption[] = [
+  { label: 'Activity', icon: 'compass' },
+  { label: 'Place', icon: 'map-pin' },
+  { label: 'Restaurant', icon: 'utensils' },
+  { label: 'Hotel', icon: 'bed' },
+  { label: 'Transport', icon: 'bus' },
+  { label: 'Flight', icon: 'plane' },
+];
+
+export const TRIP_ITINERARIES: Record<string, ItineraryDay[]> = {
+  t1: [
+    { date: 'Wed 03', items: [{ time: '15:00', name: 'Check in · Hôtel Bachaumont' }, { time: '19:00', name: 'Dinner in Le Marais' }] },
+    { date: 'Thu 04', items: [{ time: '09:30', name: 'Louvre · Denon wing' }] },
+    { date: 'Fri 05', items: [{ time: '10:00', name: 'Montmartre walk' }, { time: '20:30', name: 'Seine at dusk' }] },
+    { date: 'Sat 06', items: [{ time: '11:00', name: 'Flight home · CDG' }] },
+  ],
+  t2: [
+    { date: 'Apr 04', items: [{ time: '14:00', name: 'Land · Haneda' }] },
+    { date: 'Apr 05', items: [{ time: '09:00', name: 'Shibuya + Harajuku' }, { time: '17:30', name: 'Shibuya Sky' }] },
+    { date: 'Apr 06', items: [{ time: '08:00', name: 'Shinkansen to Kyoto' }] },
+    { date: 'Apr 07', items: [{ time: '10:00', name: 'Fushimi Inari' }] },
+  ],
+};
 
 export const REMIX_PACES: string[] = ['Slow', 'Balanced', 'Packed'];
 
@@ -542,9 +566,12 @@ export function buildCommunityHomeData(): CommunityHomeData {
       { id: 'm3', name: 'Jonas Weber', home: 'Austria', dates: 'Jun 5 – 10', matchPercent: '71% match', tags: ['Cycling', 'Coffee', 'Jazz'], avatarGradient: 'linear-gradient(140deg,#6B3FA0,#0060EA)' },
     ],
     travelersRail: [
-      { id: 'r1', name: 'Priya Nair', line: 'Paris · Jun 3 – 8 · 88% match', avatarGradient: 'linear-gradient(140deg,#0A6E7C,#2AA98B)' },
-      { id: 'r2', name: 'Marco Villa', line: 'Paris · Jun 1 – 6 · 74% match', avatarGradient: 'linear-gradient(140deg,#4B2A63,#D2604B)' },
-      { id: 'r3', name: 'Emma Ross', line: 'Paris · Jun 4 – 11 · 69% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#6BA6C9)' },
+      { id: 'r1', name: 'Priya Nair', home: 'India', city: 'Paris', dates: 'Jun 3 – 8', matchPercent: '88% match', line: 'Paris · Jun 3 – 8 · 88% match', avatarGradient: 'linear-gradient(140deg,#0A6E7C,#2AA98B)' },
+      { id: 'r2', name: 'Aarav Menon', home: 'India', city: 'Paris', dates: 'Jun 4 – 9', matchPercent: '82% match', line: 'Paris · Jun 4 – 9 · 82% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#2AA98B)' },
+      { id: 'r3', name: 'Lea Fontaine', home: 'Canada', city: 'Paris', dates: 'Jun 2 – 7', matchPercent: '76% match', line: 'Paris · Jun 2 – 7 · 76% match', avatarGradient: 'linear-gradient(140deg,#D2604B,#F2B872)' },
+      { id: 'r4', name: 'Marco Villa', home: 'Italy', city: 'Paris', dates: 'Jun 1 – 6', matchPercent: '74% match', line: 'Paris · Jun 1 – 6 · 74% match', avatarGradient: 'linear-gradient(140deg,#4B2A63,#D2604B)' },
+      { id: 'r5', name: 'Emma Ross', home: 'UK', city: 'Paris', dates: 'Jun 4 – 11', matchPercent: '69% match', line: 'Paris · Jun 4 – 11 · 69% match', avatarGradient: 'linear-gradient(140deg,#0060EA,#6BA6C9)' },
+      { id: 'r6', name: 'Sofia Marchetti', home: 'Italy', city: 'Paris', dates: 'Jun 5 – 10', line: 'Paris · Jun 5 – 10', avatarGradient: 'linear-gradient(140deg,#6B3FA0,#D2604B)' },
     ],
     trending: [
       { id: 'tr1', title: 'Eiffel Tower sunset reservations', meta: '46 tips this week', image: unsplashUrl('1511739001486-6bfe10ce785f', 300) },
@@ -572,7 +599,24 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Montmartre, Paris · 09:00 · Free',
         travelersGoing: 14,
         isOnline: false,
-        image: unsplashUrl('1499856871958-5b9627545d1a', 400),
+        image: unsplashUrl('1499856871958-5b9627545d1a', 800),
+        host: { name: 'Camille Roy', role: 'Local guide · hosts 2 walks a month', avatarGradient: GRADIENTS[0] },
+        when: 'JUN 07 · 09:00',
+        cost: 'Free',
+        groupMax: '20 max',
+        spacesLeft: 6,
+        description:
+          'A slow two-and-a-half hours through Montmartre before the tour groups arrive. We stop where the light is good, not where the guidebooks say.',
+        schedule: [
+          { time: '09:00', text: 'Meet at the funicular, coffee first' },
+          { time: '09:30', text: 'Rue de l’Abreuvoir and the back stairs' },
+          { time: '10:45', text: 'Sacré-Cœur terrace as it empties' },
+          { time: '11:30', text: 'Finish at Saint-Jean, optional lunch' },
+        ],
+        location: {
+          name: 'Funicular de Montmartre, lower station',
+          note: 'Any camera — phones are completely fine. Comfortable shoes; there are a lot of steps.',
+        },
       },
       {
         id: 'ev2',
@@ -583,7 +627,24 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Shinjuku, Tokyo · 19:00 · ¥3,000',
         travelersGoing: 32,
         isOnline: false,
-        image: unsplashUrl('1540959733332-eab4deabeeaf', 400),
+        image: unsplashUrl('1540959733332-eab4deabeeaf', 800),
+        host: { name: 'Maya Kondo', role: 'Lives in Tokyo · 6 meetups hosted', avatarGradient: GRADIENTS[1] },
+        when: 'JUN 15 · 19:00',
+        cost: '¥3,000',
+        groupMax: '40 max',
+        spacesLeft: 8,
+        description:
+          'Three small shops in one evening, in the order a local would do them. We queue together and split the bill at each stop.',
+        schedule: [
+          { time: '19:00', text: 'Meet at Shinjuku east exit' },
+          { time: '19:20', text: 'Shop one — shio' },
+          { time: '20:15', text: 'Shop two — tsukemen' },
+          { time: '21:15', text: 'Shop three, standing only' },
+        ],
+        location: {
+          name: 'Shinjuku Station, east exit by the plaza clock',
+          note: 'Cash for the ticket machines. Come hungry — three bowls is the point.',
+        },
       },
       {
         id: 'ev3',
@@ -594,7 +655,24 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Online · 18:00 CET · Free',
         travelersGoing: 128,
         isOnline: true,
-        image: unsplashUrl('1490806843957-31f4c9a91c65', 400),
+        image: unsplashUrl('1490806843957-31f4c9a91c65', 800),
+        host: { name: 'Rhea Sharma', role: 'Travelled Japan 3 times · 2.4K saves', avatarGradient: GRADIENTS[2] },
+        when: 'JUN 22 · 18:00 CET',
+        cost: 'Free',
+        groupMax: '300 max',
+        spacesLeft: 172,
+        description:
+          'An hour of open questions about routing, rail passes and cherry-blossom timing for spring 2027. Bring a half-made plan and leave with a real one.',
+        schedule: [
+          { time: '18:00', text: 'Rail passes — what is actually worth it' },
+          { time: '18:20', text: 'Blossom timing by city' },
+          { time: '18:40', text: 'Open questions' },
+          { time: '19:00', text: 'Ends' },
+        ],
+        location: {
+          name: 'Link appears here 30 minutes before it starts',
+          note: 'Your draft itinerary, if you have one.',
+        },
       },
       {
         id: 'ev4',
@@ -605,7 +683,24 @@ export function buildCommunityHomeData(): CommunityHomeData {
         meta: 'Graça, Lisbon · 18:30 · Free',
         travelersGoing: 21,
         isOnline: false,
-        image: unsplashUrl('1585208798174-6cedd86e019a', 400),
+        image: unsplashUrl('1585208798174-6cedd86e019a', 800),
+        host: { name: 'Iker Solano', role: 'Lisbon local · slow travel writer', avatarGradient: GRADIENTS[3] },
+        when: 'JUL 04 · 18:30',
+        cost: 'Free',
+        groupMax: '25 max',
+        spacesLeft: 4,
+        description:
+          'Four viewpoints, downhill the whole way, timed so you are at the last one as the light goes. Ends near the tram stop.',
+        schedule: [
+          { time: '18:30', text: 'Meet at Graça viewpoint' },
+          { time: '19:10', text: 'Senhora do Monte' },
+          { time: '19:50', text: 'Portas do Sol' },
+          { time: '20:30', text: 'Santa Luzia for the last of the light' },
+        ],
+        location: {
+          name: 'Miradouro da Graça, by the kiosk',
+          note: 'A jacket — it gets windy up there. Kiosk drinks are cash only.',
+        },
       },
     ],
     destinations: [

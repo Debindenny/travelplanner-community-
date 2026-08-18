@@ -22,6 +22,7 @@ import { PostOptionsModalComponent } from './overlays/post-options-modal/post-op
 import { DiscoverDetailModalComponent } from './overlays/discover-detail-modal/discover-detail-modal.component';
 import { SavedDetailModalComponent } from './overlays/saved-detail-modal/saved-detail-modal.component';
 import { DestinationDetailModalComponent } from './overlays/destination-detail-modal/destination-detail-modal.component';
+import { EventDetailModalComponent } from './overlays/event-detail-modal/event-detail-modal.component';
 import { CommunityHomeStore } from '../store/community-home.store';
 import { AI_PROMPTS } from '../../../core/data/community-mock-data';
 import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/community.models';
@@ -51,6 +52,7 @@ import { AiPrompt, CommunityTab, ProfileMenuItem } from '../../../core/models/co
     DiscoverDetailModalComponent,
     SavedDetailModalComponent,
     DestinationDetailModalComponent,
+    EventDetailModalComponent,
   ],
   templateUrl: './community-home-page.component.html',
   styleUrl: './community-home-page.component.scss',

@@ -24,12 +24,21 @@
   </div>
 
   <div class="add-to-trip__section">
-    <span class="add-to-trip__label">WHAT IS IT</span>
-    <div class="add-to-trip__kinds">
-      @for (kind of addKinds(); track kind) {
-        <button type="button" class="chip-pill" [class.is-active]="addKind() === kind" (click)="pickKind.emit(kind)">{{ kind }}</button>
+    <span class="add-to-trip__label">WHICH DAY</span>
+    <div class="add-to-trip__days">
+      @for (day of days(); track day.day) {
+        <button type="button" class="add-to-trip__day" [class.is-active]="day.active" (click)="pickDay.emit(day.day)">
+          <span class="add-to-trip__day-label">{{ day.label }}</span>
+          <span class="add-to-trip__day-date">{{ day.date }}</span>
+          <span class="add-to-trip__day-count">{{ day.count }}</span>
+        </button>
       }
     </div>
+  </div>
+
+  <div class="add-to-trip__confirm-line">
+    <app-icon name="check" [size]="14" />
+    <span>{{ confirmationLine() }}</span>
   </div>
 </div>
 

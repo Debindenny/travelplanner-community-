@@ -81,12 +81,9 @@
             [spotImage]="trip.image"
             [trips]="store.tripPickOptions"
             [tripPick]="store.tripPick()"
-            [addKinds]="store.addToTripKinds"
-            [addKind]="store.addKind()"
             [days]="store.addDays()"
             [confirmationLine]="store.addConfirmationLine()"
             (pickTrip)="store.pickTrip($event)"
-            (pickKind)="store.pickAddKind($event)"
             (pickDay)="store.pickAddDay($event)"
             (cancel)="store.closeModal()"
             (confirm)="store.confirmAddToTrip()"
@@ -182,6 +179,22 @@
             (close)="store.closeModal()"
             (toggleJoin)="store.toggleJoin(destination.id, destination.name)"
             (openPost)="store.showToast('Opening: ' + $event.title)"
+          />
+        </app-modal-shell>
+      }
+    }
+    @case ('eventDetail') {
+      @if (store.activeEventDetail(); as event) {
+        <app-modal-shell width="510px" [showHeader]="false" (close)="store.closeModal()">
+          <app-event-detail-modal
+            [event]="event"
+            [joined]="store.joinedIds().has(event.id)"
+            [followed]="store.followedIds().has('evhost_' + event.id)"
+            (close)="store.closeModal()"
+            (join)="store.rsvpEvent(event)"
+            (followHost)="store.toggleFollow('evhost_' + event.id, event.host.name)"
+            (addToTrip)="store.openAddToTrip({ spot: event.title, meta: event.badge + ' · ' + event.meta, image: event.image })"
+            (seeWho)="store.showToast('Attendee list · ' + event.travelersGoing + ' travelers going')"
           />
         </app-modal-shell>
       }
