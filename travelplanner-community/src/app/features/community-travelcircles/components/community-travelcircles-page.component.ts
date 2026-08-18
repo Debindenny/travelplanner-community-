@@ -3,7 +3,10 @@ import { ChangeDetectionStrategy, Component, inject, output, signal } from '@ang
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { TravelerRailItem } from '../../../core/models/community.models';
+<<<<<<< HEAD
 import { unsplashUrl } from '../../../shared/utils/unsplash';
+=======
+>>>>>>> feature/travel-circles
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
 import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
@@ -145,7 +148,10 @@ export class CommunityTravelCirclesComponent {
       cta: payload.visibility === 'Invite only' ? 'Request' : 'Join',
       accent,
       accent2,
+<<<<<<< HEAD
       image: NEW_CIRCLE_IMAGE,
+=======
+>>>>>>> feature/travel-circles
       members: [{ name: this.store.currentUser.name, location: 'You', role: 'Host' }],
       audience: payload.audience,
       initialStatus: 'owner',

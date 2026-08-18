@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 
+=======
+>>>>>>> feature/travel-circles
 export interface CircleMember {
   name: string;
   location: string;
@@ -17,11 +20,21 @@ export interface TravelCircleCard {
   cta: 'Join' | 'Request';
   accent: string;
   accent2: string;
+<<<<<<< HEAD
   image: string;
+=======
+>>>>>>> feature/travel-circles
   members: CircleMember[];
   audience?: 'Everyone' | 'Women only' | 'Men only';
   initialStatus?: 'joined' | 'owner';
 }
+
+const STANDARD_MEMBERS: CircleMember[] = [
+  { name: 'Priya Nair', location: 'India', role: 'Host' },
+  { name: 'Marco Villa', location: 'Italy', joinedLabel: 'joined 3d ago' },
+  { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
+  { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
+];
 
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
   {
@@ -34,6 +47,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     cta: 'Request',
     accent: '#8b5cf6',
     accent2: '#c2569b',
+<<<<<<< HEAD
     image: unsplashUrl('1493976040374-85c8e12f0c0e', 600),
     members: [
       { name: 'Priya Nair', location: 'India', role: 'Host' },
@@ -41,6 +55,9 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
       { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
       { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
     ],
+=======
+    members: STANDARD_MEMBERS,
+>>>>>>> feature/travel-circles
   },
   {
     id: 'tc2',
@@ -53,6 +70,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#5b3fa0',
     accent2: '#8b5cf6',
     initialStatus: 'joined',
+<<<<<<< HEAD
     image: unsplashUrl('1499856871958-5b9627545d1a', 600),
     members: [
       { name: 'Priya Nair', location: 'India', role: 'Host' },
@@ -60,6 +78,9 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
       { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
       { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
     ],
+=======
+    members: STANDARD_MEMBERS,
+>>>>>>> feature/travel-circles
   },
   {
     id: 'tc3',
@@ -72,6 +93,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#8b5cf6',
     accent2: '#8b5cf6',
     initialStatus: 'joined',
+<<<<<<< HEAD
     image: unsplashUrl('1474487548417-781cb71495f3', 600),
     members: [
       { name: 'Priya Nair', location: 'India', role: 'Host' },
@@ -79,6 +101,9 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
       { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
       { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
     ],
+=======
+    members: STANDARD_MEMBERS,
+>>>>>>> feature/travel-circles
   },
   {
     id: 'tc4',
@@ -91,6 +116,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#c2569b',
     accent2: '#c2569b',
     initialStatus: 'owner',
+<<<<<<< HEAD
     image: unsplashUrl('1502602898657-3e91760cbb34', 600),
     members: [
       { name: 'Priya Nair', location: 'India', role: 'Host' },
@@ -98,5 +124,8 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
       { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
       { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
     ],
+=======
+    members: STANDARD_MEMBERS,
+>>>>>>> feature/travel-circles
   },
 ];
