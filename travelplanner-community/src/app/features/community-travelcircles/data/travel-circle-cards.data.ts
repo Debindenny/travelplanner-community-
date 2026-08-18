@@ -1,3 +1,10 @@
+export interface CircleMember {
+  name: string;
+  location: string;
+  role?: 'Host';
+  joinedLabel?: string;
+}
+
 export interface TravelCircleCard {
   id: string;
   title: string;
@@ -8,9 +15,17 @@ export interface TravelCircleCard {
   cta: 'Join' | 'Request';
   accent: string;
   accent2: string;
+  members: CircleMember[];
   audience?: 'Everyone' | 'Women only' | 'Men only';
   initialStatus?: 'joined' | 'owner';
 }
+
+const STANDARD_MEMBERS: CircleMember[] = [
+  { name: 'Priya Nair', location: 'India', role: 'Host' },
+  { name: 'Marco Villa', location: 'Italy', joinedLabel: 'joined 3d ago' },
+  { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
+  { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
+];
 
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
   {
@@ -23,6 +38,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     cta: 'Request',
     accent: '#8b5cf6',
     accent2: '#c2569b',
+    members: STANDARD_MEMBERS,
   },
   {
     id: 'tc2',
@@ -35,6 +51,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#5b3fa0',
     accent2: '#8b5cf6',
     initialStatus: 'joined',
+    members: STANDARD_MEMBERS,
   },
   {
     id: 'tc3',
@@ -47,6 +64,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#8b5cf6',
     accent2: '#8b5cf6',
     initialStatus: 'joined',
+    members: STANDARD_MEMBERS,
   },
   {
     id: 'tc4',
@@ -59,5 +77,6 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#c2569b',
     accent2: '#c2569b',
     initialStatus: 'owner',
+    members: STANDARD_MEMBERS,
   },
 ];

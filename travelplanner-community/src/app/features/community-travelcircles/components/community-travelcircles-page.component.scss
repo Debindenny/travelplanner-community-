@@ -113,6 +113,36 @@
   }
 }
 
+/* ---------- Tabs ---------- */
+
+.circles-tabs {
+  display: inline-flex;
+  gap: 2px;
+  margin-top: 20px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.circles-tabs__item {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  &.is-active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-card);
+  }
+}
+
 /* ---------- Card grid ---------- */
 
 .circle-grid {
@@ -228,6 +258,31 @@
   }
 }
 
+.circle-card__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.circle-card__view {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.18s ease;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+}
+
 .circle-card__cta {
   flex: none;
   height: 36px;
@@ -267,6 +322,100 @@
 
     &:active {
       transform: none;
+    }
+  }
+}
+
+/* ---------- Travelers tab ---------- */
+
+.traveler-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 4px 22px;
+}
+
+.traveler-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-soft);
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.traveler-row__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.traveler-row__name-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.traveler-row__name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.traveler-row__percent {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--success-text);
+  background: var(--success-bg);
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.traveler-row__line {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.traveler-row__follow {
+  flex: none;
+  height: 34px;
+  padding: 0 16px;
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: var(--accent-soft);
+  }
+
+  &.is-following {
+    border-color: var(--border);
+    background: #fff;
+    color: var(--text-secondary);
+
+    &:hover {
+      border-color: var(--border-hover);
+      background: var(--surface-muted);
     }
   }
 }

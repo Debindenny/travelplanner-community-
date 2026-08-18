@@ -91,7 +91,11 @@ export interface TravelMatch {
 export interface TravelerRailItem {
   id: string;
   name: string;
+  home: string;
+  city: string;
+  dates: string;
   line: string;
+  matchPercent?: string;
   avatarGradient: string;
 }
 
