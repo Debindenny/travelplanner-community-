@@ -12,7 +12,9 @@ import { SavedDetailPayload } from '../../../../../core/models/community.models'
 })
 export class SavedDetailModalComponent {
   readonly item = input.required<SavedDetailPayload>();
+  readonly saved = input(false);
 
   readonly close = output<void>();
+  readonly toggleSave = output<void>();
   readonly addToTrip = output<void>();
 }

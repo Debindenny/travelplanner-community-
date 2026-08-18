@@ -652,15 +652,17 @@ export class CommunityHomeStore {
 
   openSavedItem(item: SavedCollectionCard): void {
     const [place, used] = item.meta.split('·').map((part) => part.trim());
+    const savedUsed = used || 'Recently';
     const payload: SavedDetailPayload = {
+      id: item.id,
       tag: item.kind.toUpperCase(),
       place: place || 'Saved',
       title: item.title,
       image: item.image,
-      used: used || '',
+      used: savedUsed.charAt(0).toUpperCase() + savedUsed.slice(1),
       facts: [
         { label: 'TYPE', value: item.kind },
-        { label: 'SAVED', value: used || 'Recently' },
+        { label: 'SAVED', value: savedUsed.replace(/^saved\s+/i, '') },
       ],
     };
     this._modal.set({ kind: 'savedDetail', savedItem: payload });

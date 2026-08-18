@@ -22,5 +22,9 @@
 </div>
 
 <div class="saved-detail__footer">
+  <span class="saved-detail__used">{{ item().used }}</span>
+  <button type="button" class="saved-detail__save" [class.is-saved]="saved()" (click)="toggleSave.emit()">
+    {{ saved() ? 'Saved' : 'Save' }}
+  </button>
   <button type="button" class="saved-detail__confirm" (click)="addToTrip.emit()">Add to itinerary</button>
 </div>

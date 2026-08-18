@@ -164,7 +164,9 @@
         <app-modal-shell width="420px" [showHeader]="false" (close)="store.closeModal()">
           <app-saved-detail-modal
             [item]="item"
+            [saved]="store.savedIds().has(item.id)"
             (close)="store.closeModal()"
+            (toggleSave)="store.toggleSave(item.id)"
             (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.tag + ' · ' + item.place, image: item.image })"
           />
         </app-modal-shell>

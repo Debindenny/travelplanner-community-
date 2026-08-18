@@ -253,6 +253,7 @@ export interface SavedFact {
 }
 
 export interface SavedDetailPayload {
+  id: string;
   tag: string;
   place: string;
   title: string;
