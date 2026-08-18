@@ -35,6 +35,7 @@ export type IconName =
   | 'trash'
   | 'minus'
   | 'heart'
+  | 'shield'
   | 'utensils'
   | 'bed'
   | 'bus'
@@ -156,6 +157,9 @@ export type IconName =
         }
         @case ('heart') {
           <path d="M19.5 12.6 12 20l-7.5-7.4a4.8 4.8 0 0 1 7.5-5.9 4.8 4.8 0 0 1 7.5 5.9Z" />
+        }
+        @case ('shield') {
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
         }
         @case ('utensils') {
           <path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7" />

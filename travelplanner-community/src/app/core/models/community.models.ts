@@ -1,6 +1,7 @@
 export type CommunityTab = 'Home' | 'Discover' | 'Destinations' | 'Trips' | 'Travel Circles' | 'Events' | 'Saved';
 export type FeedFilter = 'For You' | 'Following' | 'Near My Trip' | 'Questions' | 'Trip Plans' | 'Tips' | 'Photos';
 export type ViewMode = 'Feed' | 'Map';
+export type DestinationSort = 'Popular' | 'Near me';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION' | 'TRAVEL BUDDY';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
@@ -378,6 +379,9 @@ export interface ModalState {
   addToTrip?: AddToTripPayload;
   remix?: RemixPayload;
   postOptions?: PostOptionsContext;
+  discoverItem?: DiscoverItem;
+  savedItem?: SavedDetailPayload;
+  destinationItem?: CommunityDestination;
   eventDetail?: EventListing;
 }
 
