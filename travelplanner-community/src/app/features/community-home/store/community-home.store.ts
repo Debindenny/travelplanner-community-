@@ -1,18 +1,24 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import {
+  ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
   PARIS_CREW_MESSAGES,
   DISCOVER_CATEGORIES,
   DISCOVER_LIVE_COUNT,
-  DISCOVER_TOP,
+  DISCOVER_PLACES,
+  DISCOVER_POOL,
+  DISCOVER_SORTS,
   REMIX_INTERESTS,
   REMIX_PACES,
+  TRIP_ITINERARIES,
   TRIP_PICK_OPTIONS,
   buildCommunityHomeData,
 } from '../../../core/data/community-mock-data';
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 import {
+  AddPreview,
+  AddTimeSlot,
   AddToTripPayload,
   CommunityDestination,
   CommunityPost,
@@ -21,11 +27,14 @@ import {
   CrewMessage,
   DestinationSort,
   DiscoverItem,
+  EventListing,
   EventsFilter,
   FeedFilter,
   ModalState,
   PostOptionsMenuItem,
   RemixPayload,
+  SavedCollectionCard,
+  SavedCollectionKind,
   SavedCollectionTab,
   SavedDetailPayload,
   StoryViewerPayload,
@@ -88,7 +97,9 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0]);
+  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0].label);
+  private readonly _addDay = signal(1);
+  private readonly _addSlot = signal<AddTimeSlot>('Anytime');
   private readonly _remixDates = signal('Oct 12 – Oct 19');
   private readonly _remixTravelers = signal('2 adults');
   private readonly _remixPace = signal(REMIX_PACES[1]);
@@ -177,6 +188,8 @@ export class CommunityHomeStore {
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
   readonly addKind = this._addKind.asReadonly();
+  readonly addDay = this._addDay.asReadonly();
+  readonly addSlot = this._addSlot.asReadonly();
   readonly remixDates = this._remixDates.asReadonly();
   readonly remixTravelers = this._remixTravelers.asReadonly();
   readonly remixPace = this._remixPace.asReadonly();
@@ -236,6 +249,31 @@ export class CommunityHomeStore {
   readonly activeAddToTripPayload = computed(() => this._modal()?.addToTrip ?? null);
   readonly activeRemixPayload = computed(() => this._modal()?.remix ?? null);
   readonly activePostOptionsContext = computed(() => this._modal()?.postOptions ?? null);
+  readonly activeEventDetail = computed(() => this._modal()?.eventDetail ?? null);
+
+  private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
+
+  readonly addDayOptions = computed(() =>
+    this.activeItinerary().map((day, index) => ({
+      index: index + 1,
+      date: day.date,
+      count: day.items.length,
+    })),
+  );
+
+  readonly addTargetSummary = computed(() => `${this._addKind()} · Day ${this._addDay()} · ${this._addSlot()}`);
+
+  readonly addPreview = computed<AddPreview>(() => {
+    const day = this.activeItinerary()[this._addDay() - 1] ?? { date: '', items: [] };
+    const slot = this._addSlot();
+    const slotTime: Record<AddTimeSlot, string> = { Morning: '09:00', Afternoon: '14:00', Evening: '19:30', Anytime: '—' };
+    const time = slotTime[slot];
+    const spot = this.activeAddToTripPayload()?.spot ?? 'This place';
+    const rows = [...day.items.map((item) => ({ ...item, isNew: false })), { time, name: spot, isNew: true }];
+    const rank = (t: string) => (t === '—' ? 4 : parseInt(t, 10));
+    rows.sort((a, b) => rank(a.time) - rank(b.time));
+    return { head: `DAY ${this._addDay()} · ${day.date} · AFTER ADDING`, rows };
+  });
 
   readonly composerForm = computed(() => {
     const formType = this._modal()?.formType;
@@ -542,6 +580,16 @@ export class CommunityHomeStore {
     this.showToast(wasJoined ? `Left ${name}` : `You’re going to ${name}`);
   }
 
+  rsvpEvent(event: EventListing): void {
+    const wasJoined = this._joinedIds().has(event.id);
+    this._joinedIds.set(this.toggledSet(this._joinedIds(), event.id));
+    this.showToast(
+      wasJoined
+        ? `Spot released · ${event.title}`
+        : `You’re going · added to your ${event.isOnline ? 'calendar' : 'trip itinerary'}`,
+    );
+  }
+
   toggleComments(postId: string): void {
     this._openCommentPostIds.set(this.toggledSet(this._openCommentPostIds(), postId));
   }
@@ -608,7 +656,10 @@ export class CommunityHomeStore {
   }
 
   openAddToTrip(payload: AddToTripPayload): void {
+    this._tripPick.set('t1');
+    this._addKind.set(ADD_TO_TRIP_KINDS[0].label);
     this._addDay.set(1);
+    this._addSlot.set('Anytime');
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
   }
 
@@ -631,6 +682,10 @@ export class CommunityHomeStore {
   pickTrip(tripId: string): void {
     this._tripPick.set(tripId);
     this._addDay.set(1);
+  }
+
+  pickAddKind(kind: string): void {
+    this._addKind.set(kind);
   }
 
   pickAddDay(day: number): void {
@@ -662,6 +717,10 @@ export class CommunityHomeStore {
     this.showToast('Building your version…');
   }
 
+  pickAddSlot(slot: AddTimeSlot): void {
+    this._addSlot.set(slot);
+  }
+
   confirmAddToTrip(): void {
     const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
     const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
@@ -671,6 +730,10 @@ export class CommunityHomeStore {
 
   openStoryViewer(story: StoryViewerPayload): void {
     this._modal.set({ kind: 'story', story });
+  }
+
+  openEventDetail(event: EventListing): void {
+    this._modal.set({ kind: 'eventDetail', eventDetail: event });
   }
 
   openPostOptions(postId: string, author: string): void {

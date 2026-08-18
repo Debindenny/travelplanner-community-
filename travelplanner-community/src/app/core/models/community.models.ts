@@ -4,7 +4,17 @@ export type ViewMode = 'Feed' | 'Map';
 export type StoryStatus = 'There now' | 'Going soon' | 'Recently visited';
 export type PostKind = 'INSIGHT' | 'POLL' | 'VIDEO' | 'PHOTO' | 'ITINERARY' | 'MEETUP' | 'QUESTION' | 'TRAVEL BUDDY';
 export type PostCta = 'addToTrip' | 'remix' | 'join' | 'answer' | 'save';
-export type ModalKind = 'composerMenu' | 'composerForm' | 'addToTrip' | 'remix' | 'story' | 'postOptions';
+export type ModalKind =
+  | 'composerMenu'
+  | 'composerForm'
+  | 'addToTrip'
+  | 'remix'
+  | 'story'
+  | 'postOptions'
+  | 'discoverDetail'
+  | 'savedDetail'
+  | 'destinationDetail'
+  | 'eventDetail';
 export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
@@ -162,6 +172,22 @@ export interface CrewMessage {
 export type EventBadgeKind = 'Meetup' | 'Food' | 'Online';
 export type EventsFilter = 'All' | 'Near me' | 'Online';
 
+export interface EventScheduleItem {
+  time: string;
+  text: string;
+}
+
+export interface EventHost {
+  name: string;
+  role: string;
+  avatarGradient: string;
+}
+
+export interface EventLocation {
+  name: string;
+  note: string;
+}
+
 export interface EventListing {
   id: string;
   month: string;
@@ -172,6 +198,14 @@ export interface EventListing {
   travelersGoing: number;
   isOnline: boolean;
   image: string;
+  host: EventHost;
+  when: string;
+  cost: string;
+  groupMax: string;
+  spacesLeft: number;
+  description: string;
+  schedule: EventScheduleItem[];
+  location: EventLocation;
 }
 
 export interface SavedCollectionItem {
@@ -265,10 +299,44 @@ export interface ComposerFormDef {
   fields: ComposerFormField[];
 }
 
+export interface ItineraryItem {
+  time: string;
+  name: string;
+}
+
+export interface ItineraryDay {
+  date: string;
+  items: ItineraryItem[];
+}
+
 export interface TripPickOption {
   id: string;
   name: string;
   dates: string;
+}
+
+export interface AddKindOption {
+  label: string;
+  icon: string;
+}
+
+export interface AddDayOption {
+  index: number;
+  date: string;
+  count: number;
+}
+
+export type AddTimeSlot = 'Morning' | 'Afternoon' | 'Evening' | 'Anytime';
+
+export interface AddPreviewRow {
+  time: string;
+  name: string;
+  isNew: boolean;
+}
+
+export interface AddPreview {
+  head: string;
+  rows: AddPreviewRow[];
 }
 
 export type PostOptionsAction = 'toggleSave' | 'copyLink' | 'mute' | 'block' | 'report';
@@ -310,6 +378,7 @@ export interface ModalState {
   addToTrip?: AddToTripPayload;
   remix?: RemixPayload;
   postOptions?: PostOptionsContext;
+  eventDetail?: EventListing;
 }
 
 export interface CommunityHomeData {
