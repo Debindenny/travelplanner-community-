@@ -34,6 +34,7 @@ export class PostCardComponent {
   readonly toggleComments = output<void>();
   readonly toggleSave = output<void>();
   readonly share = output<void>();
+  readonly playVideo = output<void>();
   readonly runCta = output<void>();
   readonly votePoll = output<string>();
   readonly likeComment = output<string>();
@@ -62,7 +63,7 @@ export class PostCardComponent {
     if (post.cta === 'save' && this.saved()) {
       return '✓ Saved';
     }
-    return post.ctaLabel;
+    return post.ctaLabel ?? '';
   });
 
   pollPercent(optionId: string, basePercent: number): string {

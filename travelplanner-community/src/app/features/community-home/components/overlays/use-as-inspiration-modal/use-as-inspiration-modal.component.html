@@ -1,0 +1,54 @@
+<div class="remix__body">
+  <div class="remix__banner">
+    <div class="remix__banner-title">We won't copy {{ authorName().split(' ')[0] }}'s trip.</div>
+    <p class="remix__banner-copy">
+      TRAVL AI rebuilds the route around your dates, budget, pace and interests — keeping the parts travelers rated most useful.
+    </p>
+  </div>
+
+  <div class="remix__grid">
+    <label class="remix__field">
+      <span class="remix__field-label">YOUR DATES</span>
+      <input
+        class="remix__input"
+        type="text"
+        [value]="dates()"
+        (change)="datesChange.emit($any($event.target).value)"
+      />
+    </label>
+    <label class="remix__field">
+      <span class="remix__field-label">TRAVELERS</span>
+      <input
+        class="remix__input"
+        type="text"
+        [value]="travelers()"
+        (change)="travelersChange.emit($any($event.target).value)"
+      />
+    </label>
+  </div>
+
+  <div class="remix__section">
+    <span class="remix__field-label">PACE</span>
+    <div class="remix__chips">
+      @for (option of paces(); track option) {
+        <button type="button" class="chip-pill" [class.is-active]="pace() === option" (click)="pickPace.emit(option)">{{ option }}</button>
+      }
+    </div>
+  </div>
+
+  <div class="remix__section">
+    <span class="remix__field-label">INTERESTS</span>
+    <div class="remix__chips">
+      @for (option of interestOptions(); track option) {
+        <button type="button" class="chip-pill" [class.is-active]="interests().has(option)" (click)="toggleInterest.emit(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="remix__footer">
+  <button type="button" class="remix__cancel" (click)="cancel.emit()">Cancel</button>
+  <button type="button" class="remix__confirm" (click)="confirm.emit()">Build my version</button>
+</div>

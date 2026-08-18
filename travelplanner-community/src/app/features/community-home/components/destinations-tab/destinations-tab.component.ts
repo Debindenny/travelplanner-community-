@@ -25,8 +25,8 @@ export class DestinationsTabComponent {
     this.store.selectTab('Home');
   }
 
-  onViewPosts(destination: CommunityDestination): void {
-    this.store.showToast(`Opening ${destination.name} community`);
+  onViewDetails(destination: CommunityDestination): void {
+    this.store.openDestinationDetail(destination);
   }
 
   onToggleJoin(destination: CommunityDestination): void {

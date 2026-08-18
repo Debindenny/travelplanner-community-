@@ -1,32 +1,59 @@
 <section class="surface-card paris-crew-card">
   <div class="paris-crew-card__header">
-    <span class="paris-crew-card__icon-wrap">
-      <app-icon [name]="inCrew() ? 'message-circle' : 'users'" [size]="17" />
+    <span class="paris-crew-card__icon-wrap-outer">
+      <span class="paris-crew-card__icon-wrap">
+        <app-icon [name]="inCrew() ? 'message-circle' : 'users'" [size]="17" />
+      </span>
+      @if (inCrew()) {
+        <span class="paris-crew-card__presence-dot"></span>
+      }
     </span>
     <span class="paris-crew-card__identity">
-      <span class="paris-crew-card__title">{{ inCrew() ? 'Paris Crew · 03–09 Jun' : 'Find your Paris crew' }}</span>
-      <span class="paris-crew-card__subtitle">{{ inCrew() ? '12 travelers · chat closes 09 Jun' : 'Matched on your destination and dates' }}</span>
+      <span class="paris-crew-card__title">{{ inCrew() ? 'Paris Crew · 03–09 Jun' : 'Paris crew' }}</span>
+      <span class="paris-crew-card__subtitle" [class.is-online]="inCrew()">
+        {{ inCrew() ? onlineCount() + ' online now' : hasInvite() ? 'You have an invite waiting' : 'Matched on your destination and dates' }}
+      </span>
     </span>
     @if (inCrew()) {
       <span class="paris-crew-card__countdown">Ends in 6d</span>
+      <button type="button" class="paris-crew-card__chrome-button" title="Minimise chat" (click)="minimizeChat.emit()">
+        <app-icon name="minus" [size]="16" />
+      </button>
+      <button type="button" class="paris-crew-card__chrome-button" title="Close chat" (click)="closeChat.emit()">
+        <app-icon name="x" [size]="16" />
+      </button>
     }
   </div>
 
-  @if (!inCrew()) {
+  @if (!inCrew() && hasInvite()) {
+    <div class="paris-crew-card__invite">
+      <div class="paris-crew-card__inviter-row">
+        <span class="paris-crew-card__inviter-avatar" [style.background-image]="'url(' + inviterAvatar + ')'"></span>
+        <span class="paris-crew-card__inviter-copy">
+          <span class="paris-crew-card__inviter-name">{{ inviterName() }} invited you</span>
+          <span class="paris-crew-card__inviter-note">Paris Crew · 12 travelers · your dates</span>
+        </span>
+      </div>
+      <div class="paris-crew-card__invite-actions">
+        <button type="button" class="paris-crew-card__join" (click)="acceptInvite.emit()">Accept invite</button>
+        <button type="button" class="paris-crew-card__decline" (click)="declineInvite.emit()">Decline</button>
+      </div>
+    </div>
+  } @else if (!inCrew()) {
     <div class="paris-crew-card__invite">
       <div class="paris-crew-card__faces-row">
         <span class="paris-crew-card__faces">
-          @for (gradient of faceGradients; track $index) {
-            <span class="paris-crew-card__face" [style.background]="gradient" [style.margin-left.px]="$index ? -8 : 0"></span>
+          @for (name of faceNames; track name) {
+            <span class="paris-crew-card__face" [style.background-image]="'url(' + faceAvatar(name) + ')'" [style.margin-left.px]="$index ? -8 : 0"></span>
           }
         </span>
         <span class="paris-crew-card__lobby-line">12 travelers in Paris on your dates</span>
       </div>
-      <p class="paris-crew-card__copy">We place you with travelers whose destination and dates overlap yours. The chat closes when the trip ends.</p>
+      <p class="paris-crew-card__copy">We match you with travelers whose destination and dates overlap yours. The chat closes when the trip ends.</p>
       <div class="paris-crew-card__invite-actions">
-        <button type="button" class="paris-crew-card__join" (click)="join.emit()">Join the crew</button>
-        <button type="button" class="paris-crew-card__start" (click)="startCircle.emit()">Start one</button>
+        <button type="button" class="paris-crew-card__join" (click)="join.emit()">Request to join</button>
       </div>
+      <button type="button" class="paris-crew-card__start-own" (click)="startCircle.emit()">start your own community</button>
     </div>
   } @else {
     <div class="paris-crew-card__messages">

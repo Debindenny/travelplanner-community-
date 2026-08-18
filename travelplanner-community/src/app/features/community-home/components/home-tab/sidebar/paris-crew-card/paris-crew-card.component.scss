@@ -16,6 +16,11 @@
   gap: 11px;
 }
 
+.paris-crew-card__icon-wrap-outer {
+  position: relative;
+  flex: none;
+}
+
 .paris-crew-card__icon-wrap {
   width: 36px;
   height: 36px;
@@ -26,6 +31,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.paris-crew-card__presence-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid #fff;
+}
+
+.paris-crew-card__chrome-button {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
 }
 
 .paris-crew-card__identity {
@@ -46,6 +81,10 @@
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-faint);
+
+  &.is-online {
+    color: var(--success);
+  }
 }
 
 .paris-crew-card__countdown {
@@ -86,6 +125,7 @@
   flex: none;
   border: 2px solid #fff;
   background-size: cover;
+  background-position: center;
 }
 
 .paris-crew-card__lobby-line {
@@ -123,7 +163,23 @@
   }
 }
 
-.paris-crew-card__start {
+.paris-crew-card__start-own {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-faint);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-muted);
+  }
+}
+
+.paris-crew-card__decline {
   height: 38px;
   padding: 0 14px;
   border: 1px solid var(--border);
@@ -137,6 +193,40 @@
   &:hover {
     border-color: var(--border-hover);
   }
+}
+
+
+.paris-crew-card__inviter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paris-crew-card__inviter-avatar {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
+.paris-crew-card__inviter-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.paris-crew-card__inviter-name {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.paris-crew-card__inviter-note {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
 }
 
 .paris-crew-card__messages {

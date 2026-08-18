@@ -33,6 +33,8 @@ export type IconName =
   | 'receipt'
   | 'send'
   | 'trash'
+  | 'minus'
+  | 'heart'
   | 'shield'
   | 'utensils'
   | 'bed'
@@ -150,20 +152,26 @@ export type IconName =
         @case ('trash') {
           <path d="M3 6h18" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         }
+        @case ('minus') {
+          <path d="M5 12h14" />
+        }
+        @case ('heart') {
+          <path d="M19.5 12.6 12 20l-7.5-7.4a4.8 4.8 0 0 1 7.5-5.9 4.8 4.8 0 0 1 7.5 5.9Z" />
+        }
         @case ('shield') {
-          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z" />
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
         }
         @case ('utensils') {
-          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+          <path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7" />
         }
         @case ('bed') {
           <path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />
         }
         @case ('bus') {
-          <rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 12h18" /><circle cx="7.5" cy="18" r="1.5" /><circle cx="16.5" cy="18" r="1.5" />
+          <path d="M8 6v6" /><path d="M15 6v6" /><path d="M2 12h19.6" /><path d="M18 18h3a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v9a1 1 0 0 0 1 1h3" /><circle cx="7" cy="18" r="2" /><path d="M9 18h6" /><circle cx="16" cy="18" r="2" />
         }
         @case ('plane') {
-          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.3.5-.1 1.1.4 1.4L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.5.9.7 1.4.4l.5-.3c.4-.2.6-.6.5-1.1Z" />
+          <path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L13 8 4.8 6.2a.9.9 0 0 0-1.1.5l-.3.5a.9.9 0 0 0 .4 1.4L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3a.9.9 0 0 0 1.4.4l.5-.3a.9.9 0 0 0 .5-1.1Z" />
         }
       }
     </svg>

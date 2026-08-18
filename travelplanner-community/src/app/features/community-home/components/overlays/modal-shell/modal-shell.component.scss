@@ -9,9 +9,9 @@
   background: rgba(11, 18, 32, 0.46);
   backdrop-filter: blur(3px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  padding: 24px 20px;
   overflow: auto;
   animation: travl-fade 0.14s ease;
 }
