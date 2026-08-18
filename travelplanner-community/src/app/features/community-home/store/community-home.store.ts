@@ -250,6 +250,9 @@ export class CommunityHomeStore {
   readonly activeRemixPayload = computed(() => this._modal()?.remix ?? null);
   readonly activePostOptionsContext = computed(() => this._modal()?.postOptions ?? null);
   readonly activeEventDetail = computed(() => this._modal()?.eventDetail ?? null);
+  readonly activeDiscoverItem = computed(() => this._modal()?.discoverItem ?? null);
+  readonly activeSavedItem = computed(() => this._modal()?.savedItem ?? null);
+  readonly activeDestinationItem = computed(() => this._modal()?.destinationDetail ?? null);
 
   private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
@@ -677,6 +680,14 @@ export class CommunityHomeStore {
       ],
     };
     this._modal.set({ kind: 'savedDetail', savedItem: payload });
+  }
+
+  openDiscoverItem(item: DiscoverItem): void {
+    this._modal.set({ kind: 'discoverDetail', discoverItem: item });
+  }
+
+  openDestinationDetail(destination: CommunityDestination): void {
+    this._modal.set({ kind: 'destinationDetail', destinationDetail: destination });
   }
 
   pickTrip(tripId: string): void {
