@@ -34,7 +34,8 @@ export type IconName =
   | 'send'
   | 'trash'
   | 'minus'
-  | 'heart';
+  | 'heart'
+  |'shield';
 
 @Component({
   selector: 'app-icon',
