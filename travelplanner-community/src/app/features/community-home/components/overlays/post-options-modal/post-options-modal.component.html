@@ -1,8 +1,0 @@
-<div class="post-options">
-  @for (item of menuItems; track item.label) {
-    <button type="button" class="post-options__item" (click)="selectItem.emit(item)">
-      <span class="post-options__label">{{ item.label }}</span>
-      <span class="post-options__hint">{{ item.hint }}</span>
-    </button>
-  }
-</div>
