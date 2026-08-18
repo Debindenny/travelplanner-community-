@@ -1,0 +1,101 @@
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Promotions & Coupons</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage discount codes for marketing campaigns.</p>
+    </div>
+    <button (click)="showAddModal = true" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Promotion
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-gray-50 dark:bg-gray-800/50 border-b border-border-light dark:border-gray-700 text-gray-500 dark:text-gray-400">
+        <tr>
+          <th class="px-6 py-4 font-medium">Code</th>
+          <th class="px-6 py-4 font-medium">Type</th>
+          <th class="px-6 py-4 font-medium">Value</th>
+          <th class="px-6 py-4 font-medium">Valid Until</th>
+          <th class="px-6 py-4 font-medium">Status</th>
+          <th class="px-6 py-4 font-medium text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border-light dark:divide-gray-700">
+        @if (isLoading) {
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td>
+          </tr>
+        }
+        @if (!isLoading && promotions.length === 0) {
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No promotions found. Create one to get started.</td>
+          </tr>
+        }
+        @for (p of promotions; track p) {
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ p.code }}</td>
+            <td class="px-6 py-4 text-gray-500 dark:text-gray-400 capitalize">{{ p.discount_type }}</td>
+            <td class="px-6 py-4 text-gray-900 dark:text-white font-medium">
+              @if (p.discount_type === 'percentage') {
+                <span>{{ p.discount_value }}%</span>
+              }
+              @if (p.discount_type === 'flat') {
+                <span>${{ p.discount_value }}</span>
+              }
+            </td>
+            <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ p.valid_until | date:'mediumDate' }}</td>
+            <td class="px-6 py-4">
+              <button (click)="toggleStatus(p)" [class]="p.is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'" class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors">
+                {{ p.is_active ? 'Active' : 'Inactive' }}
+              </button>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="deletePromotion(p.id)" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Modal -->
+@if (showAddModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+    <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" (click)="showAddModal = false"></div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative z-10 transform transition-all">
+      <div class="p-6 border-b border-border-light dark:border-gray-700">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Create Promotion</h3>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code</label>
+          <input type="text" [(ngModel)]="newPromo.code" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+            <select [(ngModel)]="newPromo.discount_type" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+              <option value="percentage">Percentage (%)</option>
+              <option value="flat">Flat Amount ($)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Value</label>
+            <input type="number" [(ngModel)]="newPromo.discount_value" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valid Until</label>
+          <input type="datetime-local" [(ngModel)]="newPromo.valid_until" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+        </div>
+      </div>
+      <div class="p-6 border-t border-border-light dark:border-gray-700 flex justify-end gap-3 bg-gray-50/50 dark:bg-gray-800/50">
+        <button (click)="showAddModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+        <button (click)="savePromotion()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">Save</button>
+      </div>
+    </div>
+  </div>
+}

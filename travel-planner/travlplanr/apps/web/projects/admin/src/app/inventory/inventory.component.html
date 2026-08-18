@@ -1,0 +1,210 @@
+<div class="p-8 w-full flex-1 flex flex-col space-y-6 dark:bg-gray-900 min-h-full">
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Inventory</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Browse hotels, trains, buses, cars, flights, activities, and places from partner providers</p>
+    </div>
+    <button
+      (click)="search()"
+      class="bg-primary text-white flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors shadow-sm shadow-blue-500/20"
+      >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    @for (tab of tabs; track tab) {
+      <button
+        (click)="selectTab(tab.id)"
+      [class]="activeTab === tab.id
+        ? 'bg-primary text-white shadow-md shadow-blue-500/20'
+        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-border-light dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+        >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      @if (activeTab === 'hotel' || activeTab === 'car' || activeTab === 'activity' || activeTab === 'place') {
+        <div>
+          <label for="inv-location" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Location</label>
+          <input
+            id="inv-location"
+            type="text"
+            [(ngModel)]="location"
+            class="w-full border border-border-light dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+            placeholder="e.g. Paris"
+            />
+        </div>
+      }
+
+      @if (activeTab === 'flight' || activeTab === 'train' || activeTab === 'bus') {
+        <div>
+          <label for="inv-from" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From</label>
+          <input
+            id="inv-from"
+            type="text"
+            [(ngModel)]="dep"
+            class="w-full border border-border-light dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+            placeholder="e.g. PAR"
+            />
+        </div>
+      }
+
+      @if (activeTab === 'flight' || activeTab === 'train' || activeTab === 'bus') {
+        <div>
+          <label for="inv-to" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To</label>
+          <input
+            id="inv-to"
+            type="text"
+            [(ngModel)]="arr"
+            class="w-full border border-border-light dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+            placeholder="e.g. LON"
+            />
+        </div>
+      }
+
+      @if (activeTab === 'flight') {
+        <div>
+          <label for="inv-date" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Date</label>
+          <input
+            id="inv-date"
+            type="date"
+            [(ngModel)]="date"
+            class="w-full border border-border-light dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+            />
+        </div>
+      }
+
+      <div>
+        <label for="inv-budget" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Budget</label>
+        <select
+          id="inv-budget"
+          [(ngModel)]="budget"
+          class="w-full border border-border-light dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+          >
+          <option value="economy">Economy</option>
+          <option value="standard">Standard</option>
+          <option value="luxury">Luxury</option>
+        </select>
+      </div>
+
+      <div class="flex items-end">
+        <button
+          (click)="search()"
+          class="w-full bg-gray-900 dark:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+          >
+          Search
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (errorMessage) {
+    <div class="rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 text-sm flex items-center gap-2">
+      <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {{ errorMessage }}
+    </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm flex-1 overflow-hidden">
+    <div class="flex items-center justify-between p-6 border-b border-border-light dark:border-gray-700">
+      <h2 class="text-xl font-semibold font-poppins text-gray-900 dark:text-white">{{ activeTabLabel }} List</h2>
+      <span class="text-sm text-gray-500 dark:text-gray-400">{{ items.length }} result(s)</span>
+    </div>
+
+    <!-- Skeleton Loaders -->
+    @if (isLoading) {
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 uppercase text-xs">
+            <tr>
+              <th class="px-6 py-4">Title</th>
+              <th class="px-6 py-4">Provider</th>
+              <th class="px-6 py-4">Price</th>
+              <th class="px-6 py-4">Schedule</th>
+              <th class="px-6 py-4">Details</th>
+              <th class="px-6 py-4">Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of [1,2,3,4,5]; track i) {
+              <tr class="border-b border-border-light dark:border-gray-700">
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-10 animate-pulse"></div></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading && items.length === 0) {
+      <div>
+        <app-empty-state icon="inbox" title="No inventory available" description="Add hotels and flights to build packages."></app-empty-state>
+      </div>
+    }
+
+    <!-- Data Table -->
+    @if (!isLoading && items.length > 0) {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 uppercase text-xs">
+            <tr>
+              <th class="px-6 py-4 font-medium">Title</th>
+              <th class="px-6 py-4 font-medium">Provider</th>
+              <th class="px-6 py-4 font-medium">Price</th>
+              <th class="px-6 py-4 font-medium">Schedule</th>
+              <th class="px-6 py-4 font-medium">Details</th>
+              <th class="px-6 py-4 font-medium text-right">Link</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-light dark:divide-gray-700">
+            @for (item of items; track item) {
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ item.title }}</td>
+                <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                    {{ item.provider }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-primary font-semibold">{{ formatPrice(item) }}</td>
+                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  @if (item.start_time) {
+                    <span>{{ item.start_time }}</span>
+                  }
+                  @if (item.end_time) {
+                    <span> → {{ item.end_time }}</span>
+                  }
+                  @if (item.duration) {
+                    <span> ({{ item.duration }})</span>
+                  }
+                  @if (!item.start_time && !item.duration) {
+                    <span>—</span>
+                  }
+                </td>
+                <td class="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-xs truncate" [title]="detailSummary(item)">{{ detailSummary(item) }}</td>
+                <td class="px-6 py-4 text-right">
+                  <a [href]="item.deep_link" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 text-primary hover:text-primary-hover dark:hover:text-blue-400 font-medium transition-colors">
+                    View
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

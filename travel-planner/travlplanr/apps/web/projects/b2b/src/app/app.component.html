@@ -1,0 +1,220 @@
+<div class="min-h-screen bg-[#F8FAFC] text-[#1E293B] flex font-inter">
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 bg-white border-r border-[#E2E8F0] flex flex-col justify-between shrink-0">
+    <div>
+      <div class="p-6 border-b border-[#F1F5F9] flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg">T</div>
+        <span class="font-semibold text-lg text-[#0F172A] tracking-tight">TravlPlanr <span class="text-primary font-bold text-xs bg-primary-subtle px-1.5 py-0.5 rounded">B2B</span></span>
+      </div>
+      <nav class="p-4 space-y-1">
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-50 text-primary font-medium transition-all">
+          <span class="text-lg">📊</span> Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium transition-all">
+          <span class="text-lg">🗺️</span> Itineraries
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium transition-all">
+          <span class="text-lg">🔑</span> API Credentials
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium transition-all">
+          <span class="text-lg">⚙️</span> Settings
+        </a>
+      </nav>
+    </div>
+    
+    <!-- Sidebar Footer / Profile -->
+    <div class="p-4 border-t border-[#F1F5F9] bg-[#F8FAFC]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-base shadow">
+          {{ agent().name.substring(0, 2).toUpperCase() }}
+        </div>
+        <div class="truncate">
+          <p class="font-semibold text-sm text-[#0F172A] truncate">{{ agent().name }}</p>
+          <p class="text-xs text-[#64748B] truncate">{{ agent().agencyName }}</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto">
+    <!-- Header -->
+    <header class="bg-white border-b border-[#E2E8F0] px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div>
+        <h1 class="text-xl font-bold text-[#0F172A]">B2B Agent Portal</h1>
+        <p class="text-xs text-[#64748B] mt-0.5">Welcome back, Agent <span class="font-medium text-[#334155]">{{ agent().displayCode }}</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              [ngClass]="{
+                'bg-success-50 text-success': agent().status === 'active',
+                'bg-danger-50 text-danger': agent().status === 'suspended',
+                'bg-warning-50 text-warning': agent().status === 'pending'
+              }">
+          <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+          {{ agent().status | titlecase }}
+        </span>
+        <button class="px-4 py-1.5 rounded-lg border border-[#D4D4D4] hover:bg-[#F8FAFC] text-sm font-medium transition-all">Support</button>
+      </div>
+    </header>
+
+    <!-- Content Container -->
+    <div class="p-8 max-w-7xl mx-auto space-y-8">
+      <!-- Grid: Stats & Configuration -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Stats Cards -->
+        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-sm hover:shadow transition-all relative overflow-hidden group">
+            <div class="w-10 h-10 rounded-lg bg-primary-subtle text-primary flex items-center justify-center text-lg mb-4">💼</div>
+            <p class="text-sm text-[#64748B] font-medium">Total Bookings</p>
+            <p class="text-2xl font-bold text-[#0F172A] mt-1">{{ totalBookingsCount() }}</p>
+            <div class="absolute right-0 bottom-0 w-24 h-24 bg-[#E3F0FF] opacity-10 rounded-full translate-x-8 translate-y-8 group-hover:scale-110 transition-all"></div>
+          </div>
+
+          <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-sm hover:shadow transition-all relative overflow-hidden group">
+            <div class="w-10 h-10 rounded-lg bg-success-50 text-success flex items-center justify-center text-lg mb-4">💰</div>
+            <p class="text-sm text-[#64748B] font-medium">Earned Margin</p>
+            <p class="text-2xl font-bold text-[#0F172A] mt-1">₹{{ commissionEarned() | number }}</p>
+            <div class="absolute right-0 bottom-0 w-24 h-24 bg-[#F0FDF4] opacity-10 rounded-full translate-x-8 translate-y-8 group-hover:scale-110 transition-all"></div>
+          </div>
+
+          <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-sm hover:shadow transition-all relative overflow-hidden group">
+            <div class="w-10 h-10 rounded-lg bg-warning-50 text-warning flex items-center justify-center text-lg mb-4">🚀</div>
+            <p class="text-sm text-[#64748B] font-medium">Active Trips</p>
+            <p class="text-2xl font-bold text-[#0F172A] mt-1">{{ activeItineraries() }}</p>
+            <div class="absolute right-0 bottom-0 w-24 h-24 bg-[#FFFBEB] opacity-10 rounded-full translate-x-8 translate-y-8 group-hover:scale-110 transition-all"></div>
+          </div>
+        </div>
+
+        <!-- Markup Pricing Config Card -->
+        <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-sm">
+          <h3 class="font-bold text-[#0F172A] text-base mb-2">B2B Markup Adjuster</h3>
+          <p class="text-xs text-[#64748B] leading-relaxed">Adjust your global commission markup rate. This dynamically scales package prices for your clients.</p>
+          
+          <div class="mt-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-[#64748B]">Markup Percentage</span>
+              <span class="text-lg font-bold text-primary">{{ ((agent().markupConfig - 1.00) * 100) | number:'1.0-0' }}% ({{ agent().markupConfig | number:'1.2-2' }}x)</span>
+            </div>
+            
+            <input type="range" 
+                   min="1.00" 
+                   max="1.30" 
+                   step="0.01" 
+                   [value]="agent().markupConfig" 
+                   (input)="updateMarkup(+$any($event.target).value)" 
+                   class="w-full h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-primary">
+            
+            <div class="flex justify-between text-[10px] text-[#94A3B8] font-semibold">
+              <span>1.00x (No Markup)</span>
+              <span>1.15x (Medium)</span>
+              <span>1.30x (Max 30%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid: Trips list & API Key management -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <!-- Trip List Table -->
+        <div class="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+            <h3 class="font-bold text-base text-[#0F172A]">Recent Client Itineraries</h3>
+            <button (click)="loadAgentTrips()" class="text-xs text-primary font-semibold hover:underline">Refresh</button>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#475569] font-semibold text-xs uppercase tracking-wider">
+                  <th class="px-6 py-3">Destination</th>
+                  <th class="px-6 py-3">Length</th>
+                  <th class="px-6 py-3">Budget</th>
+                  <th class="px-6 py-3">Status</th>
+                  <th class="px-6 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E2E8F0] text-[#334155]">
+                @if (loadingTrips()) {
+                  <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-[#64748B]">
+                      <span class="inline-block animate-pulse text-sm">Fetching itineraries...</span>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (trip of trips(); track trip.id) {
+                    <tr class="hover:bg-[#F8FAFC] transition-all">
+                      <td class="px-6 py-4">
+                        <div class="font-semibold text-[#0F172A]">{{ trip.destination }}</div>
+                        <div class="text-[10px] text-[#94A3B8] mt-0.5">ID: {{ trip.id }}</div>
+                      </td>
+                      <td class="px-6 py-4">{{ trip.days }} days</td>
+                      <td class="px-6 py-4 capitalize">
+                        <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-surface-muted border border-border">
+                          {{ trip.budget }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
+                              [ngClass]="{
+                                'bg-success-50 text-success': trip.status === 'READY',
+                                'bg-warning-50 text-warning animate-pulse': trip.status === 'GENERATING',
+                                'bg-[#F1F5F9] text-[#64748B]': trip.status === 'DRAFT'
+                              }">
+                          {{ trip.status }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-right">
+                        <button class="px-3 py-1 bg-primary text-white rounded text-xs font-semibold hover:bg-primary-hover shadow-sm transition-all">
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- API Key Manager Card -->
+        <div class="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-sm space-y-6">
+          <div>
+            <h3 class="font-bold text-[#0F172A] text-base">API Authentication</h3>
+            <p class="text-xs text-[#64748B] leading-relaxed mt-1">Generate a secure, long-lived API key to authenticate your backend travel platform integration requests.</p>
+          </div>
+
+          <div class="space-y-4">
+            @if (apiKey()) {
+              <div class="space-y-2">
+                <label class="text-xs font-semibold text-[#475569]">Active Access Token</label>
+                <div class="flex items-center gap-2 border border-[#E2E8F0] rounded-lg p-2 bg-[#F8FAFC] shadow-inner">
+                  <input [type]="showApiKey() ? 'text' : 'password'" 
+                         [value]="apiKey()" 
+                         readonly 
+                         class="bg-transparent border-0 text-sm font-mono focus:ring-0 flex-1 min-w-0 text-[#0F172A] outline-none">
+                  
+                  <button (click)="showApiKey.set(!showApiKey())" class="text-xs font-bold px-1.5 py-1 text-[#64748B] hover:text-[#334155]">
+                    {{ showApiKey() ? '👁️' : '🕶️' }}
+                  </button>
+                  
+                  <button (click)="copyApiKey()" class="px-2.5 py-1 bg-[#F1F5F9] text-[#334155] rounded text-xs font-semibold hover:bg-[#E2E8F0] transition-all">
+                    {{ apiKeyCopied() ? 'Copied!' : 'Copy' }}
+                  </button>
+                </div>
+                <p class="text-[10px] text-warning font-semibold">⚠️ Store this token securely. It will not be shown again.</p>
+              </div>
+            }
+
+            <button (click)="generateKey()" 
+                    [disabled]="generatingKey()" 
+                    class="w-full py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2"
+                    [ngClass]="apiKey() ? 'border border-[#D4D4D4] hover:bg-[#F8FAFC] text-[#334155]' : 'bg-primary hover:bg-primary-hover text-white'">
+              {{ generatingKey() ? 'Generating...' : (apiKey() ? 'Rotate API Key' : 'Generate API Key') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

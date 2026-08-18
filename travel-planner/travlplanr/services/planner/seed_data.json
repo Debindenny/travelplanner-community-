@@ -1,0 +1,758 @@
+{
+  "destinations": [
+    {
+      "id": "dest-1",
+      "name": "Malaysia",
+      "description": "",
+      "image_url": "assets/images/landing/figma/malaysia.jpg",
+      "base_price": 60000,
+      "region": "Global",
+      "tags": [
+        "Popular"
+      ],
+      "latitude": 4.2105,
+      "longitude": 101.9758
+    },
+    {
+      "id": "dest-2",
+      "name": "Maldives",
+      "description": "",
+      "image_url": "assets/images/landing/figma/maldives.jpg",
+      "base_price": 43500,
+      "region": "Global",
+      "tags": [
+        "Popular",
+        "Beach"
+      ],
+      "latitude": 3.2028,
+      "longitude": 73.2207
+    },
+    {
+      "id": "dest-3",
+      "name": "Seychelles",
+      "description": "",
+      "image_url": "assets/images/landing/figma/seychelles.jpg",
+      "base_price": 75300,
+      "region": "Global",
+      "tags": [
+        "Popular",
+        "Beach"
+      ],
+      "latitude": -4.6796,
+      "longitude": 55.492
+    },
+    {
+      "id": "dest-4",
+      "name": "Thailand",
+      "description": "",
+      "image_url": "assets/images/landing/figma/thailand.jpg",
+      "base_price": 56000,
+      "region": "Global",
+      "tags": [
+        "Popular"
+      ],
+      "latitude": 15.87,
+      "longitude": 100.9925
+    },
+    {
+      "id": "dest-5",
+      "name": "Switzerland",
+      "description": "",
+      "image_url": "assets/images/landing/figma/switzerland.jpg",
+      "base_price": 165000,
+      "region": "Global",
+      "tags": [
+        "Popular"
+      ],
+      "latitude": 46.8182,
+      "longitude": 8.2275
+    },
+    {
+      "id": "dest-6",
+      "name": "Singapore",
+      "description": "",
+      "image_url": "assets/images/landing/figma/singapore.jpg",
+      "base_price": 68000,
+      "region": "Global",
+      "tags": [
+        "Popular"
+      ],
+      "latitude": 1.3521,
+      "longitude": 103.8198
+    },
+    {
+      "id": "dest-7",
+      "name": "United Arab Emirates",
+      "description": "",
+      "image_url": "assets/images/landing/figma/dubai.jpg",
+      "base_price": 85000,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": 23.4241,
+      "longitude": 53.8478
+    },
+    {
+      "id": "dest-8",
+      "name": "United State America",
+      "description": "",
+      "image_url": "assets/images/landing/figma/west-coast.jpg",
+      "base_price": 320500,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": 37.0902,
+      "longitude": -95.7129
+    },
+    {
+      "id": "dest-9",
+      "name": "Europe",
+      "description": "",
+      "image_url": "assets/images/landing/figma/france-beyond.jpg",
+      "base_price": 252500,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    {
+      "id": "dest-10",
+      "name": "Australia",
+      "description": "",
+      "image_url": "assets/images/landing/figma/australia-rated.jpg",
+      "base_price": 105999,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": -25.2744,
+      "longitude": 133.7751
+    },
+    {
+      "id": "dest-11",
+      "name": "China",
+      "description": "",
+      "image_url": "assets/images/landing/figma/china.jpg",
+      "base_price": 232000,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": 35.8617,
+      "longitude": 104.1954
+    },
+    {
+      "id": "dest-12",
+      "name": "India",
+      "description": "",
+      "image_url": "assets/images/landing/iconic-india.jpg",
+      "base_price": 256000,
+      "region": "Global",
+      "tags": [
+        "Beyond Tourist Trail"
+      ],
+      "latitude": 20.5937,
+      "longitude": 78.9629
+    },
+    {
+      "id": "dest-13",
+      "name": "France",
+      "description": "The French Republic",
+      "image_url": "assets/images/landing/figma/france.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated"
+      ],
+      "latitude": 46.2276,
+      "longitude": 2.2137
+    },
+    {
+      "id": "dest-14",
+      "name": "Bali",
+      "description": "The Island of the Gods",
+      "image_url": "assets/images/landing/figma/bali-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated",
+        "Beach"
+      ],
+      "latitude": -8.4095,
+      "longitude": 115.1889
+    },
+    {
+      "id": "dest-15",
+      "name": "Thailand",
+      "description": "The Kingdom of Thailand",
+      "image_url": "assets/images/landing/figma/thailand-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated",
+        "Beach"
+      ],
+      "latitude": 15.87,
+      "longitude": 100.9925
+    },
+    {
+      "id": "dest-16",
+      "name": "Dubai",
+      "description": "the City of Gold",
+      "image_url": "assets/images/landing/figma/dubai-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated",
+        "City Break"
+      ],
+      "latitude": 25.2048,
+      "longitude": 55.2708
+    },
+    {
+      "id": "dest-17",
+      "name": "Japan",
+      "description": "Land of the Rising Sun",
+      "image_url": "assets/images/landing/figma/japan-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated"
+      ],
+      "latitude": 36.2048,
+      "longitude": 138.2529
+    },
+    {
+      "id": "dest-18",
+      "name": "China",
+      "description": "Factory of the world",
+      "image_url": "assets/images/landing/figma/china-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated"
+      ],
+      "latitude": 35.8617,
+      "longitude": 104.1954
+    },
+    {
+      "id": "dest-19",
+      "name": "Singapore",
+      "description": "The Lion City",
+      "image_url": "assets/images/landing/figma/singapore-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated",
+        "City Break"
+      ],
+      "latitude": 1.3521,
+      "longitude": 103.8198
+    },
+    {
+      "id": "dest-20",
+      "name": "Australia",
+      "description": "The Great Southern Land",
+      "image_url": "assets/images/landing/figma/australia-rated.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Top Rated"
+      ],
+      "latitude": -25.2744,
+      "longitude": 133.7751
+    },
+    {
+      "id": "dest-21",
+      "name": "Kenya",
+      "description": "Wildlife | Adventure",
+      "image_url": "assets/images/landing/figma/kenya.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience"
+      ],
+      "latitude": -0.0236,
+      "longitude": 37.9062
+    },
+    {
+      "id": "dest-22",
+      "name": "Bali",
+      "description": "Wellness|Culture|Beaches|Adventure",
+      "image_url": "assets/images/landing/figma/bali.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience",
+        "Beach"
+      ],
+      "latitude": -8.4095,
+      "longitude": 115.1889
+    },
+    {
+      "id": "dest-23",
+      "name": "Goa",
+      "description": "Beach|Nightlife|Relaxation",
+      "image_url": "assets/images/landing/figma/goa.jpg",
+      "base_price": 19500,
+      "region": "Global",
+      "tags": [
+        "Unique Experience",
+        "Beach"
+      ],
+      "latitude": 15.2993,
+      "longitude": 74.124
+    },
+    {
+      "id": "dest-24",
+      "name": "Fiji",
+      "description": "Luxury | Honeymoon | Adventure",
+      "image_url": "assets/images/landing/figma/fiji.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience",
+        "Beach"
+      ],
+      "latitude": -17.7134,
+      "longitude": 178.065
+    },
+    {
+      "id": "dest-25",
+      "name": "Queensland",
+      "description": "Nature|Reef Diving|Family Travel",
+      "image_url": "assets/images/landing/figma/queensland.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience"
+      ],
+      "latitude": -20.9176,
+      "longitude": 142.7028
+    },
+    {
+      "id": "dest-26",
+      "name": "Morocco",
+      "description": "Culture|Desert Market",
+      "image_url": "assets/images/landing/figma/morocco.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience"
+      ],
+      "latitude": 31.7917,
+      "longitude": -7.0926
+    },
+    {
+      "id": "dest-27",
+      "name": "Perth",
+      "description": "Coastal City Life|Wine|Activities",
+      "image_url": "assets/images/landing/figma/perth.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience"
+      ],
+      "latitude": -31.9505,
+      "longitude": 115.8605
+    },
+    {
+      "id": "dest-28",
+      "name": "Egypt",
+      "description": "History|Desert|Nile",
+      "image_url": "assets/images/landing/figma/egypt.jpg",
+      "base_price": 50000,
+      "region": "Global",
+      "tags": [
+        "Unique Experience"
+      ],
+      "latitude": 26.8206,
+      "longitude": 30.8025
+    },
+    {
+      "id": "dest-29",
+      "name": "Dubai",
+      "description": "The city of Life",
+      "image_url": "assets/images/landing/figma/dubai.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East",
+        "City Break"
+      ],
+      "latitude": 25.2048,
+      "longitude": 55.2708
+    },
+    {
+      "id": "dest-30",
+      "name": "Abu Dhabi",
+      "description": "A step back in time",
+      "image_url": "assets/images/landing/figma/abu-dhabi.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 24.4539,
+      "longitude": 54.3773
+    },
+    {
+      "id": "dest-31",
+      "name": "Bahrain",
+      "description": "Island life Pearls",
+      "image_url": "assets/images/landing/figma/bahrain.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 26.0667,
+      "longitude": 50.5577
+    },
+    {
+      "id": "dest-32",
+      "name": "Qatar",
+      "description": "Land of Luxury",
+      "image_url": "assets/images/landing/figma/qatar.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 25.3548,
+      "longitude": 51.1839
+    },
+    {
+      "id": "dest-33",
+      "name": "Alula",
+      "description": "The old wonders of",
+      "image_url": "assets/images/landing/figma/alula.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 26.6169,
+      "longitude": 37.9287
+    },
+    {
+      "id": "dest-34",
+      "name": "Saudi Arabia",
+      "description": "Kingdom of Contrast",
+      "image_url": "assets/images/landing/figma/saudi.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 23.8859,
+      "longitude": 45.0792
+    },
+    {
+      "id": "dest-35",
+      "name": "Kuwait",
+      "description": "Hollywood of the Gulf",
+      "image_url": "assets/images/landing/figma/kuwait.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 29.3759,
+      "longitude": 47.9774
+    },
+    {
+      "id": "dest-36",
+      "name": "Muscat",
+      "description": "vibrant port city",
+      "image_url": "assets/images/landing/figma/muscat.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 23.5859,
+      "longitude": 58.4059
+    },
+    {
+      "id": "dest-37",
+      "name": "Doha",
+      "description": "The shining jewel",
+      "image_url": "assets/images/landing/figma/doha.jpg",
+      "base_price": 50000,
+      "region": "Middle East",
+      "tags": [
+        "Middle East"
+      ],
+      "latitude": 25.2854,
+      "longitude": 51.531
+    },
+    {
+      "id": "dest-38",
+      "name": "Belgium",
+      "description": "The Capital of Europe",
+      "image_url": "assets/images/landing/figma/belgium.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 50.5039,
+      "longitude": 4.4699
+    },
+    {
+      "id": "dest-39",
+      "name": "Austria",
+      "description": "Modern Charm",
+      "image_url": "assets/images/landing/figma/austria.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 47.5162,
+      "longitude": 14.5501
+    },
+    {
+      "id": "dest-40",
+      "name": "London",
+      "description": "The Heartbeat of the British Isles",
+      "image_url": "assets/images/landing/figma/london.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe",
+        "City Break"
+      ],
+      "latitude": 51.5074,
+      "longitude": -0.1278
+    },
+    {
+      "id": "dest-41",
+      "name": "Norway",
+      "description": "Scandinavia's Green Soul",
+      "image_url": "assets/images/landing/figma/norway.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 60.472,
+      "longitude": 8.4689
+    },
+    {
+      "id": "dest-42",
+      "name": "Greece",
+      "description": "Where History Breathes",
+      "image_url": "assets/images/landing/figma/greece.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 39.0742,
+      "longitude": 21.8243
+    },
+    {
+      "id": "dest-43",
+      "name": "Spain",
+      "description": "Art, Energy, and Seaside Spirit",
+      "image_url": "assets/images/landing/figma/spain.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 40.4637,
+      "longitude": -3.7492
+    },
+    {
+      "id": "dest-44",
+      "name": "Finland",
+      "description": "Nordic Cool, Urban Calm",
+      "image_url": "assets/images/landing/figma/finland.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 61.9241,
+      "longitude": 25.7482
+    },
+    {
+      "id": "dest-45",
+      "name": "Italy",
+      "description": "The Eternal City of Passion",
+      "image_url": "assets/images/landing/figma/italy.jpg",
+      "base_price": 50000,
+      "region": "Europe",
+      "tags": [
+        "Trending Europe"
+      ],
+      "latitude": 41.8719,
+      "longitude": 12.5674
+    },
+    {
+      "id": "dest-46",
+      "name": "Philippines",
+      "description": "The pearl of the orient",
+      "image_url": "assets/images/landing/figma/philippines.jpg",
+      "base_price": 22500,
+      "region": "Asia",
+      "tags": [
+        "South East Asia"
+      ],
+      "latitude": 12.8797,
+      "longitude": 121.774
+    },
+    {
+      "id": "dest-47",
+      "name": "Sri Lanka",
+      "description": "Fall in Love with",
+      "image_url": "assets/images/landing/figma/sri-lanka.jpg",
+      "base_price": 21000,
+      "region": "Asia",
+      "tags": [
+        "South East Asia"
+      ],
+      "latitude": 7.8731,
+      "longitude": 80.7718
+    },
+    {
+      "id": "dest-48",
+      "name": "Singapore",
+      "description": "The lion city",
+      "image_url": "assets/images/landing/figma/singapore.jpg",
+      "base_price": 50000,
+      "region": "Asia",
+      "tags": [
+        "South East Asia",
+        "City Break"
+      ],
+      "latitude": 1.3521,
+      "longitude": 103.8198
+    },
+    {
+      "id": "dest-49",
+      "name": "Malaysia",
+      "description": "Hidden Gems to Explore",
+      "image_url": "assets/images/landing/figma/malaysia.jpg",
+      "base_price": 50000,
+      "region": "Asia",
+      "tags": [
+        "South East Asia"
+      ],
+      "latitude": 4.2105,
+      "longitude": 101.9758
+    },
+    {
+      "id": "dest-50",
+      "name": "Japan",
+      "description": "Land of Rise sun",
+      "image_url": "assets/images/landing/figma/japan.jpg",
+      "base_price": 50000,
+      "region": "Asia",
+      "tags": [
+        "South East Asia"
+      ],
+      "latitude": 36.2048,
+      "longitude": 138.2529
+    },
+    {
+      "id": "dest-51",
+      "name": "China",
+      "description": "Middle Kingdom",
+      "image_url": "assets/images/landing/figma/china.jpg",
+      "base_price": 50000,
+      "region": "Asia",
+      "tags": [
+        "South East Asia"
+      ],
+      "latitude": 35.8617,
+      "longitude": 104.1954
+    },
+    {
+      "id": "dest-52",
+      "name": "New York",
+      "description": "The City of Skyscrapers",
+      "image_url": "assets/images/landing/iconic-usa.jpg",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States",
+        "City Break"
+      ],
+      "latitude": 40.7128,
+      "longitude": -74.006
+    },
+    {
+      "id": "dest-53",
+      "name": "East coast",
+      "description": "Explore along the atlantic",
+      "image_url": "assets/images/landing/category-friends.jpg",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States"
+      ],
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    {
+      "id": "dest-54",
+      "name": "Orlando",
+      "description": "World theme park capital",
+      "image_url": "assets/images/landing/category-family.jpg",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States"
+      ],
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    {
+      "id": "dest-55",
+      "name": "west coast",
+      "description": "Explore along the Pacific",
+      "image_url": "assets/images/landing/figma/west-coast.jpg",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States"
+      ],
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    {
+      "id": "dest-56",
+      "name": "Los Angeles",
+      "description": "City of dreams",
+      "image_url": "assets/images/landing/v2/de10a4f220002bdc61761b69689914f967c43a4f.png",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States"
+      ],
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    {
+      "id": "dest-57",
+      "name": "Dallas",
+      "description": "The Big D",
+      "image_url": "assets/images/landing/figma/dallas.jpg",
+      "base_price": 50000,
+      "region": "North America",
+      "tags": [
+        "United States"
+      ],
+      "latitude": 0.0,
+      "longitude": 0.0
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ng", "serve", "web", "--port", "4201", "--proxy-config", "proxy.conf.js"],
+      "port": 4201
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ng", "serve", "admin", "--port", "4320", "--proxy-config", "proxy.conf.js"],
+      "port": 4320
+    }
+  ]
+}

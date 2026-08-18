@@ -1,0 +1,209 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    # Resolve Docker service names at request time so gateway survives container restarts
+    # and can start even when optional upstreams are temporarily down.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    # --- Rate-limit zones (edge defense-in-depth; the app also rate-limits) ---
+    # Keyed on client IP. The app reads X-Forwarded-For (set below) for its own limits.
+    limit_req_zone $binary_remote_addr zone=auth_otp:10m   rate=12r/m;
+    limit_req_zone $binary_remote_addr zone=auth_login:10m rate=30r/m;
+    limit_req_zone $binary_remote_addr zone=chat:10m       rate=60r/m;
+    limit_req_status 429;
+
+    # CDN Emulation Cache
+    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=CDN:10m inactive=24h max_size=1g;
+
+    # Common proxy settings inherited by every location (locations no longer
+    # need to repeat these; a location that sets its own would reset them).
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 60s;
+
+    # ---------------------------------------------------------------------------
+    # PRODUCTION TLS: terminate HTTPS at the edge and add HSTS. Mount certs and
+    # switch the customer/admin apps to https origins, then enable this block.
+    #
+    #   server {
+    #       listen 443 ssl http2;
+    #       server_name api.yourdomain.com;
+    #       ssl_certificate     /etc/nginx/tls/fullchain.pem;
+    #       ssl_certificate_key /etc/nginx/tls/privkey.pem;
+    #       ssl_protocols TLSv1.2 TLSv1.3;
+    #       add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    #       # ... same location blocks as below ...
+    #   }
+    #   server { listen 80; server_name api.yourdomain.com; return 301 https://$host$request_uri; }
+    # ---------------------------------------------------------------------------
+
+    server {
+        listen 8080;
+        server_name localhost;
+
+        # Service-to-service endpoints must never be reachable from the public edge.
+        location /api/v1/internal/ {
+            return 404;
+        }
+
+        # --- Identity service ---
+        # Tighter limits on OTP + admin login (more specific prefixes win).
+        location /api/v1/auth/otp/ {
+            limit_req zone=auth_otp burst=5 nodelay;
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location = /api/v1/auth/admin/login {
+            limit_req zone=auth_login burst=10 nodelay;
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/auth/ {
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/me/ {
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/customers {
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/staff {
+            set $upstream identity;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+
+        # --- Planner service ---
+        location /api/v1/chat {
+            limit_req zone=chat burst=10 nodelay;
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/voice_socket {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+
+            # WebSocket support (streaming voice endpoint)
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 3600s;
+        }
+        location /api/v1/voice {
+            limit_req zone=chat burst=10 nodelay;
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/trips {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/collaboration {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/contact {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/itineraries {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/destinations {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+            proxy_cache CDN;
+            proxy_cache_valid 200 1h;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            add_header X-Proxy-Cache $upstream_cache_status;
+        }
+        location /api/v1/packages {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+            proxy_cache CDN;
+            proxy_cache_valid 200 1h;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            add_header X-Proxy-Cache $upstream_cache_status;
+        }
+        location /api/v1/checkout {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/cms {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/promotions {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/destinations {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/support {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/reviews {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/inventory {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /static {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/static {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/community {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+            
+            # WebSocket support
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+        location /api/v1/matching {
+            set $upstream planner;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+
+        # --- Affiliate service ---
+        location /api/v1/bookings {
+            set $upstream affiliate;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+
+        # --- Reporting service ---
+        location /api/v1/admin/dashboard/ {
+            set $upstream reporting;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+        location /api/v1/admin/notifications {
+            set $upstream reporting;
+            proxy_pass http://$upstream:8000$request_uri;
+        }
+
+        # Health check
+        location /health {
+            return 200 '{"status":"ok"}';
+            add_header Content-Type application/json;
+        }
+    }
+}

@@ -1,0 +1,81 @@
+<div class="p-6 max-w-6xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">B2B Agents Approval</h1>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Review and manage pending Travel Agent and Corporate accounts.</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl border border-border-light dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-border-light dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+      <h2 class="font-semibold text-gray-900 dark:text-white">Agent List</h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-gray-600 dark:text-gray-400 border-b border-border-light dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 uppercase tracking-wide">
+          <tr>
+            <th scope="col" class="px-6 py-4 font-medium">Email</th>
+            <th scope="col" class="px-6 py-4 font-medium">Status</th>
+            <th scope="col" class="px-6 py-4 font-medium">Registered On</th>
+            <th scope="col" class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Skeleton rows while loading -->
+          @if (isLoading) {
+            @for (i of [1,2,3]; track i) {
+              <tr class="border-b border-border-light dark:border-gray-700">
+                <td class="px-6 py-4"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto animate-pulse"></div></td>
+              </tr>
+            }
+          }
+
+          <!-- Data rows -->
+          @if (!isLoading) {
+            @if (agents.length === 0) {
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  No agents found.
+                </td>
+              </tr>
+            }
+            @for (agent of agents; track agent) {
+              <tr class="bg-white dark:bg-gray-800 border-b border-border-light dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ agent.email }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300': agent.status === 'active',
+                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300': agent.status === 'inactive',
+                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300': agent.status === 'suspended'
+                  }">
+                    {{ agent.status | titlecase }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ agent.created_at }}</td>
+                <td class="px-6 py-4 text-right">
+                  @if (agent.status === 'inactive' || agent.status === 'suspended') {
+                    <div class="flex items-center justify-end gap-2">
+                      <button (click)="approveAgent(agent.id)" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                        Approve
+                      </button>
+                      @if (agent.status !== 'suspended') {
+                        <button (click)="rejectAgent(agent.id)" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50">
+                          Reject
+                        </button>
+                      }
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

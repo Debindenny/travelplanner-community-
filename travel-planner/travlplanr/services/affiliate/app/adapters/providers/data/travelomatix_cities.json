@@ -1,0 +1,238 @@
+[
+  {
+    "city_id": 53332,
+    "city_name": "ABU DHABI",
+    "country_code": "AE",
+    "aliases": [
+      "ABU DHABI"
+    ]
+  },
+  {
+    "city_id": 53331,
+    "city_name": "Dubai",
+    "country_code": "AE",
+    "aliases": [
+      "Dubai"
+    ]
+  },
+  {
+    "city_id": 14,
+    "city_name": "Sydney",
+    "country_code": "AU",
+    "aliases": [
+      "Sydney"
+    ]
+  },
+  {
+    "city_id": 2163,
+    "city_name": "Berlin",
+    "country_code": "DE",
+    "aliases": [
+      "Berlin"
+    ]
+  },
+  {
+    "city_id": 484,
+    "city_name": "Barcelona",
+    "country_code": "ES",
+    "aliases": [
+      "Barcelona"
+    ]
+  },
+  {
+    "city_id": 82,
+    "city_name": "Paris",
+    "country_code": "FR",
+    "aliases": [
+      "Paris"
+    ]
+  },
+  {
+    "city_id": 251,
+    "city_name": "London",
+    "country_code": "GB",
+    "aliases": [
+      "London"
+    ]
+  },
+  {
+    "city_id": 14060,
+    "city_name": "Ahmedabad",
+    "country_code": "IN",
+    "aliases": [
+      "Ahmedabad"
+    ]
+  },
+  {
+    "city_id": 6743,
+    "city_name": "Bangalore",
+    "country_code": "IN",
+    "aliases": [
+      "Bangalore"
+    ]
+  },
+  {
+    "city_id": 5200,
+    "city_name": "Bombay",
+    "country_code": "IN",
+    "aliases": [
+      "Bombay",
+      "Mumbai"
+    ]
+  },
+  {
+    "city_id": 6744,
+    "city_name": "Calcutta",
+    "country_code": "IN",
+    "aliases": [
+      "Calcutta",
+      "Kolkata"
+    ]
+  },
+  {
+    "city_id": 6715,
+    "city_name": "Cochin",
+    "country_code": "IN",
+    "aliases": [
+      "Cochin",
+      "Kochi"
+    ]
+  },
+  {
+    "city_id": 5100,
+    "city_name": "Delhi",
+    "country_code": "IN",
+    "aliases": [
+      "Delhi"
+    ]
+  },
+  {
+    "city_id": 1254,
+    "city_name": "Goa",
+    "country_code": "IN",
+    "aliases": [
+      "Goa"
+    ]
+  },
+  {
+    "city_id": 13567,
+    "city_name": "Hyderabad",
+    "country_code": "IN",
+    "aliases": [
+      "Hyderabad"
+    ]
+  },
+  {
+    "city_id": 6100,
+    "city_name": "Jaipur",
+    "country_code": "IN",
+    "aliases": [
+      "Jaipur"
+    ]
+  },
+  {
+    "city_id": 66847,
+    "city_name": "Kochi",
+    "country_code": "IN",
+    "aliases": [
+      "Kochi"
+    ]
+  },
+  {
+    "city_id": 9174,
+    "city_name": "Madras",
+    "country_code": "IN",
+    "aliases": [
+      "Chennai",
+      "Madras"
+    ]
+  },
+  {
+    "city_id": 16914,
+    "city_name": "Pune",
+    "country_code": "IN",
+    "aliases": [
+      "Pune"
+    ]
+  },
+  {
+    "city_id": 970,
+    "city_name": "Rome",
+    "country_code": "IT",
+    "aliases": [
+      "Rome"
+    ]
+  },
+  {
+    "city_id": 1388,
+    "city_name": "Tokyo",
+    "country_code": "JP",
+    "aliases": [
+      "Tokyo"
+    ]
+  },
+  {
+    "city_id": 1253,
+    "city_name": "Colombo",
+    "country_code": "LK",
+    "aliases": [
+      "Colombo"
+    ]
+  },
+  {
+    "city_id": 70898,
+    "city_name": "Male",
+    "country_code": "MV",
+    "aliases": [
+      "Male"
+    ]
+  },
+  {
+    "city_id": 378,
+    "city_name": "Kuala Lumpur",
+    "country_code": "MY",
+    "aliases": [
+      "Kuala Lumpur"
+    ]
+  },
+  {
+    "city_id": 2180,
+    "city_name": "Amsterdam",
+    "country_code": "NL",
+    "aliases": [
+      "Amsterdam"
+    ]
+  },
+  {
+    "city_id": 53346,
+    "city_name": "Singapore",
+    "country_code": "SG",
+    "aliases": [
+      "Singapore"
+    ]
+  },
+  {
+    "city_id": 715,
+    "city_name": "Bangkok",
+    "country_code": "TH",
+    "aliases": [
+      "Bangkok"
+    ]
+  },
+  {
+    "city_id": 766,
+    "city_name": "Istanbul",
+    "country_code": "TR",
+    "aliases": [
+      "Istanbul"
+    ]
+  },
+  {
+    "city_id": 798,
+    "city_name": "New York",
+    "country_code": "US",
+    "aliases": [
+      "New York"
+    ]
+  }
+]

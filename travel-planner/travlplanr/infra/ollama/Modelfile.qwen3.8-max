@@ -1,0 +1,12 @@
+# Shared Qwen 3.8. 64k on the L40 — 256k pegged the GPU at 96°C (thermal slowdown).
+# Use as the shared weights name across OneOps / DeepSynq / AGROS / Travlplanr.
+FROM qwen3.8
+PARAMETER num_ctx 131072
+PARAMETER temperature 0.7
+PARAMETER num_batch 256
+PARAMETER top_p 0.9
+PARAMETER min_p 0.05
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.12
+PARAMETER repeat_last_n 256
+PARAMETER presence_penalty 0.0

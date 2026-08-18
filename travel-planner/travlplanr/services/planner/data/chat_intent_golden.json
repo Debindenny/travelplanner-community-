@@ -1,0 +1,54 @@
+[
+  {
+    "message": "add activities to day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true, "min_count": 2}
+  },
+  {
+    "message": "add some activities to day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add a few activities to day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add a couple of activities to day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true, "count": 2}
+  },
+  {
+    "message": "add activities in day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add activities day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add activities to the day 3rd",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add several things to do on day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add stuff to day 3",
+    "expected": {"edit": "add_activity", "day": 3, "autoSuggest": true}
+  },
+  {
+    "message": "add snorkeling to day 3",
+    "expected": {"edit": "add_activity", "title": "Snorkeling", "day": 3}
+  },
+  {
+    "message": "add a cooking class on day 2",
+    "expected": {"edit": "add_activity", "title": "Cooking Class", "day": 2}
+  },
+  {
+    "message": "add a train on day 2",
+    "expected": {"edit": "add_transport", "transportType": "train", "day": 2}
+  },
+  {
+    "message": "remove food tasting from day 3",
+    "expected": {"edit": "remove_item", "titleMatch": "food tasting", "day": 3}
+  }
+]

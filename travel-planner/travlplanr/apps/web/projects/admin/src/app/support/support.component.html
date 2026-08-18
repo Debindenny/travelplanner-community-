@@ -1,0 +1,112 @@
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Support Helpdesk</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage customer inquiries and support tickets.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="px-4 py-2 bg-white dark:bg-gray-800 border border-border-light dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Statuses</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-gray-50 dark:bg-gray-800/50 border-b border-border-light dark:border-gray-700 text-gray-500 dark:text-gray-400">
+        <tr>
+          <th class="px-6 py-4 font-medium">Customer</th>
+          <th class="px-6 py-4 font-medium">Subject</th>
+          <th class="px-6 py-4 font-medium">Status</th>
+          <th class="px-6 py-4 font-medium">Created At</th>
+          <th class="px-6 py-4 font-medium text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border-light dark:divide-gray-700">
+        @if (isLoading) {
+          <tr>
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">Loading tickets...</td>
+          </tr>
+        }
+        @if (!isLoading && tickets.length === 0) {
+          <tr>
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No support tickets found.</td>
+          </tr>
+        }
+        @for (t of tickets; track t) {
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="font-medium text-gray-900 dark:text-white">{{ t.customer_name }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ t.customer_email }}</div>
+            </td>
+            <td class="px-6 py-4 text-gray-900 dark:text-white max-w-xs truncate">{{ t.subject }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400': t.status === 'Open',
+                'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400': t.status === 'In Progress',
+                'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400': t.status === 'Resolved',
+                'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-400': t.status === 'Closed'
+              }">
+                {{ t.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ t.created_at | date:'short' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="viewTicket(t)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium">View & Reply</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- View Modal -->
+@if (showModal && selectedTicket) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+    <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" (click)="showModal = false"></div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden relative z-10 transform transition-all flex flex-col">
+      <div class="p-6 border-b border-border-light dark:border-gray-700 flex justify-between items-start">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">{{ selectedTicket.subject }}</h3>
+          <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>From: {{ selectedTicket.customer_name }} ({{ selectedTicket.customer_email }})</span>
+            <span>&bull;</span>
+            <span>{{ selectedTicket.created_at | date:'medium' }}</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+          {{ selectedTicket.status }}
+        </span>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[60vh]">
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-5 border border-border-light dark:border-gray-700 text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+          {{ selectedTicket.message }}
+        </div>
+      </div>
+      <div class="p-6 border-t border-border-light dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex gap-2 w-full sm:w-auto">
+          @if (selectedTicket.status !== 'In Progress') {
+            <button (click)="updateStatus('In Progress')" class="flex-1 sm:flex-none px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-500/20 dark:hover:bg-blue-500/30 dark:text-blue-400 text-sm font-medium rounded-lg transition-colors">
+              Mark In Progress
+            </button>
+          }
+          @if (selectedTicket.status !== 'Resolved') {
+            <button (click)="updateStatus('Resolved')" class="flex-1 sm:flex-none px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-500/20 dark:hover:bg-green-500/30 dark:text-green-400 text-sm font-medium rounded-lg transition-colors">
+              Mark Resolved
+            </button>
+          }
+        </div>
+        <button (click)="showModal = false" class="w-full sm:w-auto px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-sm font-medium rounded-lg transition-colors">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

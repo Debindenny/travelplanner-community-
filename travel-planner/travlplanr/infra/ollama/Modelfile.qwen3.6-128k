@@ -1,0 +1,4 @@
+# qwen3.6 with 128k context — safer than 256k on L40 (less KV cache / VRAM).
+FROM qwen3.6
+PARAMETER num_ctx 131072
+PARAMETER temperature 0.7
