@@ -1,7 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import {
-  ADD_TO_TRIP_KINDS,
   COMPOSER_FORMS,
   PARIS_CREW_MESSAGES,
   DISCOVER_CATEGORIES,
@@ -17,8 +16,6 @@ import {
 } from '../../../core/data/community-mock-data';
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 import {
-  AddPreview,
-  AddTimeSlot,
   AddToTripPayload,
   CommunityDestination,
   CommunityPost,
@@ -97,9 +94,7 @@ export class CommunityHomeStore {
   private readonly _formMediaAttached = signal(false);
   private readonly _audience = signal('Everyone in the community');
   private readonly _tripPick = signal('t1');
-  private readonly _addKind = signal(ADD_TO_TRIP_KINDS[0].label);
   private readonly _addDay = signal(1);
-  private readonly _addSlot = signal<AddTimeSlot>('Anytime');
   private readonly _remixDates = signal('Oct 12 – Oct 19');
   private readonly _remixTravelers = signal('2 adults');
   private readonly _remixPace = signal(REMIX_PACES[1]);
@@ -187,9 +182,7 @@ export class CommunityHomeStore {
   readonly formMediaAttached = this._formMediaAttached.asReadonly();
   readonly audience = this._audience.asReadonly();
   readonly tripPick = this._tripPick.asReadonly();
-  readonly addKind = this._addKind.asReadonly();
   readonly addDay = this._addDay.asReadonly();
-  readonly addSlot = this._addSlot.asReadonly();
   readonly remixDates = this._remixDates.asReadonly();
   readonly remixTravelers = this._remixTravelers.asReadonly();
   readonly remixPace = this._remixPace.asReadonly();
@@ -256,26 +249,20 @@ export class CommunityHomeStore {
 
   private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
-  readonly addDayOptions = computed(() =>
+  readonly addDays = computed(() =>
     this.activeItinerary().map((day, index) => ({
-      index: index + 1,
+      label: `DAY ${index + 1}`,
       date: day.date,
-      count: day.items.length,
+      count: `${day.items.length} ${day.items.length === 1 ? 'item' : 'items'}`,
+      active: this._addDay() === index + 1,
+      day: index + 1,
     })),
   );
 
-  readonly addTargetSummary = computed(() => `${this._addKind()} · Day ${this._addDay()} · ${this._addSlot()}`);
-
-  readonly addPreview = computed<AddPreview>(() => {
-    const day = this.activeItinerary()[this._addDay() - 1] ?? { date: '', items: [] };
-    const slot = this._addSlot();
-    const slotTime: Record<AddTimeSlot, string> = { Morning: '09:00', Afternoon: '14:00', Evening: '19:30', Anytime: '—' };
-    const time = slotTime[slot];
-    const spot = this.activeAddToTripPayload()?.spot ?? 'This place';
-    const rows = [...day.items.map((item) => ({ ...item, isNew: false })), { time, name: spot, isNew: true }];
-    const rank = (t: string) => (t === '—' ? 4 : parseInt(t, 10));
-    rows.sort((a, b) => rank(a.time) - rank(b.time));
-    return { head: `DAY ${this._addDay()} · ${day.date} · AFTER ADDING`, rows };
+  readonly addConfirmationLine = computed(() => {
+    const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
+    const date = this.activeItinerary()[this._addDay() - 1]?.date ?? '';
+    return `Adds to ${trip?.name ?? 'your trip'} · Day ${this._addDay()}, ${date}`;
   });
 
   readonly composerForm = computed(() => {
@@ -293,7 +280,6 @@ export class CommunityHomeStore {
   });
 
   readonly tripPickOptions = TRIP_PICK_OPTIONS;
-  readonly addToTripKinds = ADD_TO_TRIP_KINDS;
   readonly remixPaces = REMIX_PACES;
   readonly remixInterestOptions = REMIX_INTERESTS;
   readonly currentUser = CURRENT_USER;
@@ -660,9 +646,7 @@ export class CommunityHomeStore {
 
   openAddToTrip(payload: AddToTripPayload): void {
     this._tripPick.set('t1');
-    this._addKind.set(ADD_TO_TRIP_KINDS[0].label);
     this._addDay.set(1);
-    this._addSlot.set('Anytime');
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
   }
 
@@ -695,10 +679,6 @@ export class CommunityHomeStore {
     this._addDay.set(1);
   }
 
-  pickAddKind(kind: string): void {
-    this._addKind.set(kind);
-  }
-
   pickAddDay(day: number): void {
     this._addDay.set(day);
   }
@@ -726,10 +706,6 @@ export class CommunityHomeStore {
   confirmRemix(): void {
     this._modal.set(null);
     this.showToast('Building your version…');
-  }
-
-  pickAddSlot(slot: AddTimeSlot): void {
-    this._addSlot.set(slot);
   }
 
   confirmAddToTrip(): void {
