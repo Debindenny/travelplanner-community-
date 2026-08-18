@@ -6,3 +6,4 @@ __pycache__/
 .venv/
 venv/
 *.log
+travel-planner/travlplanr/services/planner/.test-venv/
