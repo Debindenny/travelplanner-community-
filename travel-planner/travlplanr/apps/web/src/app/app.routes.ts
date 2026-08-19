@@ -159,6 +159,16 @@ export const routes: Routes = [
           import('./community/components/matching.component').then((m) => m.MatchingComponent),
       },
       {
+        path: 'community/travel-circles',
+        loadComponent: () =>
+          import('./community/components/community-travel-circles-page.component').then((m) => m.CommunityTravelCirclesPageComponent),
+      },
+      {
+        path: 'community/trips',
+        loadComponent: () =>
+          import('./community/components/community-trips-page.component').then((m) => m.CommunityTripsPageComponent),
+      },
+      {
         path: 'community/users/:id',
         loadComponent: () =>
           import('./community/components/community-profile.component').then((m) => m.CommunityProfileComponent),

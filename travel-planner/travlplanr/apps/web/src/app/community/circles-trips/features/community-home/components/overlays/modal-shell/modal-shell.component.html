@@ -1,0 +1,29 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <div
+    class="modal-shell"
+    [class.modal-shell--violet]="variant() === 'violet'"
+    [style.width]="width()"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+  >
+    @if (showHeader()) {
+      <div class="modal-shell__header">
+        <div class="modal-shell__header-copy">
+          <div class="modal-shell__title">
+            @if (titleIcon()) {
+              <app-icon [name]="titleIcon()!" [size]="16" />
+            }
+            {{ title() }}
+          </div>
+          @if (subtitle()) {
+            <div class="modal-shell__subtitle">{{ subtitle() }}</div>
+          }
+        </div>
+        <button type="button" class="modal-shell__close" (click)="close.emit()" aria-label="Close">×</button>
+      </div>
+    }
+
+    <ng-content></ng-content>
+  </div>
+</div>

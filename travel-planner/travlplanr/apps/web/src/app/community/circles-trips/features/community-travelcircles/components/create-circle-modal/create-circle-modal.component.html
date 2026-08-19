@@ -1,0 +1,72 @@
+<div class="ccm__body">
+  <label class="ccm__field">
+    <span class="ccm__label">Circle name</span>
+    <input
+      class="ccm__input"
+      type="text"
+      [value]="name()"
+      (input)="onNameInput($any($event.target).value)"
+      placeholder="e.g. Japan Spring 2027"
+    />
+  </label>
+
+  <label class="ccm__field">
+    <span class="ccm__label">What is it for?</span>
+    <textarea
+      class="ccm__textarea"
+      rows="3"
+      [value]="description()"
+      (input)="onDescriptionInput($any($event.target).value)"
+      placeholder="Cherry-blossom trip planning — splitting JR passes and comparing stays."
+    ></textarea>
+  </label>
+
+  <div class="ccm__field">
+    <span class="ccm__label">Who can join</span>
+    <div class="ccm__pills">
+      @for (option of visibilityOptions; track option) {
+        <button type="button" class="ccm__pill" [class.is-active]="visibility() === option" (click)="visibility.set(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+    <p class="ccm__hint">{{ visibilityHint() }}</p>
+  </div>
+
+  <div class="ccm__field">
+    <span class="ccm__label">Who is it for</span>
+    <div class="ccm__audience-list">
+      @for (option of audienceOptions; track option.value) {
+        <button
+          type="button"
+          class="ccm__audience-card"
+          [class.is-active]="audience() === option.value"
+          (click)="audience.set(option.value)"
+        >
+          <span class="ccm__audience-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
+            <app-icon [name]="option.icon" [size]="16" />
+          </span>
+          <span class="ccm__audience-copy">
+            <span class="ccm__audience-title">{{ option.label }}</span>
+            <span class="ccm__audience-desc">{{ option.description }}</span>
+          </span>
+          @if (audience() === option.value) {
+            <app-icon name="check" [size]="16" class="ccm__audience-check" />
+          }
+        </button>
+      }
+    </div>
+    <p class="ccm__hint">Gendered circles exist for safety, not exclusion. Members must have a verified profile to join one.</p>
+  </div>
+</div>
+
+<div class="ccm__footer">
+  @if (ready()) {
+    <span class="ccm__footer-hint">Ready to create</span>
+  } @else {
+    <span class="ccm__footer-hint">Name your circle to continue</span>
+  }
+  <span class="ccm__spacer"></span>
+  <button type="button" class="ccm__cancel" (click)="cancel.emit()">Cancel</button>
+  <button type="button" class="ccm__submit" [class.is-ready]="ready()" [disabled]="!ready()" (click)="onCreate()">Create circle</button>
+</div>

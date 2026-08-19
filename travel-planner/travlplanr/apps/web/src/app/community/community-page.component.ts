@@ -133,10 +133,10 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
                 <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
               </div>
               
-              <div routerLink="/community/matching" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
+              <div routerLink="/community/travel-circles" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
                 <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
                   <svg class="w-4 h-4 text-text-tertiary group-hover:text-primary transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                  {{ 'COMMUNITY.TRAVEL_BUDDIES' | translate }}
+                  Travel Circles
                 </div>
                 <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
               </div>
@@ -157,10 +157,10 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
                 <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
               </div>
 
-              <div routerLink="/community/journals" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
+              <div routerLink="/community/trips" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
                 <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">📔</span>
-                  <span>Travel Journals</span>
+                  <span class="w-4 text-center">🧳</span>
+                  <span>Trips</span>
                 </div>
                 <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
               </div>
