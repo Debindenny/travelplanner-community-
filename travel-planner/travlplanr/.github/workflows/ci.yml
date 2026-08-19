@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Cancel superseded runs on the same ref
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint · typecheck · test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install tooling + service deps
+        run: |
+          python -m pip install --upgrade pip
+          # Tooling
+          pip install ruff mypy pytest pytest-asyncio
+          pip install types-redis
+          # Union of all service runtime deps so app-importing unit tests collect.
+          # (Tests that need a live DB/Redis skip themselves when their env is unset.)
+          pip install \
+            fastapi "uvicorn[standard]" "sqlalchemy[asyncio]" asyncpg alembic \
+            "pydantic>=2.7" "pydantic-settings>=2.3" "python-jose[cryptography]" \
+            redis fakeredis httpx python-multipart email-validator \
+            anthropic stripe sendgrid boto3 Pillow
+
+      - name: Ruff (lint)
+        run: ruff check services
+
+      - name: Mypy (typecheck)
+        run: mypy services
+
+      - name: Pytest
+        run: pytest services -q
+
+      - name: Chat intent golden eval
+        run: python services/planner/scripts/eval_chat_intent.py
+
+  backend-integration:
+    name: Backend (collaboration integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # Must match docker-compose.yml's pgvector/pgvector:pg16 — Trip.embedding
+        # is a VECTOR column, and app.models' eager imports mean any test that
+        # imports even one model pulls in the full metadata including Trip.
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: planner_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install integration deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio fakeredis asyncpg \
+            fastapi "sqlalchemy[asyncio]" "python-jose[cryptography]" \
+            httpx redis pydantic pydantic-settings email-validator
+
+      # The integration tests create/drop their own schema via Base.metadata,
+      # and use a fake in-process Redis — so only Postgres is needed here.
+      - name: Run collaboration integration tests
+        env:
+          PLANNER_TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/planner_test
+        run: pytest services/planner/tests/test_collaboration_integration.py -q
+
+      - name: Run admin blogs integration tests
+        env:
+          PLANNER_TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/planner_test
+        run: pytest services/planner/tests/test_admin_blogs_integration.py -q
+
+  openapi-drift:
+    name: OpenAPI codegen (drift check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install service deps (needed to import each service's app.main)
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            fastapi "uvicorn[standard]" "sqlalchemy[asyncio]" asyncpg alembic \
+            "pydantic>=2.7" "pydantic-settings>=2.3" "python-jose[cryptography]" \
+            redis fakeredis httpx python-multipart email-validator \
+            anthropic stripe sendgrid boto3 Pillow pgvector sentence-transformers
+
+      - name: Install web deps
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Regenerate OpenAPI schemas + TS client
+        working-directory: apps/web
+        run: npm run codegen
+
+      - name: Fail if generated output differs from what's committed
+        run: |
+          if ! git diff --quiet -- openapi apps/web/src/app/api/generated; then
+            echo "::error::Generated OpenAPI schemas/TS client are stale. Run 'npm run codegen' in apps/web and commit the result." >&2
+            git diff --stat -- openapi apps/web/src/app/api/generated
+            exit 1
+          fi
+
+  frontend:
+    name: Frontend (build · test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Token guard (no new hardcoded hex)
+        run: npm run lint:hex
+
+      - name: Build customer app
+        run: npx ng build web --configuration production
+
+      - name: Build admin app
+        run: npx ng build admin --configuration production
+
+      - name: Build b2b app
+        run: npx ng build b2b --configuration production
+
+      - name: Unit tests (headless)
+        run: npx ng test web --watch=false --browsers=ChromeHeadless

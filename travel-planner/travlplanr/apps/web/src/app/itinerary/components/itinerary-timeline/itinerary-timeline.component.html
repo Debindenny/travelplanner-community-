@@ -1,0 +1,704 @@
+<section id="overview" cdkDropListGroup class="space-y-8">
+  @for (day of displayedDays; track day.day) {
+    <div [id]="'day-' + day.day">
+      <!-- Day Title Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm-plus font-bold text-white shadow-sm hover:animate-pulse hover:shadow-[0_0_15px_rgba(0,96,234,0.6)] transition-all cursor-pointer z-10 relative">
+          {{ day.day }}
+        </span>
+        <div class="flex-1">
+          <h2 class="text-xl font-bold text-text-primary leading-tight">{{ day.title }}</h2>
+          <p class="text-xs-plus text-text-tertiary mt-0.5">{{ day.dateStr }}</p>
+        </div>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-full border border-border-light px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-primary hover:border-primary transition-colors dark:border-gray-700 dark:text-gray-300"
+          (click)="openComments.emit(day.day)"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          {{ 'ITINERARY.COMMENTS.BUTTON' | translate }}
+        </button>
+      </div>
+
+      <div 
+        cdkDropList 
+        [cdkDropListData]="{ day: day.day, items: day.items }"
+        (cdkDropListDropped)="itemDropped.emit($event)"
+        class="space-y-4 ml-0 md:ml-12 pl-0 md:pl-8 pb-4 relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gradient-to-b before:from-primary/40 before:to-transparent before:backdrop-blur-sm before:rounded-full before:shadow-[0_0_10px_rgba(0,96,234,0.3)]"
+      >
+        
+        @for (item of day.items; track getItemKey(item)) {
+          <div cdkDrag class="cdk-drag-item">
+          
+          <!-- Flight Card -->
+          @if (item.type === 'flight') {
+            <div [id]="'flight-card-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+              
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-surface-muted flex items-center justify-center overflow-hidden border border-border-light shrink-0 p-1">
+                    @if (getFlightLogoUrl(item)) {
+                      <img [src]="getFlightLogoUrl(item)" [alt]="item.carrier" class="w-full h-full object-contain">
+                    } @else {
+                      <div class="flex flex-col items-center justify-center w-full h-full bg-primary/5 rounded-lg">
+                        <span class="text-xs font-bold text-primary">{{ getAirlineIataCode(item.carrier) }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-text-primary text-base">{{ 'ITINERARY.DAY.FLIGHT_TO' | translate: { city: cityNameForAirport(item.arrCode) } }}</h3>
+                    <p class="text-xs-plus text-text-secondary mt-0.5">{{ item.carrier }} • {{ item.flightNo }}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 text-xs font-semibold rounded-full" 
+                  [class.bg-yellow-50]="item.status === 'Pending'" 
+                  [class.text-yellow-600]="item.status === 'Pending'"
+                  [class.bg-green-50]="item.status === 'Confirmed'"
+                  [class.text-green-600]="item.status === 'Confirmed'">
+                  {{ item.status ? localizePhrase(item.status) : item.status }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-3 items-center gap-4 py-4 border-t border-b border-border-light my-4">
+                <div class="text-left">
+                  <div class="text-xl font-bold text-text-primary leading-none">{{ item.depTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1">{{ item.depCode }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.depDate }}</div>
+                </div>
+                <div class="text-center relative">
+                  <span class="text-xs text-text-tertiary block">{{ item.duration }}</span>
+                  <div class="flex items-center justify-center my-1">
+                    <div class="h-[2px] bg-border flex-1"></div>
+                    <div class="w-2.5 h-2.5 rounded-full border-2 border-primary bg-white -mx-1"></div>
+                    <div class="h-[2px] bg-border flex-1"></div>
+                  </div>
+                  <span class="text-2xs-plus text-primary font-medium block">{{ localizePhrase(item.stops) }}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-xl font-bold text-text-primary leading-none">{{ item.arrTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1">{{ item.arrCode }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.arrDate }}</div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
+                <div class="flex gap-4 text-xs-plus text-text-tertiary">
+                  <span>{{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ localizePhrase(item.class) }}</strong></span>
+                  <span>•</span>
+                  <span>{{ 'ITINERARY.DAY.REF_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
+                </div>
+                <div class="flex gap-3">
+                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button
+                      (click)="moveUp.emit({ day: day.day, index: $index })"
+                      [disabled]="$first"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      (click)="moveDown.emit({ day: day.day, index: $index })"
+                      [disabled]="$last"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <button
+                    (click)="flightSwap.emit({ day: day.day, index: $index })"
+                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                  </button>
+                  <button
+                    (click)="book.emit(item)"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.BOOK_NOW' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Rental Car Card -->
+          @if (item.type === 'car') {
+            <div [id]="'car-card-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col md:flex-row justify-between gap-4">
+                <div class="flex gap-4">
+                  <div class="w-14 h-14 rounded-lg bg-surface-muted flex items-center justify-center border border-border-light shrink-0 overflow-hidden p-1">
+                    @if (getCarImageUrl(item)) {
+                      <img [src]="getCarImageUrl(item)" [alt]="item.model" class="w-full h-full object-contain">
+                    } @else {
+                      <svg class="w-7 h-7 text-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-text-primary text-base-plus">{{ item.model }}</h3>
+                    <p class="text-xs-plus text-text-tertiary mt-0.5">{{ item.category }}</p>
+                    <p class="text-sm font-medium text-text-primary mt-2 flex items-center gap-1">
+                      <svg class="w-4 h-4 text-text-disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                      {{ item.location }}
+                    </p>
+                  </div>
+                </div>
+                <div class="text-left md:text-right shrink-0">
+                  @if (item.rentalRole === 'pickup') {
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-primary-50 text-primary rounded-full">{{ 'ITINERARY.DAY.RENTAL_PICKUP' | translate }}</span>
+                  } @else if (item.rentalRole === 'return') {
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700 rounded-full">{{ 'ITINERARY.DAY.RENTAL_RETURN' | translate }}</span>
+                  } @else if (item.rentalRole === 'active') {
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-primary-50 text-primary rounded-full">{{ 'ITINERARY.DAY.ACTIVE_RENTAL' | translate }}</span>
+                  } @else {
+                    <span class="px-2.5 py-1 text-xs font-semibold bg-primary-50 text-primary rounded-full">{{ 'ITINERARY.DAY.ACTIVE_RENTAL' | translate }}</span>
+                  }
+                  <p class="text-xs text-text-tertiary mt-2">{{ item.dates }}</p>
+                  @if (item.price && item.rentalRole !== 'active' && item.rentalRole !== 'return') {
+                    <p class="text-sm font-semibold text-text-primary mt-1">{{ (item.price) | appCurrency }}</p>
+                    @if (item.rentalDays && item.rentalDays > 1) {
+                      <p class="text-2xs text-text-tertiary mt-0.5">{{ 'ITINERARY.DAY.RENTAL_TOTAL_DAYS' | translate: { days: item.rentalDays } }}</p>
+                    }
+                  } @else if (item.rentalRole === 'active' || item.rentalRole === 'return') {
+                    <p class="text-xs text-text-tertiary mt-1">{{ 'ITINERARY.DAY.INCLUDED_IN_RENTAL' | translate }}</p>
+                  }
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 my-5 py-3 border-t border-b border-border-light">
+                @if (item.duration) {
+                  <span class="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-xs-plus text-primary font-semibold border border-primary/20">
+                    ⏱ {{ item.duration }}
+                  </span>
+                }
+                @if (item.distanceKm != null) {
+                  <span class="flex items-center gap-1.5 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                    📍 {{ item.distanceKm | number: '1.0-1' }} {{ 'ITINERARY.TIMELINE.KM_UNIT' | translate }}
+                  </span>
+                }
+                <span class="flex items-center gap-1.5 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                  🧑‍🤝‍🧑 {{ 'ITINERARY.DAY.PAX_COUNT' | translate: { count: item.passengers } }}
+                </span>
+                <span class="flex items-center gap-1.5 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                  ⚙️ {{ item.gearbox }}
+                </span>
+                <span class="flex items-center gap-1.5 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                  💼 {{ 'ITINERARY.DAY.LUGGAGE_COUNT' | translate: { count: item.bags } }}
+                </span>
+                <span class="flex items-center gap-1.5 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                  ⛽ {{ item.fuel }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between gap-4 mt-2">
+                <span class="text-xs-plus text-text-tertiary">
+                  @if (item.fromLocation && item.toLocation) {
+                    {{ item.fromLocation }} → {{ item.toLocation }}
+                  } @else {
+                    {{ 'ITINERARY.DAY.UNLIMITED_MILEAGE' | translate }}
+                  }
+                </span>
+                <div class="flex gap-3">
+                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button
+                      (click)="moveUp.emit({ day: day.day, index: $index })"
+                      [disabled]="$first"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      (click)="moveDown.emit({ day: day.day, index: $index })"
+                      [disabled]="$last"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <button
+                    (click)="carSwap.emit({ day: day.day, index: $index })"
+                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                  </button>
+                  @if (item.deepLink) {
+                    <a
+                      [href]="item.deepLink"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="px-4 py-2 border border-primary/30 text-primary rounded-btn text-xs-plus font-medium hover:bg-primary-50 transition-colors no-underline"
+                    >
+                      {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
+                    </a>
+                  }
+                  <button
+                    (click)="book.emit(item)"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.SELECT_CAR' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Hotel Stay Card -->
+          @if (item.type === 'hotel') {
+            <div [id]="'stays-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col md:flex-row justify-between gap-4">
+                <div class="flex gap-4">
+                  <div class="w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center border border-border-light shrink-0">
+                    @if (item.imageUrl) {
+                      <img [src]="item.imageUrl" [alt]="item.name" class="w-full h-full object-cover" />
+                    } @else {
+                      <div class="w-full h-full bg-surface-muted flex items-center justify-center">
+                        <svg class="w-7 h-7 text-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                      </div>
+                    }
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-bold text-text-primary text-base-plus">{{ item.name }}</h3>
+                      <span class="flex items-center gap-0.5 text-yellow-500 font-bold text-xs-plus bg-yellow-50 px-1.5 py-0.5 rounded">
+                        ★ {{ item.rating }}
+                      </span>
+                    </div>
+                    <p class="text-xs-plus text-text-tertiary mt-0.5">
+                      {{ item.location }}
+                      @if (item.distance) {
+                        • {{ item.distance }}
+                      }
+                    </p>
+                    <p class="text-sm font-medium text-text-primary mt-2 flex items-center gap-1.5">
+                      <svg class="w-4 h-4 text-text-disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                      {{ item.dates }}
+                    </p>
+                  </div>
+                </div>
+                <div class="shrink-0">
+                  <span class="px-2.5 py-1 text-xs font-semibold bg-green-50 text-green-600 rounded-full">{{ 'ITINERARY.DAY.RESERVED_STAY' | translate }}</span>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 my-5 py-3 border-t border-b border-border-light">
+                @for (amenity of item.amenities; track amenity) {
+                  <span class="flex items-center gap-1 px-3 py-1 bg-surface-muted rounded-full text-xs-plus text-text-secondary border border-border-light">
+                    ✔️ {{ amenity }}
+                  </span>
+                }
+              </div>
+
+              <div class="flex items-center justify-between gap-4 mt-2">
+                <span class="text-xs-plus text-text-tertiary">
+                  {{ item.roomType || ('ITINERARY.DAY.STANDARD_DOUBLE_ROOM' | translate) }} • {{ item.cancellation || ('ITINERARY.DAY.NON_REFUNDABLE' | translate) }}
+                  @if (item.bedPreference) {
+                    • {{ item.bedPreference }}
+                  }
+                </span>
+                <div class="flex gap-3">
+                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button
+                      (click)="moveUp.emit({ day: day.day, index: $index })"
+                      [disabled]="$first"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      (click)="moveDown.emit({ day: day.day, index: $index })"
+                      [disabled]="$last"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <button
+                    (click)="hotelSwap.emit({ day: day.day, index: $index })"
+                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                  </button>
+                  @if (item.deepLink) {
+                    <a
+                      [href]="item.deepLink"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="px-4 py-2 border border-primary/30 text-primary rounded-btn text-xs-plus font-medium hover:bg-primary-50 transition-colors no-underline"
+                    >
+                      {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
+                    </a>
+                  }
+                  <button
+                    (click)="book.emit(item)"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.BOOK_STAY' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Activity Card -->
+          @if (item.type === 'activity') {
+            <div [id]="'activities-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row">
+              <div class="w-full md:w-[200px] h-[160px] md:h-auto shrink-0 bg-surface-muted relative">
+                <img [src]="getActivityImageUrl(item)" [alt]="item.title" class="w-full h-full object-cover">
+                <span class="absolute top-3 left-3 px-2 py-0.5 text-2xs-plus font-semibold bg-black/60 text-white rounded">
+                  {{ 'ITINERARY.DAY.ACTIVITY_BADGE' | translate }}
+                </span>
+              </div>
+              <div class="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="text-xs font-medium text-text-tertiary">{{ localizeTime(item.time) }}</span>
+                    <span class="flex items-center gap-0.5 text-yellow-500 font-bold text-xs-plus bg-yellow-50 px-1.5 py-0.5 rounded">
+                      ★ {{ item.rating }}
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-text-primary text-base-plus leading-tight mb-2">
+                    {{ item.title }}
+                  </h3>
+                  <p class="text-xs-plus text-text-secondary flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-text-disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    {{ item.location }}
+                  </p>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-border-light">
+                  <span class="text-xs text-text-tertiary">{{ 'ITINERARY.DAY.TYPE_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
+                  <div class="flex gap-3">
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="activitySwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                    @if (item.deepLink) {
+                      <a
+                        [href]="item.deepLink"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="px-4 py-2 border border-primary/30 text-primary rounded-btn text-xs-plus font-medium hover:bg-primary-50 transition-colors no-underline"
+                      >
+                        {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
+                      </a>
+                    }
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.BOOK_ACTIVITY' | translate }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Train Card -->
+          @if (item.type === 'train') {
+            <div [id]="'transport-train-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-yellow-500"></div>
+              
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center overflow-hidden p-1.5 border border-yellow-100">
+                    @if (getTrainImageUrl(item)) {
+                      <img [src]="getTrainImageUrl(item)" [alt]="item.carrier" class="w-full h-full object-contain">
+                    } @else {
+                      <svg class="w-5 h-5 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line></svg>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-text-primary text-base">{{ 'ITINERARY.TRAIN.CARRIER_EXPRESS' | translate: { carrier: item.carrier } }}</h3>
+                    <p class="text-xs-plus text-text-secondary mt-0.5">{{ item.route }}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 text-xs font-semibold bg-green-50 text-green-600 rounded-full">
+                  {{ 'ITINERARY.DAY.TICKETS_INCLUDED' | translate }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-3 items-center gap-4 py-4 border-t border-b border-border-light my-4">
+                <div class="text-left">
+                  <div class="text-lg font-bold text-text-primary leading-none">{{ item.depTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1 truncate">{{ item.depLocation }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.depDate }}</div>
+                </div>
+                <div class="text-center relative">
+                  <span class="text-xs text-text-tertiary block">{{ item.duration }}</span>
+                  <div class="flex items-center justify-center my-1">
+                    <div class="h-[2px] bg-border flex-1"></div>
+                    <div class="w-2.5 h-2.5 rounded-full border-2 border-yellow-500 bg-white -mx-1 hover:animate-pulse"></div>
+                    <div class="h-[2px] bg-border flex-1"></div>
+                  </div>
+                  <span class="text-2xs-plus text-yellow-600 font-medium block">{{ localizePhrase(item.stops) }}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-bold text-text-primary leading-none">{{ item.arrTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1 truncate">{{ item.arrLocation }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.arrDate }}</div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
+                <div class="text-xs-plus text-text-tertiary">
+                  {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
+                </div>
+                <div class="flex gap-3">
+                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button
+                      (click)="moveUp.emit({ day: day.day, index: $index })"
+                      [disabled]="$first"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      (click)="moveDown.emit({ day: day.day, index: $index })"
+                      [disabled]="$last"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <button
+                    (click)="trainSwap.emit({ day: day.day, index: $index })"
+                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                  </button>
+                  <button
+                    (click)="book.emit(item)"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.SELECT_TRAIN' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Bus Card -->
+          @if (item.type === 'bus') {
+            <div [id]="'transport-bus-' + day.day + '-' + $index" class="bg-white rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-purple-500"></div>
+              
+              <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center overflow-hidden p-1.5 border border-purple-100">
+                    @if (getBusImageUrl(item)) {
+                      <img [src]="getBusImageUrl(item)" [alt]="item.carrier" class="w-full h-full object-contain">
+                    } @else {
+                      <svg class="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                        <path d="M6 18h4M14 18h4"></path>
+                      </svg>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-text-primary text-base">{{ item.carrier }}</h3>
+                    <p class="text-xs-plus text-text-secondary mt-0.5">{{ item.route }}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 text-xs font-semibold bg-green-50 text-green-600 rounded-full">
+                  {{ 'ITINERARY.DAY.TICKETS_INCLUDED' | translate }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-3 items-center gap-4 py-4 border-t border-b border-border-light my-4">
+                <div class="text-left">
+                  <div class="text-lg font-bold text-text-primary leading-none">{{ item.depTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1 truncate">{{ item.depLocation }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.depDate }}</div>
+                </div>
+                <div class="text-center relative">
+                  <span class="text-xs text-text-tertiary block">{{ item.duration }}</span>
+                  <div class="flex items-center justify-center my-1">
+                    <div class="h-[2px] bg-border flex-1"></div>
+                    <div class="w-2.5 h-2.5 rounded-full border-2 border-purple-500 bg-white -mx-1 hover:animate-pulse"></div>
+                    <div class="h-[2px] bg-border flex-1"></div>
+                  </div>
+                  <span class="text-2xs-plus text-purple-600 font-medium block">{{ localizePhrase(item.stops) }}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-bold text-text-primary leading-none">{{ item.arrTime }}</div>
+                  <div class="text-xs-plus font-medium text-text-secondary mt-1 truncate">{{ item.arrLocation }}</div>
+                  <div class="text-xs text-text-tertiary mt-0.5">{{ item.arrDate }}</div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
+                <div class="text-xs-plus text-text-tertiary">
+                  {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
+                </div>
+                <div class="flex gap-3">
+                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button
+                      (click)="moveUp.emit({ day: day.day, index: $index })"
+                      [disabled]="$first"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      (click)="moveDown.emit({ day: day.day, index: $index })"
+                      [disabled]="$last"
+                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <button
+                    (click)="busSwap.emit({ day: day.day, index: $index })"
+                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                  </button>
+                  <button
+                    (click)="book.emit(item)"
+                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {{ 'ITINERARY.DAY.SELECT_BUS' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          </div>
+        }
+
+        <!-- Add Activity / Transportation -->
+        <div class="pt-2">
+          <div class="rounded-xl border-2 border-dashed border-border bg-surface-muted/50 p-4">
+            <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-3">
+              {{ 'ITINERARY.DAY.ADD_TO_DAY' | translate: { number: day.day } }}
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                (click)="activityAdd.emit(day.day)"
+                class="py-2.5 px-3 border-2 border-dashed border-primary bg-white hover:bg-primary/5 text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>{{ (isTransferDay(day.day) ? 'ITINERARY.DAY.STOPOVER_ACTIVITY' : 'ITINERARY.DAY.ACTIVITY_BADGE') | translate }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="hotelAdd.emit(day.day)"
+                class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 21h18"></path>
+                  <path d="M5 21V8l7-3 7 3v13"></path>
+                  <path d="M9 21v-6h6v6"></path>
+                </svg>
+                <span>{{ 'ITINERARY.DAY.MODE_HOTEL' | translate }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="eventAdd.emit(day.day)"
+                class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>{{ 'ITINERARY.DAY.MODE_EVENT' | translate }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="cruiseAdd.emit(day.day)"
+                class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 20h20"></path>
+                  <path d="M4 20l2-6h12l2 6"></path>
+                  <path d="M6 14V9l6-3 6 3v5"></path>
+                  <path d="M12 6V3"></path>
+                </svg>
+                <span>{{ 'ITINERARY.DAY.MODE_CRUISE' | translate }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="holidayAdd.emit(day.day)"
+                class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ 'ITINERARY.DAY.MODE_HOLIDAY' | translate }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="transferAdd.emit(day.day)"
+                class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+              >
+                <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+                  <path d="M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path>
+                </svg>
+                <span>{{ 'ITINERARY.DAY.MODE_TRANSFER' | translate }}</span>
+              </button>
+              @for (mode of transportModeOptions; track mode.id) {
+                <button
+                  type="button"
+                  (click)="transportAdd.emit({ day: day.day, type: mode.id })"
+                  class="py-2.5 px-3 border border-border bg-white hover:bg-primary/5 hover:border-primary/40 text-text-primary rounded-lg flex items-center justify-center gap-2 font-[600] text-sm transition-colors"
+                >
+                  <svg class="w-4 h-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (mode.id === 'flight') {
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                    } @else if (mode.id === 'train') {
+                      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line>
+                    } @else if (mode.id === 'bus') {
+                      <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><path d="M6 18h4M14 18h4"></path>
+                    } @else {
+                      <rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    }
+                  </svg>
+                  <span>{{ mode.labelKey | translate }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</section>

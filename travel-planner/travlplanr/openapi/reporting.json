@@ -1,0 +1,958 @@
+{
+  "components": {
+    "schemas": {
+      "CustomerStats": {
+        "properties": {
+          "booked": {
+            "title": "Booked",
+            "type": "integer"
+          },
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "itineraries": {
+            "title": "Itineraries",
+            "type": "integer"
+          },
+          "ltv": {
+            "title": "Ltv",
+            "type": "number"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          },
+          "segment": {
+            "title": "Segment",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cancelled",
+          "itineraries",
+          "booked",
+          "pending",
+          "created",
+          "ltv",
+          "segment"
+        ],
+        "title": "CustomerStats",
+        "type": "object"
+      },
+      "DonutResponse": {
+        "properties": {
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/DonutSegment"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "segments"
+        ],
+        "title": "DonutResponse",
+        "type": "object"
+      },
+      "DonutSegment": {
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "percentage": {
+            "title": "Percentage",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "count",
+          "percentage",
+          "color"
+        ],
+        "title": "DonutSegment",
+        "type": "object"
+      },
+      "FinancialPoint": {
+        "properties": {
+          "gbv": {
+            "title": "Gbv",
+            "type": "number"
+          },
+          "net_revenue": {
+            "title": "Net Revenue",
+            "type": "number"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "gbv",
+          "net_revenue"
+        ],
+        "title": "FinancialPoint",
+        "type": "object"
+      },
+      "FinancialResponse": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/FinancialPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "y_max": {
+            "title": "Y Max",
+            "type": "number"
+          }
+        },
+        "required": [
+          "series",
+          "y_max"
+        ],
+        "title": "FinancialResponse",
+        "type": "object"
+      },
+      "GrowthPoint": {
+        "properties": {
+          "new_customers": {
+            "title": "New Customers",
+            "type": "integer"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "new_customers"
+        ],
+        "title": "GrowthPoint",
+        "type": "object"
+      },
+      "GrowthResponse": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/GrowthPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "unit": {
+            "default": "count",
+            "title": "Unit",
+            "type": "string"
+          },
+          "y_max": {
+            "title": "Y Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "series",
+          "y_max"
+        ],
+        "title": "GrowthResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "KpiValue": {
+        "properties": {
+          "change_pct": {
+            "title": "Change Pct",
+            "type": "number"
+          },
+          "is_positive": {
+            "title": "Is Positive",
+            "type": "boolean"
+          },
+          "sparkline": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Sparkline",
+            "type": "array"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "change_pct",
+          "is_positive",
+          "sparkline"
+        ],
+        "title": "KpiValue",
+        "type": "object"
+      },
+      "StaffStats": {
+        "properties": {
+          "booked": {
+            "title": "Booked",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "customers": {
+            "title": "Customers",
+            "type": "integer"
+          },
+          "itineraries": {
+            "title": "Itineraries",
+            "type": "integer"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "customers",
+          "itineraries",
+          "booked",
+          "pending",
+          "created"
+        ],
+        "title": "StaffStats",
+        "type": "object"
+      },
+      "SummaryResponse": {
+        "properties": {
+          "new_customers": {
+            "$ref": "#/components/schemas/KpiValue"
+          },
+          "total_customers": {
+            "$ref": "#/components/schemas/KpiValue"
+          },
+          "total_itinerary": {
+            "$ref": "#/components/schemas/KpiValue"
+          },
+          "total_staff": {
+            "$ref": "#/components/schemas/KpiValue"
+          }
+        },
+        "required": [
+          "total_customers",
+          "total_itinerary",
+          "total_staff",
+          "new_customers"
+        ],
+        "title": "SummaryResponse",
+        "type": "object"
+      },
+      "TrendPoint": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "count"
+        ],
+        "title": "TrendPoint",
+        "type": "object"
+      },
+      "TrendResponse": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/TrendPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "y_max": {
+            "title": "Y Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "series",
+          "y_max"
+        ],
+        "title": "TrendResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Dashboard read models, audit events, notifications, status counts.",
+    "title": "Travlplanr Reporting Service",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/admin/dashboard/customer-growth": {
+      "get": {
+        "description": "Customer growth bars \u2014 absolute new-customer count per month (not %).",
+        "operationId": "get_customer_growth_api_v1_admin_dashboard_customer_growth_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "this_year",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularity",
+            "required": false,
+            "schema": {
+              "default": "month",
+              "title": "Granularity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrowthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Customer Growth",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard/customer-segments": {
+      "get": {
+        "description": "Customer segment donut \u2014 grouped by user-set customer_type.",
+        "operationId": "get_customer_segments_api_v1_admin_dashboard_customer_segments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "last_30d",
+              "title": "Period",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonutResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Customer Segments",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard/financials": {
+      "get": {
+        "description": "Financial analytics \u2014 Gross Booking Value vs Net Revenue for the current\nyear, aggregated monthly from the affiliate_consumer's real booking/refund\nrollups (dashboard_metric_daily: gbv_cents, net_revenue_cents). Months with\nno activity yet report zero rather than fabricated figures.",
+        "operationId": "get_financials_trend_api_v1_admin_dashboard_financials_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "this_year",
+              "title": "Period",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Financials Trend",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard/itinerary-trend": {
+      "get": {
+        "description": "Itinerary Created Trend \u2014 single source: trips.created_at (NOT generation_events).",
+        "operationId": "get_itinerary_trend_api_v1_admin_dashboard_itinerary_trend_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "this_year",
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularity",
+            "required": false,
+            "schema": {
+              "default": "month",
+              "title": "Granularity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Itinerary Trend",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard/popular-destinations": {
+      "get": {
+        "description": "Popular destination donut \u2014 percentage returned for legend.",
+        "operationId": "get_popular_destinations_api_v1_admin_dashboard_popular_destinations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "last_30d",
+              "title": "Period",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DonutResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Popular Destinations",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard/summary": {
+      "get": {
+        "description": "Dashboard KPI summary \u2014 the 4 top cards.\nSources from dashboard_metric_daily read models.",
+        "operationId": "get_summary_api_v1_admin_dashboard_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "last_30d",
+              "title": "Period",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Summary",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/notifications": {
+      "get": {
+        "description": "List notifications \u2014 powers the header badge count and dropdown.",
+        "operationId": "list_notifications_api_v1_admin_notifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "unread",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Unread",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "List Notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/admin/notifications/{notification_id}/read": {
+      "post": {
+        "description": "Mark a notification as read.",
+        "operationId": "mark_read_api_v1_admin_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Mark Read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/internal/stats/customer/{customer_id}": {
+      "get": {
+        "description": "Internal endpoint to fetch E18 customer stats.",
+        "operationId": "get_customer_stats_api_v1_internal_stats_customer__customer_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "title": "Customer Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-internal-secret",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Internal-Secret",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Customer Stats",
+        "tags": [
+          "Internal Stats"
+        ]
+      }
+    },
+    "/api/v1/internal/stats/staff/{staff_id}": {
+      "get": {
+        "description": "Internal endpoint to fetch staff stats.",
+        "operationId": "get_staff_stats_api_v1_internal_stats_staff__staff_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-internal-secret",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Internal-Secret",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Staff Stats",
+        "tags": [
+          "Internal Stats"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+# Travlplanr on Qwen3.8 — max context (same base as qwen3.8-max).
+# Sampling tuned for natural chat: trim the low-probability
+# tail without flattening variety; light repeat penalty avoids identical openers.
+FROM qwen3.8
+PARAMETER num_ctx 131072
+PARAMETER temperature 0.7
+PARAMETER num_batch 512
+PARAMETER top_p 0.9
+PARAMETER min_p 0.05
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.12
+PARAMETER repeat_last_n 256
+# Avoid high presence_penalty — it makes replies stiff on instruction-tuned models.
+PARAMETER presence_penalty 0.0
+
+SYSTEM """You are the Travl Planr travel assistant.
+Warm, curious, contractions. Vary openings. One clarifying question at a time when planning slots are missing.
+Never invent packages or claim the page updated unless tool/action results say so.
+Match this voice:
+- "thinking about japan" → Japan's great — more Tokyo energy, or quieter like Kyoto?
+- "add something fun on day 2" → On it — outdoorsy, or low-key?
+- "plan me a trip" → Happy to — where are you headed, and roughly how many days?
+"""

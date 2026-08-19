@@ -1,0 +1,384 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: theme('colors.primary.DEFAULT');
+  --primary-blue-hover: theme('colors.primary.hover');
+  --primary-blue-50: theme('colors.primary.50');
+  --text-primary: theme('colors.text.primary');
+  --text-secondary: theme('colors.text.secondary');
+  --text-tertiary: theme('colors.text.tertiary');
+  --text-disabled: theme('colors.text.disabled');
+  --border-default: theme('colors.border.DEFAULT');
+  --surface-muted: theme('colors.surface.muted');
+  --dark-footer: theme('colors.dark.footer');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Accessibility: skip-link — visually hidden until keyboard-focused */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease-in-out;
+}
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Accessibility: respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root {
+  --font-display: 'Outfit', 'Poppins', sans-serif;
+  --font-body: 'Poppins', 'Inter', sans-serif;
+  --spring-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+body {
+  @apply m-0 font-poppins text-text-primary bg-white antialiased;
+  line-height: 1.5;
+}
+
+/* Dark-mode body override — applied when <html> has class='dark' */
+html.dark body {
+  @apply bg-atmosphere text-text-inverse;
+}
+
+app-root,
+main {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Accessibility: global keyboard focus indicator.
+   :focus-visible only triggers for keyboard/AT users, never on mouse click,
+   so this restores a visible focus ring everywhere `outline-none` removed it. */
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* On dark/photographic surfaces a white-backed ring stays visible. */
+.focus-ring-inverse:focus-visible {
+  outline-color: #fff;
+}
+/* Programmatic-focus targets (e.g. the h1 focused after each navigation so
+   screen readers announce the page) aren't interactive — no ring needed. */
+[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
+/* Branded toast styling for ToastService (wraps MatSnackBar). */
+.app-toast {
+  --mdc-snackbar-container-shape: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+
+  &.toast-success {
+    --mdc-snackbar-container-color: #16a34a;
+    --mdc-snackbar-supporting-text-color: #ffffff;
+    --mat-snack-bar-button-color: #ffffff;
+  }
+  &.toast-error {
+    --mdc-snackbar-container-color: #dc2626;
+    --mdc-snackbar-supporting-text-color: #ffffff;
+    --mat-snack-bar-button-color: #ffffff;
+  }
+  &.toast-info {
+    --mdc-snackbar-container-color: #141414;
+    --mdc-snackbar-supporting-text-color: #ffffff;
+    --mat-snack-bar-button-color: #ffffff;
+  }
+}
+
+/* Screen-reader-only: visually hidden but available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@layer components {
+  .page-container {
+    @apply mx-auto w-full max-w-page;
+  }
+
+  .section-container {
+    @apply mx-auto w-full max-w-content px-5 xl:px-0;
+  }
+
+  .section-heading {
+    @apply text-center text-[48px] font-bold leading-none text-text-primary;
+  }
+
+  .section-subheading {
+    @apply mt-0 text-center text-[18px] font-normal leading-normal text-text-secondary;
+  }
+
+  .section-gap {
+    @apply flex flex-col gap-section;
+  }
+
+  .destination-gradient {
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0) 45%, #1e1e1e 100%);
+  }
+
+  /* Dark hero/CTA background used on How It Works and similar full-bleed sections. */
+  .hero-gradient-dark {
+    background:
+      radial-gradient(circle at 75% 15%, rgba(55, 214, 208, 0.2), transparent 34%),
+      radial-gradient(circle at 12% 85%, rgba(139, 124, 255, 0.2), transparent 36%),
+      linear-gradient(135deg, theme('colors.atmosphere.DEFAULT') 0%, theme('colors.atmosphere.elevated') 54%, theme('colors.primary.DEFAULT') 145%);
+  }
+
+  /* Aero Cartography surfaces. These utilities are intentionally quiet: the
+     route signal is the memorable element, not a blanket glass treatment. */
+  .atmosphere-panel {
+    @apply border border-white/10 bg-atmosphere-glass text-white shadow-orbit backdrop-blur-xl;
+  }
+
+  .route-signal {
+    @apply inline-flex items-center gap-2 rounded-full border border-route-glow/30 bg-route-glow/10 px-3 py-1 font-data text-2xs font-medium tracking-[0.12em] text-route-glow uppercase;
+  }
+
+  .route-progress-track {
+    @apply relative h-1.5 overflow-hidden rounded-full bg-atmosphere-elevated;
+  }
+
+  .route-progress-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-primary via-route-orbit to-route-glow shadow-route;
+    background-size: 200% 100%;
+    animation: routeFlow 2.8s linear infinite;
+  }
+
+  .journey-card {
+    @apply relative overflow-hidden rounded-card border border-border-light bg-white transition-[transform,box-shadow,border-color] duration-300;
+  }
+
+  @media (hover: hover) {
+    .journey-card:hover {
+      @apply -translate-y-1 border-primary/25 shadow-route;
+    }
+  }
+
+  .journey-card::after {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-route-glow/70 to-transparent opacity-0 transition-opacity duration-300;
+  }
+
+  @media (hover: hover) {
+    .journey-card:hover::after { @apply opacity-100; }
+  }
+
+  .data-label {
+    @apply font-data text-2xs font-medium uppercase tracking-[0.14em] text-text-tertiary;
+  }
+
+  .display-heading {
+    @apply font-display tracking-[-0.04em];
+  }
+
+  @keyframes routeFlow {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* Normalize text search inputs — suppress native WebKit clear/decoration controls. */
+  .search-input-reset {
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::-webkit-search-decoration,
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-results-button,
+    &::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      display: none;
+    }
+  }
+
+  .btn-shine {
+    @apply relative overflow-hidden;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      width: 13px;
+      height: 63px;
+      background: #f0f7ff;
+      transform: rotate(-15deg);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    &::before {
+      left: -35px;
+    }
+
+    &::after {
+      left: -20px;
+      width: 7px;
+    }
+  }
+
+  /* Glassmorphism utilities */
+  .glassmorphism {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-sm;
+  }
+  .glassmorphism-dark {
+    @apply bg-black/60 backdrop-blur-md border border-white/10 shadow-lg text-white;
+  }
+
+  /* Micro-animations */
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98];
+  }
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-[0_0_15px_rgba(0,96,234,0.3)];
+  }
+
+  .landing-dock-padded {
+    /* Reserve space for the fixed hero dock only — do not retarget
+       .landing-section paddings here (that reflowed the whole page on pin). */
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .landing-section {
+    /* Navbar (73px) + sticky section-nav pills (~48px) so anchors clear both. */
+    @apply scroll-mt-[7.75rem] py-16 lg:py-20;
+  }
+
+  .btn-primary-pill {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover;
+  }
+
+  .btn-secondary-pill {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-7 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:border-primary/30 hover:text-primary;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .route-progress-fill { animation: none; }
+  }
+
+  /* Prose styles for rich text editor content rendering */
+  .prose {
+    h1, h2, h3, h4, h5, h6 {
+      @apply font-bold text-text-primary mb-4 mt-8;
+    }
+    h1 { @apply text-4xl; }
+    h2 { @apply text-3xl; }
+    h3 { @apply text-2xl; }
+    h4 { @apply text-xl; }
+    p {
+      @apply mb-5 leading-relaxed text-lg;
+    }
+    a {
+      @apply text-primary underline hover:text-primary-hover;
+    }
+    ul {
+      @apply list-disc list-inside mb-5 space-y-2;
+    }
+    ol {
+      @apply list-decimal list-inside mb-5 space-y-2;
+    }
+    blockquote {
+      @apply border-l-4 border-primary bg-primary-50 px-6 py-4 text-lg italic leading-relaxed text-text-primary mb-6;
+    }
+    img {
+      @apply rounded-xl max-w-full h-auto mb-6;
+    }
+  }
+}
+
+/* ---- Global dark-mode surface swaps for page-level containers and panels.
+     These sit OUTSIDE @layer so the `.dark` selector matches the class on <html>.
+     Components that rely on `bg-white` / `bg-gray-50` etc. get automatic dark
+     mode fixes here — !important is needed because component-level rules can
+     have higher specificity than plain descendant selectors in styles.scss. */
+.dark {
+  .bg-surface-muted { background-color: var(--surface-dark-mute, #0B111A) !important; }
+  .bg-white         { background-color: theme('colors.surface-dark.elevated') !important; }
+  .bg-gray-50       { background-color: rgba(248, 250, 252, 0.06) !important; }
+  .bg-gray-100      { background-color: rgba(243, 244, 246, 0.06) !important; }
+  .bg-gray-200      { background-color: rgba(229, 231, 235, 0.08) !important; }
+}

@@ -1,0 +1,124 @@
+[
+  {
+    "id": "gc001",
+    "message": "I want to plan a 7 day trip to Dubai for 2 people",
+    "expected_intent": "create_trip",
+    "expected_slots": {
+      "destination": "Dubai",
+      "duration_days": 7,
+      "travelers": 2
+    }
+  },
+  {
+    "id": "gc002",
+    "message": "add snorkeling on day 3",
+    "expected_intent": "modify_itinerary",
+    "expected_slots": {}
+  },
+  {
+    "id": "gc003",
+    "message": "show me packages for Bali",
+    "expected_intent": "browse_packages",
+    "expected_slots": {
+      "destination": "Bali"
+    }
+  },
+  {
+    "id": "gc004",
+    "message": "what's the weather like in Paris in June?",
+    "expected_intent": "weather_query",
+    "expected_slots": {
+      "destination": "Paris"
+    }
+  },
+  {
+    "id": "gc005",
+    "message": "honeymoon trip to Maldives for a week, luxury",
+    "expected_intent": "create_trip",
+    "expected_slots": {
+      "destination": "Maldives",
+      "duration_days": 7,
+      "travel_style": "couple",
+      "budget": "luxury",
+      "_regex_budget": "premium"
+    }
+  },
+  {
+    "id": "gc006",
+    "message": "filter 5 day packages",
+    "expected_intent": "filter_packages",
+    "expected_slots": {
+      "duration_days": 5
+    }
+  },
+  {
+    "id": "gc007",
+    "message": "plan a solo backpacking trip to Thailand",
+    "expected_intent": "create_trip",
+    "expected_slots": {
+      "destination": "Thailand",
+      "travel_style": "solo"
+    }
+  },
+  {
+    "id": "gc008",
+    "message": "remove the museum visit from day 2",
+    "expected_intent": "modify_itinerary",
+    "expected_slots": {}
+  },
+  {
+    "id": "gc009",
+    "message": "book the Dubai luxury package",
+    "expected_intent": "book_package",
+    "expected_slots": {
+      "destination": "Dubai"
+    }
+  },
+  {
+    "id": "gc010",
+    "message": "family vacation to Singapore for 10 days, 4 people",
+    "expected_intent": "create_trip",
+    "expected_slots": {
+      "destination": "Singapore",
+      "duration_days": 10,
+      "travelers": 4,
+      "travel_style": "family"
+    }
+  },
+  {
+    "id": "gc011",
+    "message": "hello there",
+    "expected_intent": "general",
+    "expected_slots": {}
+  },
+  {
+    "id": "gc012",
+    "message": "what's the cheapest destination in Asia?",
+    "expected_intent": "compare_prices",
+    "expected_slots": {}
+  },
+  {
+    "id": "gc013",
+    "message": "trip to paris → rome → barcelona",
+    "expected_intent": "multi_city_trip",
+    "expected_slots": {
+      "destination": "Paris"
+    }
+  },
+  {
+    "id": "gc014",
+    "message": "budget trip to Goa for 3 days",
+    "expected_intent": "create_trip",
+    "expected_slots": {
+      "destination": "Goa",
+      "duration_days": 3,
+      "budget": "budget"
+    }
+  },
+  {
+    "id": "gc015",
+    "message": "show me itinerary",
+    "expected_intent": "show_itinerary",
+    "expected_slots": {}
+  }
+]

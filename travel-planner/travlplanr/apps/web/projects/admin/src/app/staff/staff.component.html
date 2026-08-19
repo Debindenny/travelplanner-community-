@@ -1,0 +1,383 @@
+<div class="p-8 w-full flex-1 flex flex-col space-y-6 dark:bg-gray-900 min-h-full">
+
+  <!-- Top Section -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Staff Management</h1>
+      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Manage team members and their roles</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="exportCsv()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border-light dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Export CSV
+      </button>
+      @if (authService.canManageStaff()) {
+        <button (click)="openCreateModal()" class="bg-primary text-white flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors shadow-sm shadow-blue-500/20">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Add Staff
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    @if (summaryCards$ | async; as summaryCards) {
+      @for (card of summaryCards; track card) {
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-border-light dark:border-gray-700 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{{ card.title }}</p>
+            <h2 class="text-3xl font-bold font-poppins text-gray-900 dark:text-white">{{ card.value }}</h2>
+          </div>
+          <div [class]="(card.bgColor || 'bg-primary') + ' w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md'">
+            @if (card.icon === 'users') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            }
+            @if (card.icon === 'user-check') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            }
+            @if (card.icon === 'user-x') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 11l4 4m0-4l-4 4"/></svg>
+            }
+          </div>
+        </div>
+      }
+    } @else {
+      @for (i of [1,2,3]; track i) {
+        <app-skeleton variant="card"></app-skeleton>
+      }
+    }
+  </div>
+
+  <!-- Main Table Container -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header & Search -->
+    <div class="flex items-center justify-between p-6 border-b border-border-light dark:border-gray-700 flex-wrap gap-3">
+      <h2 class="text-xl font-semibold font-poppins text-gray-900 dark:text-white">Staff List</h2>
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Bulk delete -->
+        @if (selectedIds.size > 0 && authService.canManageStaff()) {
+          <button (click)="bulkDelete()"
+            class="rounded-lg bg-red-50 dark:bg-red-900/20 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Remove ({{ selectedIds.size }})
+          </button>
+        }
+        <!-- Status filter -->
+        <div class="relative">
+          <select (change)="onStatusChange($any($event.target).value)" aria-label="Filter by status"
+            class="appearance-none bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 pl-4 pr-10 outline-none shadow-sm cursor-pointer">
+            <option value="">All Roles</option>
+            <option value="Staff">Staff</option>
+            <option value="Manager">Manager</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <!-- Sort -->
+        <div class="relative">
+          <select (change)="onSortChange($any($event.target).value)" aria-label="Sort by"
+            class="appearance-none bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 pl-4 pr-10 outline-none shadow-sm cursor-pointer">
+            <option value="-date_joined">Newest</option>
+            <option value="date_joined">Oldest</option>
+            <option value="name">Name (A–Z)</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <!-- Search -->
+        <div class="relative w-72">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <input type="text" (input)="onSearch($event)" [value]="searchQuery" aria-label="Search staff"
+            class="bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/30 block w-full pl-10 p-2.5 outline-none"
+            placeholder="Search name, email...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-gray-600 dark:text-gray-400 border-b border-border-light dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 uppercase tracking-wide">
+          <tr>
+            <th scope="col" class="px-6 py-4 w-12">
+              <input type="checkbox" [checked]="allSelected(currentList)" (change)="toggleSelectAll(currentList, $event)"
+                aria-label="Select all" class="w-4 h-4 rounded cursor-pointer">
+            </th>
+            <th scope="col" class="px-6 py-4 font-medium">Staff ID</th>
+            <th scope="col" class="px-6 py-4 font-medium">Name</th>
+            <th scope="col" class="px-6 py-4 font-medium">Email</th>
+            <th scope="col" class="px-6 py-4 font-medium">Phone</th>
+            <th scope="col" class="px-6 py-4 font-medium">Role</th>
+            <th scope="col" class="px-6 py-4 font-medium">Joined</th>
+            <th scope="col" class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Skeleton rows while loading -->
+          @if (isLoading) {
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <tr class="border-b border-border-light dark:border-gray-700">
+                <td class="px-6 py-4"><div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto animate-pulse"></div></td>
+              </tr>
+            }
+          }
+
+          <!-- Actual data rows -->
+          @if (staffList$ | async; as staffList) {
+            @if (!isLoading) {
+              @for (staff of staffList; track staff) {
+                <tr
+                  (click)="openStaffDetails(staff)"
+                  class="bg-white dark:bg-gray-800 border-b border-border-light dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <td class="px-6 py-4" (click)="$event.stopPropagation()">
+                    <input type="checkbox" [checked]="isSelected(staff.id)" (change)="toggleSelect(staff.id, $event)"
+                      [attr.aria-label]="'Select ' + staff.name" class="w-4 h-4 rounded cursor-pointer">
+                  </td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ staff.displayCode }}</td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                        {{ staff.name?.charAt(0) }}
+                      </div>
+                      <span class="text-gray-700 dark:text-gray-200 font-medium">{{ staff.name }}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ staff.email }}</td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ staff.phone || '—' }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-2.5 py-1 rounded text-xs font-semibold inline-flex items-center justify-center tracking-wide min-w-[70px]"
+                    [ngClass]="{
+                      'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400': staff.role === 'Staff',
+                      'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400': staff.role === 'Manager',
+                      'bg-primary/10 text-primary dark:bg-blue-900/30 dark:text-blue-400': staff.role === 'Admin'
+                    }">{{ staff.role }}</span>
+                  </td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">{{ staff.dateJoined }}</td>
+                  <td class="px-6 py-4 text-right" (click)="$event.stopPropagation()">
+                    @if (authService.canManageStaff()) {
+                      <div class="flex items-center justify-end gap-3">
+                        <button (click)="openEditModal(staff)" [attr.aria-label]="'Edit ' + staff.name"
+                          class="text-gray-400 hover:text-primary dark:hover:text-blue-400 transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                        <button (click)="deleteStaff(staff.id)" [attr.aria-label]="'Delete ' + staff.name"
+                          class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+              <!-- Empty state -->
+              @if (staffList.length === 0) {
+                <tr>
+                  <td colspan="8">
+                    <app-empty-state icon="users" title="No staff members found" subtitle="Try a different search or filter."></app-empty-state>
+                  </td>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-border-light dark:border-gray-700 bg-white dark:bg-gray-800">
+      <span class="text-sm text-gray-500 dark:text-gray-400">{{ rangeLabel }}</span>
+      <div class="flex items-center gap-1">
+        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" aria-label="Previous page"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-medium text-sm">{{ currentPage }}</button>
+        @if (currentPage < totalPages) {
+          <button (click)="onPageChange(currentPage + 1)"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 font-medium text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">{{ currentPage + 1 }}</button>
+        }
+        <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages" aria-label="Next page"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Slide-over -->
+@if (selectedStaff) {
+  <div class="fixed inset-0 bg-black/30 z-40" (click)="closeStaffDetails()"></div>
+}
+@if (selectedStaff) {
+  <div role="dialog" aria-modal="true" aria-label="Staff details"
+    class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-xl z-50 flex flex-col">
+    <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Staff Details</h3>
+      <button (click)="closeStaffDetails()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 flex-1 overflow-y-auto space-y-6">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
+          {{ selectedStaff.name?.charAt(0) }}
+        </div>
+        <div>
+          <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedStaff.name }}</h4>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ selectedStaff.email }}</p>
+          <span class="inline-block mt-1 px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ selectedStaff.role }}</span>
+        </div>
+      </div>
+      <div class="space-y-3 pt-4 border-t border-border-light dark:border-gray-700">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Phone</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedStaff.phone || '—' }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Joined</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedStaff.dateJoined }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Last Login</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedStaff.lastLogin || '—' }}</span>
+        </div>
+      </div>
+      <div class="pt-4 border-t border-border-light dark:border-gray-700">
+        <h5 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Activity Stats</h5>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Customers</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedStaff.stats?.customers || 0 }}</p>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Itineraries</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedStaff.stats?.itineraries || 0 }}</p>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Booked</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ selectedStaff.stats?.booked || 0 }}</p>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Created</p>
+            <p class="text-2xl font-bold text-primary">{{ selectedStaff.stats?.created || 0 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Modal -->
+@if (showCreateModal) {
+  <div role="dialog" aria-modal="true" aria-labelledby="staff-create-title"
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+      <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+        <h3 id="staff-create-title" class="text-lg font-bold text-gray-900 dark:text-white">Add New Staff</h3>
+        <button (click)="closeCreateModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form [formGroup]="createForm" (ngSubmit)="saveNewStaff()" class="p-6 space-y-4">
+        <div>
+          <label for="s-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name <span class="text-red-500">*</span></label>
+          <input id="s-name" type="text" formControlName="name"
+            class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+            [class]="createName.invalid && createName.touched ? 'border-red-500 focus:ring-2 focus:ring-red-500/30' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+            @if (createName.invalid && createName.touched) {
+              <p class="mt-1 text-xs text-red-500">
+                {{ createName.errors?.['required'] ? 'Name is required' : 'Name must be at least 2 characters' }}
+              </p>
+            }
+          </div>
+          <div>
+            <label for="s-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email <span class="text-red-500">*</span></label>
+            <input id="s-email" type="email" formControlName="email"
+              class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+              [class]="createEmail.invalid && createEmail.touched ? 'border-red-500 focus:ring-2 focus:ring-red-500/30' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+              @if (createEmail.invalid && createEmail.touched) {
+                <p class="mt-1 text-xs text-red-500">
+                  {{ createEmail.errors?.['required'] ? 'Email is required' : 'Enter a valid email address' }}
+                </p>
+              }
+            </div>
+            <div>
+              <label for="s-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+              <input id="s-phone" type="text" formControlName="phone"
+                class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+              </div>
+              <div>
+                <label for="s-role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                <select id="s-role" formControlName="role"
+                  class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                  <option>Staff</option>
+                  <option>Manager</option>
+                  <option>Admin</option>
+                </select>
+              </div>
+              <div class="flex justify-end gap-3 pt-2">
+                <button type="button" (click)="closeCreateModal()" class="px-5 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">Add Staff</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+
+      <!-- Edit Modal -->
+      @if (showEditModal) {
+        <div role="dialog" aria-modal="true" aria-labelledby="staff-edit-title"
+          class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+            <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+              <h3 id="staff-edit-title" class="text-lg font-bold text-gray-900 dark:text-white">Edit Staff</h3>
+              <button (click)="closeEditModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <form [formGroup]="editForm" (ngSubmit)="saveEditStaff()" class="p-6 space-y-4">
+              <div>
+                <label for="e-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name <span class="text-red-500">*</span></label>
+                <input id="e-name" type="text" formControlName="name"
+                  class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+                  [class]="editForm.get('name')!.invalid && editForm.get('name')!.touched ? 'border-red-500' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+                  @if (editForm.get('name')!.invalid && editForm.get('name')!.touched) {
+                    <p class="mt-1 text-xs text-red-500">Name is required</p>
+                  }
+                </div>
+                <div>
+                  <label for="e-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                  <input id="e-phone" type="text" formControlName="phone"
+                    class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                  </div>
+                  <div>
+                    <label for="e-role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                    <select id="e-role" formControlName="role"
+                      class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                      <option>Staff</option>
+                      <option>Manager</option>
+                      <option>Admin</option>
+                    </select>
+                  </div>
+                  <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" (click)="closeEditModal()" class="px-5 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">Update</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }

@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: travlplanr-shared
+Version: 0.1.0
+Summary: Shared library for travlplanr services (config, db, auth, events, redis, logging, middleware).
+Requires-Python: >=3.11
+Requires-Dist: sentry-sdk[fastapi]>=2.0.0
+Requires-Dist: pydantic-settings
+Requires-Dist: sqlalchemy[asyncio]
+Requires-Dist: redis
+Requires-Dist: python-jose[cryptography]

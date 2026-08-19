@@ -1,0 +1,53 @@
+<div class="p-8 w-full flex-1 flex flex-col space-y-6 dark:bg-gray-900 min-h-full">
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Audit Log</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review system activity and security events</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm overflow-hidden">
+    @if (logs.length === 0) {
+      <div class="p-8">
+        <app-empty-state
+          icon="inbox"
+          title="Audit log not available yet"
+          subtitle="There is no audit-log API wired on the backend. This page will show live events once that endpoint ships.">
+        </app-empty-state>
+      </div>
+    }
+
+    @if (logs.length > 0) {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 uppercase text-xs tracking-wide border-b border-border-light dark:border-gray-700">
+            <tr>
+              <th class="px-6 py-4 font-medium">Date & Time</th>
+              <th class="px-6 py-4 font-medium">User</th>
+              <th class="px-6 py-4 font-medium">Action</th>
+              <th class="px-6 py-4 font-medium">Details</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-light dark:divide-gray-700">
+            @for (log of logs; track log) {
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-6 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ log.date }}</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                      {{ log.user.charAt(0) }}
+                    </div>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">{{ log.user }}</span>
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-gray-900 dark:text-white font-medium">{{ log.action }}</td>
+                <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ log.details }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

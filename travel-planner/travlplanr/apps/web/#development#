@@ -1,0 +1,6 @@
+npx ng build web --configuration development 2>&1 | tail -30
+npx @angular/cli@18 update @angular/core@18 @angular/cli@18 --force --allow-dirty 2>&1
+npm install @angular/core@18 @angular/cli@18 @angular/common@18 @angular/compiler@18 @angular/compiler-cli@18 @angular/forms@18 @angular/router@18 @angular/platform-browser@18 @angular/platform-browser-dynamic@18 @angular/platform-server@18 @angular/animations@18 @angular/cdk@18 @angular-devkit/build-angular@18 ng-packagr@18 --legacy-peer-deps 2>&1 | tail -40
+cat node_modules/@angular/core/package.json 2>/dev/null | grep '"version"' || echo "Angular core not found"
+node -e "console.log(require('./node_modules/@angular/core/package.json').version)"
+cd /home/debin/projects/travel-planner/travlplanr

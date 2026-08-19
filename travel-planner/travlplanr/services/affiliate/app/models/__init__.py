@@ -1,0 +1,1 @@
+"""Affiliate models package."""

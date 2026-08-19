@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 166 45" fill="none">
+  <text x="0" y="14" font-family="Arial, sans-serif" font-size="12" font-weight="400" fill="white">Google</text>
+  <g transform="translate(0 18)">
+    <path d="M22.5 0C14.492 0 8 6.492 8 14.5c0 10.125 14.5 25.5 14.5 25.5S37 24.625 37 14.5C37 6.492 30.508 0 22.5 0Z" fill="white"/>
+    <circle cx="22.5" cy="14.5" r="5" fill="#141414"/>
+    <text x="46" y="22" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="white">Maps</text>
+  </g>
+</svg>

@@ -1,0 +1,362 @@
+# Travlplanr local development stack
+# Database-per-service via multiple databases in one PG instance (local dev).
+# In production, each service gets its own Azure Database for PostgreSQL.
+#
+# Dev-only credential defaults (${VAR:-default}) are intentional below.
+# Non-dev deployments MUST override via .env — see .env.example.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: travlplanr
+      POSTGRES_PASSWORD: travlplanr
+      POSTGRES_DB: identity_db
+    # Internal only — not published to host (use gateway :8080 for API access).
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travlplanr"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass "${REDIS_PASSWORD:-travlplanr_redis}"
+    # Internal only — not published to host.
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-travlplanr_redis}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      /usr/bin/mc mb myminio/travlplanr-uploads || true;
+      exit 0;
+      "
+
+  identity:
+    build:
+      context: .
+      dockerfile: services/identity/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://travlplanr:travlplanr@postgres:5432/identity_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-travlplanr_redis}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-prod}
+      SERVICE_NAME: identity
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-dev-internal-secret}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_PROFILES_SAMPLE_RATE: ${SENTRY_PROFILES_SAMPLE_RATE:-0.0}
+    volumes:
+      - ./scripts:/app/scripts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - ollama
+
+  planner:
+    build:
+      context: .
+      dockerfile: services/planner/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://travlplanr:travlplanr@postgres:5432/planner_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-travlplanr_redis}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-prod}
+      SERVICE_NAME: planner
+      CHAT_PROVIDER: ${CHAT_PROVIDER:-ollama}
+      GENERATION_PROVIDER: ${GENERATION_PROVIDER:-ollama}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+      GOOGLE_MAPS_BROWSER_KEY: ${GOOGLE_MAPS_BROWSER_KEY:-}
+      AFFILIATE_URL: ${AFFILIATE_URL:-http://affiliate:8000}
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-}
+      IMAGE_SEARCH_CACHE_TTL_SECONDS: ${IMAGE_SEARCH_CACHE_TTL_SECONDS:-86400}
+      IMAGE_FALLBACK_CACHE_TTL_SECONDS: ${IMAGE_FALLBACK_CACHE_TTL_SECONDS:-3600}
+      LOCAL_WHISPER_URL: ${LOCAL_WHISPER_URL:-http://whisper:9000}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.8-max}
+      OLLAMA_SHARED_MODEL: ${OLLAMA_SHARED_MODEL:-qwen3.8-max}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-131072}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+      OLLAMA_WARM_INTERVAL_SECONDS: ${OLLAMA_WARM_INTERVAL_SECONDS:-480}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-sk_test_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_PROFILES_SAMPLE_RATE: ${SENTRY_PROFILES_SAMPLE_RATE:-0.0}
+      NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org/search}
+      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-travlplanr/1.0 (travel planner; contact@travlplanr.com)}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts:/app/scripts
+      - ./services/planner/app:/app/app
+      - ./services/planner/alembic:/app/alembic
+      - ./services/shared:/app/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      affiliate:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  affiliate:
+    build:
+      context: .
+      dockerfile: services/affiliate/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://travlplanr:travlplanr@postgres:5432/affiliate_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-travlplanr_redis}@redis:6379/0
+      SERVICE_NAME: affiliate
+      AMADEUS_CLIENT_ID: ${AMADEUS_CLIENT_ID:-}
+      AMADEUS_CLIENT_SECRET: ${AMADEUS_CLIENT_SECRET:-}
+      AMADEUS_API_BASE_URL: ${AMADEUS_API_BASE_URL:-https://test.api.amadeus.com}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+      TRIPADVISOR_API_KEY: ${TRIPADVISOR_API_KEY:-}
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-}
+      BOOKING_DEMAND_API_TOKEN: ${BOOKING_DEMAND_API_TOKEN:-}
+      BOOKING_AFFILIATE_ID: ${BOOKING_AFFILIATE_ID:-}
+      BOOKING_DEMAND_API_BASE_URL: ${BOOKING_DEMAND_API_BASE_URL:-https://demandapi-sandbox.booking.com/3.2}
+      BOOKING_BOOKER_COUNTRY: ${BOOKING_BOOKER_COUNTRY:-in}
+      BOOKING_CURRENCY: ${BOOKING_CURRENCY:-USD}
+      BOOKING_LANGUAGE: ${BOOKING_LANGUAGE:-en-gb}
+      # TravelNext (flights/cars/activities/etc.)
+      TRAVELNEXT_USER_ID: ${TRAVELNEXT_USER_ID:-}
+      TRAVELNEXT_USER_PASSWORD: ${TRAVELNEXT_USER_PASSWORD:-}
+      TRAVELNEXT_ACCESS: ${TRAVELNEXT_ACCESS:-}
+      TRAVELNEXT_IP_ADDRESS: ${TRAVELNEXT_IP_ADDRESS:-}
+      TRAVELNEXT_IP_AUTODETECT: ${TRAVELNEXT_IP_AUTODETECT:-true}
+      TRAVELNEXT_API_BASE_URL: ${TRAVELNEXT_API_BASE_URL:-}
+      TRAVELNEXT_CARS_API_BASE_URL: ${TRAVELNEXT_CARS_API_BASE_URL:-}
+      TRAVELNEXT_HOLIDAY_API_BASE_URL: ${TRAVELNEXT_HOLIDAY_API_BASE_URL:-}
+      TRAVELNEXT_EVENTS_API_BASE_URL: ${TRAVELNEXT_EVENTS_API_BASE_URL:-}
+      TRAVELNEXT_TRANSFERS_API_BASE_URL: ${TRAVELNEXT_TRANSFERS_API_BASE_URL:-}
+      TRAVELNEXT_RAIL_API_BASE_URL: ${TRAVELNEXT_RAIL_API_BASE_URL:-}
+      TRAVELNEXT_ACTIVITIES_API_BASE_URL: ${TRAVELNEXT_ACTIVITIES_API_BASE_URL:-}
+      # Travelomatix Hotels
+      TRAVELOMATIX_HOTELS_API_BASE_URL: ${TRAVELOMATIX_HOTELS_API_BASE_URL:-http://test.services.travelomatix.com/webservices/index.php/hotel_v3/service}
+      TRAVELOMATIX_USERNAME: ${TRAVELOMATIX_USERNAME:-}
+      TRAVELOMATIX_PASSWORD: ${TRAVELOMATIX_PASSWORD:-}
+      TRAVELOMATIX_DOMAIN_KEY: ${TRAVELOMATIX_DOMAIN_KEY:-}
+      TRAVELOMATIX_SYSTEM: ${TRAVELOMATIX_SYSTEM:-test}
+      TRAVELOMATIX_GUEST_NATIONALITY: ${TRAVELOMATIX_GUEST_NATIONALITY:-IN}
+      TRAVELOMATIX_CITY_OVERRIDES: ${TRAVELOMATIX_CITY_OVERRIDES:-}
+      TRAVELOMATIX_DEFAULT_CITY_ID: ${TRAVELOMATIX_DEFAULT_CITY_ID:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_PROFILES_SAMPLE_RATE: ${SENTRY_PROFILES_SAMPLE_RATE:-0.0}
+    volumes:
+      - ./services/affiliate/app:/app/app
+      - ./services/shared:/app/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  reporting:
+    build:
+      context: .
+      dockerfile: services/reporting/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://travlplanr:travlplanr@postgres:5432/reporting_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-travlplanr_redis}@redis:6379/0
+      SERVICE_NAME: reporting
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-dev-internal-secret}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_PROFILES_SAMPLE_RATE: ${SENTRY_PROFILES_SAMPLE_RATE:-0.0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  ai-worker:
+    build:
+      context: .
+      dockerfile: services/ai-worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      REDIS_URL: redis://:${REDIS_PASSWORD:-travlplanr_redis}@redis:6379/0
+      SERVICE_NAME: ai-worker
+      GENERATION_PROVIDER: ${GENERATION_PROVIDER:-ollama}
+      CHAT_PROVIDER: ${CHAT_PROVIDER:-ollama}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.8-max}
+      OLLAMA_SHARED_MODEL: ${OLLAMA_SHARED_MODEL:-qwen3.8-max}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-131072}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_PROFILES_SAMPLE_RATE: ${SENTRY_PROFILES_SAMPLE_RATE:-0.0}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./services/ai-worker/app:/app/app
+      - ./services/shared:/app/shared
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # ai-worker is a Redis Streams consumer — no HTTP server on :8000.
+      test: ["CMD", "python3", "-c", "import os; os.kill(1, 0)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Local speech-to-text for voice input on browsers without the Web Speech
+  # API (e.g. Firefox) — OpenAI-compatible faster-whisper server, CPU-only,
+  # no external account/key needed. Reached only by planner, not the gateway.
+  whisper:
+    image: hwdsl2/whisper-server
+    restart: unless-stopped
+    environment:
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      WHISPER_DEVICE: cpu
+      WHISPER_API_KEY: ""
+    volumes:
+      - whisper_data:/var/lib/whisper
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      # First boot downloads the model from HuggingFace before serving.
+      start_period: 180s
+
+  # TLS edge for the customer app — https://dev.travlplanr.com/ (no port in bar).
+  # Terminates HTTPS on :443 with Let's Encrypt (or self-signed fallback).
+  edge:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ${EDGE_NGINX_CONF:-./infra/edge/nginx-fallback.conf}:/etc/nginx/nginx.conf:ro
+      - ./infra/tls/dev:/etc/nginx/tls:ro
+      - ./infra/certbot-webroot:/var/www/certbot:ro
+      - ./infra/letsencrypt/config:/etc/letsencrypt:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Local API gateway — routes /api/* to the correct service.
+  # Replaces APIM in production.
+  gateway:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      # nginx.conf includes a production TLS server block; mount local/dev certs so
+      # the container can start even when that block is enabled.
+      - ./infra/tls/dev:/etc/nginx/tls:ro
+    depends_on:
+      - identity
+      - planner
+      - affiliate
+      - reporting
+
+volumes:
+  pgdata:
+  minio_data:
+  ollama_data:
+  whisper_data:

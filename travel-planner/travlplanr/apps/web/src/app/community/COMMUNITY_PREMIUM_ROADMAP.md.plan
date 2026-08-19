@@ -1,0 +1,12 @@
+# Phase P2: The Travel-First Layer
+
+## B/1 Destination Tagging
+1. **Backend Migration**: Add `destination_id` to `community_posts` table.
+2. **Backend Endpoints**: Update `create_post` and feed to handle destinations.
+3. **Frontend Component**: Add a destination picker to `CommunityCreatePostComponent`.
+4. **Frontend Render**: Update `CommunityPageComponent` and `CommunityPostDetailComponent` to show the destination chip and map thumbnail.
+
+## B/2 Collections / Bucket List
+1. **Backend Migration**: Create `community_collections` and `community_collection_items` tables.
+2. **Backend Endpoints**: Create endpoints for collections.
+3. **Frontend Component**: Add `CollectionsPageComponent` and a Save button in post cards.

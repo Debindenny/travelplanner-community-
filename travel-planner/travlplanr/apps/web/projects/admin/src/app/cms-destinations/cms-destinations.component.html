@@ -1,0 +1,90 @@
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Destinations CMS</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage platform destinations and regions.</p>
+    </div>
+    <button (click)="openAddModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Destination
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    @if (isLoading) {
+      <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">Loading destinations...</div>
+    }
+    @if (!isLoading && destinations.length === 0) {
+      <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">No destinations found. Create one to get started.</div>
+    }
+
+    @for (dest of destinations; track dest) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 overflow-hidden flex flex-col hover:shadow-md transition-shadow group relative">
+        <div class="h-48 w-full bg-gray-200 dark:bg-gray-700 relative">
+          <img [src]="dest.image_url" [alt]="dest.name" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=600'">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <button (click)="openEditModal(dest)" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center backdrop-blur-sm transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+            <button (click)="deleteDestination(dest.id)" class="w-10 h-10 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center backdrop-blur-sm transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-5 flex flex-col flex-1">
+          <div class="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-wider uppercase mb-1">{{ dest.region }}</div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ dest.name }}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">{{ dest.description }}</p>
+          <div class="flex items-center justify-between border-t border-border-light dark:border-gray-700 pt-4 mt-auto">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ dest.tags ? dest.tags.length : 0 }} Tags</span>
+            <span class="text-lg font-bold text-gray-900 dark:text-white">${{ dest.base_price }}<span class="text-xs text-gray-500 font-normal">/person</span></span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+@if (showAddModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+    <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" (click)="showAddModal = false"></div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative z-10 transform transition-all flex flex-col">
+      <div class="p-6 border-b border-border-light dark:border-gray-700">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ isEditing ? 'Edit Destination' : 'Add Destination' }}</h3>
+      </div>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destination Name</label>
+            <input type="text" [(ngModel)]="formData.name" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea [(ngModel)]="formData.description" rows="3" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"></textarea>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
+            <input type="text" [(ngModel)]="formData.image_url" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
+            <input type="text" [(ngModel)]="formData.region" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base Price ($)</label>
+            <input type="number" [(ngModel)]="formData.base_price" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags (Comma-separated)</label>
+            <input type="text" [(ngModel)]="tagsInput" placeholder="e.g. Beach, Culture, Food" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-border-light dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+          </div>
+        </div>
+      </div>
+      <div class="p-6 border-t border-border-light dark:border-gray-700 flex justify-end gap-3 bg-gray-50/50 dark:bg-gray-800/50">
+        <button (click)="showAddModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+        <button (click)="saveDestination()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">Save Destination</button>
+      </div>
+    </div>
+  </div>
+}

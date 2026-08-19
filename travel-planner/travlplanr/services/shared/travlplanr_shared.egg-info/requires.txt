@@ -1,0 +1,5 @@
+sentry-sdk[fastapi]>=2.0.0
+pydantic-settings
+sqlalchemy[asyncio]
+redis
+python-jose[cryptography]

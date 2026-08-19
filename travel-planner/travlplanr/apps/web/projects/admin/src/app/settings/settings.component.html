@@ -1,0 +1,137 @@
+<div class="p-8 w-full flex-1 flex flex-col space-y-8 dark:bg-gray-900 min-h-full">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Settings</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account and system preferences</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Profile Settings -->
+    <div class="lg:col-span-2 space-y-8">
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-border-light dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Profile Information</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Update your personal account details.</p>
+        </div>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+              <input type="text" formControlName="name" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+              <input type="email" formControlName="email" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+              <input type="text" formControlName="phone" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            </div>
+          </div>
+          <div class="flex justify-end mt-4">
+            <button type="submit" [disabled]="profileForm.invalid" class="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors shadow-sm">Save Changes</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-border-light dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Change Password</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Ensure your account is using a long, random password.</p>
+        </div>
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+            <input type="password" formControlName="currentPassword" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+              <input type="password" formControlName="newPassword" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+              <input type="password" formControlName="confirmPassword" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            </div>
+          </div>
+          <div class="flex justify-end mt-4">
+            <button type="submit" [disabled]="passwordForm.invalid" class="px-5 py-2.5 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors shadow-sm">Update Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- System Preferences -->
+    <div class="space-y-8">
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm h-fit">
+        <div class="p-6 border-b border-border-light dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">System Preferences</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Global application settings.</p>
+        </div>
+        <form [formGroup]="systemForm" (ngSubmit)="saveSystem()" class="p-6 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">Maintenance Mode</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Disable customer access to portal</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="maintenanceMode" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">Allow Registration</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">New users can sign up</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="registrationEnabled" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Timezone</label>
+            <select formControlName="timezone" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+              <option value="UTC">UTC (Universal Coordinated Time)</option>
+              <option value="EST">EST (Eastern Standard Time)</option>
+              <option value="PST">PST (Pacific Standard Time)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="w-full px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            Save Preferences
+          </button>
+        </form>
+      </div>
+
+      <!-- Financial Markups -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm h-fit">
+        <div class="p-6 border-b border-border-light dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Pricing Margins</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Manage FinTech payment markups.</p>
+        </div>
+        <form [formGroup]="markupForm" (ngSubmit)="saveMarkup()" class="p-6 space-y-6">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">B2C Markup Multiplier</label>
+            <input type="number" step="0.01" formControlName="b2c_markup" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">E.g., 1.05 = 5% markup on Standard users</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">B2B Markup Multiplier</label>
+            <input type="number" step="0.01" formControlName="b2b_markup" class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none dark:bg-gray-700 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">E.g., 1.10 = 10% markup on Corporate users</p>
+          </div>
+
+          <button type="submit" [disabled]="markupForm.invalid" class="w-full px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors shadow-sm">
+            Update Margins
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

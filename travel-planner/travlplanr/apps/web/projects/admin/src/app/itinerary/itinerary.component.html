@@ -1,0 +1,417 @@
+<div class="p-8 w-full flex-1 flex flex-col space-y-6 dark:bg-gray-900 min-h-full">
+
+  <!-- Top Section -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold font-poppins text-gray-900 dark:text-white tracking-tight">Itinerary Management</h1>
+      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Manage customer trip itineraries and bookings</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="exportCsv()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border-light dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Export CSV
+      </button>
+      <button (click)="openCreateModal()" class="bg-primary text-white flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors shadow-sm shadow-blue-500/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Itinerary
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    @if (summaryCards$ | async; as summaryCards) {
+      @for (card of summaryCards; track card) {
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-border-light dark:border-gray-700 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{{ card.title }}</p>
+            <h2 class="text-3xl font-bold font-poppins text-gray-900 dark:text-white">{{ card.value }}</h2>
+          </div>
+          <div [class]="(card.bgColor || 'bg-primary') + ' w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md'">
+            @if (card.icon === 'map') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+            }
+            @if (card.icon === 'clock') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            }
+            @if (card.icon === 'check-circle') {
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            }
+          </div>
+        </div>
+      }
+    } @else {
+      @for (i of [1,2,3]; track i) {
+        <app-skeleton variant="card"></app-skeleton>
+      }
+    }
+  </div>
+
+  <!-- Main Table Container -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-border-light dark:border-gray-700 shadow-sm flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header & Search -->
+    <div class="flex items-center justify-between p-6 border-b border-border-light dark:border-gray-700 flex-wrap gap-3">
+      <h2 class="text-xl font-semibold font-poppins text-gray-900 dark:text-white">Itinerary List</h2>
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Bulk delete -->
+        @if (selectedIds.size > 0) {
+          <button (click)="bulkDelete()"
+            class="rounded-lg bg-red-50 dark:bg-red-900/20 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Delete ({{ selectedIds.size }})
+          </button>
+        }
+        <!-- Status filter -->
+        <div class="relative">
+          <select (change)="onStatusChange($any($event.target).value)" aria-label="Filter by status"
+            class="appearance-none bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 pl-4 pr-10 outline-none shadow-sm cursor-pointer">
+            <option value="">All Status</option>
+            <option value="created">Created</option>
+            <option value="pending">Pending</option>
+            <option value="booked">Booked</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <!-- Sort -->
+        <div class="relative">
+          <select (change)="onSortChange($any($event.target).value)" aria-label="Sort by"
+            class="appearance-none bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 pl-4 pr-10 outline-none shadow-sm cursor-pointer">
+            <option value="-created_at">Newest</option>
+            <option value="created_at">Oldest</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <!-- Search -->
+        <div class="relative w-72">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <input type="text" (input)="onSearch($event)" [value]="searchQuery" aria-label="Search itineraries"
+            class="bg-white dark:bg-gray-700 border border-border-light dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/30 block w-full pl-10 p-2.5 outline-none"
+            placeholder="Search code, destination...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-gray-600 dark:text-gray-400 border-b border-border-light dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 uppercase tracking-wide">
+          <tr>
+            <th scope="col" class="px-6 py-4 w-12">
+              <input type="checkbox" [checked]="allSelected(currentList)" (change)="toggleSelectAll(currentList, $event)"
+                aria-label="Select all" class="w-4 h-4 rounded cursor-pointer">
+            </th>
+            <th scope="col" class="px-6 py-4 font-medium">Trip ID</th>
+            <th scope="col" class="px-6 py-4 font-medium">Customer Name</th>
+            <th scope="col" class="px-6 py-4 font-medium">Destination</th>
+            <th scope="col" class="px-6 py-4 font-medium">Duration</th>
+            <th scope="col" class="px-6 py-4 font-medium">Trip Type</th>
+            <th scope="col" class="px-6 py-4 font-medium">Status</th>
+            <th scope="col" class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Skeleton rows while loading -->
+          @if (isLoading) {
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <tr class="border-b border-border-light dark:border-gray-700">
+                <td class="px-6 py-4"><div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse"></div></td>
+                <td class="px-6 py-4"><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto animate-pulse"></div></td>
+              </tr>
+            }
+          }
+
+          <!-- Actual data rows -->
+          @if (itineraryList$ | async; as itineraryList) {
+            @if (!isLoading) {
+              @for (it of itineraryList; track it) {
+                <tr
+                  (click)="openItineraryDetails(it)"
+                  class="bg-white dark:bg-gray-800 border-b border-border-light dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <td class="px-6 py-4" (click)="$event.stopPropagation()">
+                    <input type="checkbox" [checked]="isSelected(it.id)" (change)="toggleSelect(it.id, $event)"
+                      [attr.aria-label]="'Select ' + it.displayCode" class="w-4 h-4 rounded cursor-pointer">
+                  </td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ it.displayCode }}</td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <div class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden shadow-sm shrink-0">
+                        <img [src]="it.customerAvatar || '/assets/images/default-avatar.svg'"
+                          class="h-full w-full object-cover" [alt]="it.customerName">
+                      </div>
+                      <span class="text-gray-700 dark:text-gray-200 font-medium">{{ it.customerName }}</span>
+                      @if (it.collaboratorsCount && it.collaboratorsCount > 0) {
+                        <span class="ml-1 inline-flex items-center justify-center bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300" title="Collaborators">
+                          +{{ it.collaboratorsCount }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400">{{ it.destination }}</td>
+                  <td class="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">{{ it.duration }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-2.5 py-1 rounded-full text-2xs font-semibold inline-flex items-center justify-center tracking-wide"
+                    [ngClass]="{
+                      'bg-pink-100 text-pink-500 dark:bg-pink-900/30 dark:text-pink-400': it.type === 'Couple',
+                      'bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-400': it.type === 'Solo',
+                      'bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400': it.type === 'Family',
+                      'bg-purple-100 text-purple-500 dark:bg-purple-900/30 dark:text-purple-400': it.type === 'Friends'
+                    }">{{ it.type }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-2.5 py-1 rounded text-2xs font-semibold inline-flex items-center justify-center tracking-wide"
+                    [ngClass]="{
+                      'bg-blue-50 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400': it.status === 'Created',
+                      'bg-orange-50 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400': it.status === 'Pending',
+                      'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400': it.status === 'Booked',
+                      'bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-400': it.status === 'Cancelled'
+                    }">{{ it.status }}</span>
+                  </td>
+                  <td class="px-6 py-4 text-right" (click)="$event.stopPropagation()">
+                    <div class="flex items-center justify-end gap-3">
+                      <button (click)="openEditModal(it)" [attr.aria-label]="'Edit ' + it.displayCode"
+                        class="text-gray-400 hover:text-primary dark:hover:text-blue-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      </button>
+                      <button (click)="openGodMode(it)" [attr.aria-label]="'God Mode ' + it.displayCode"
+                        class="text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"/></svg>
+                      </button>
+                      <button (click)="deleteItinerary(it.id)" [attr.aria-label]="'Delete ' + it.displayCode"
+                        class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+              <!-- Empty state -->
+              @if (itineraryList.length === 0) {
+                <tr>
+                  <td colspan="8">
+                    <app-empty-state icon="map" title="No itineraries found" subtitle="Try a different search or filter."></app-empty-state>
+                  </td>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-border-light dark:border-gray-700 bg-white dark:bg-gray-800">
+      <span class="text-sm text-gray-500 dark:text-gray-400">{{ rangeLabel }}</span>
+      <div class="flex items-center gap-1">
+        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" aria-label="Previous page"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-medium text-sm">{{ currentPage }}</button>
+        @if (currentPage < totalPages) {
+          <button (click)="onPageChange(currentPage + 1)"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 font-medium text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">{{ currentPage + 1 }}</button>
+        }
+        <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages" aria-label="Next page"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Slide-over -->
+@if (selectedItinerary) {
+  <div class="fixed inset-0 bg-black/30 z-40" (click)="closeItineraryDetails()"></div>
+}
+@if (selectedItinerary) {
+  <div role="dialog" aria-modal="true" aria-label="Itinerary details"
+    class="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-xl z-50 flex flex-col">
+    <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Itinerary Details</h3>
+      <button (click)="closeItineraryDetails()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 flex-1 overflow-y-auto space-y-6">
+      <div class="flex items-center gap-4">
+        <img [src]="selectedItinerary.customerAvatar || '/assets/images/default-avatar.svg'"
+          class="w-16 h-16 rounded-full shadow-sm object-cover" [alt]="selectedItinerary.customerName">
+        <div>
+          <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedItinerary.customerName }}</h4>
+          <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ selectedItinerary.displayCode }}</p>
+          <span class="inline-block mt-1 px-2.5 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ selectedItinerary.type }}</span>
+        </div>
+      </div>
+      <div class="space-y-3 pt-4 border-t border-border-light dark:border-gray-700">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Destination</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedItinerary.destination }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Duration</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedItinerary.duration }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Status</span>
+          <span class="text-gray-900 dark:text-white font-medium">{{ selectedItinerary.status }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Modal -->
+@if (showCreateModal) {
+  <div role="dialog" aria-modal="true" aria-labelledby="itinerary-create-title"
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+      <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+        <h3 id="itinerary-create-title" class="text-lg font-bold text-gray-900 dark:text-white">Create Itinerary</h3>
+        <button (click)="closeCreateModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form [formGroup]="createForm" (ngSubmit)="saveNewItinerary()" class="p-6 space-y-4">
+        <div>
+          <label for="i-customer" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name <span class="text-red-500">*</span></label>
+          <input id="i-customer" type="text" formControlName="customer_name" placeholder="e.g. Arjun Patel"
+            class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+            [class]="createCustomerName.invalid && createCustomerName.touched ? 'border-red-500 focus:ring-2 focus:ring-red-500/30' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+            @if (createCustomerName.invalid && createCustomerName.touched) {
+              <p class="mt-1 text-xs text-red-500">Customer Name is required</p>
+            }
+          </div>
+          <div>
+            <label for="i-destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destination <span class="text-red-500">*</span></label>
+            <input id="i-destination" type="text" formControlName="destination"
+              class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+              [class]="createDestination.invalid && createDestination.touched ? 'border-red-500 focus:ring-2 focus:ring-red-500/30' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+              @if (createDestination.invalid && createDestination.touched) {
+                <p class="mt-1 text-xs text-red-500">Destination is required</p>
+              }
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="i-travelers" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Travelers</label>
+                <input id="i-travelers" type="number" formControlName="travelers"
+                  class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                  <label for="i-budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget</label>
+                  <input id="i-budget" type="text" formControlName="budget" placeholder="e.g. $2000"
+                    class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                  </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                  <button type="button" (click)="closeCreateModal()" class="px-5 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                  <button type="submit" class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">Create</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+
+        <!-- Edit Modal -->
+        @if (showEditModal) {
+          <div role="dialog" aria-modal="true" aria-labelledby="itinerary-edit-title"
+            class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+              <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between">
+                <h3 id="itinerary-edit-title" class="text-lg font-bold text-gray-900 dark:text-white">Edit Itinerary</h3>
+                <button (click)="closeEditModal()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <form [formGroup]="editForm" (ngSubmit)="saveEditItinerary()" class="p-6 space-y-4">
+                <div>
+                  <label for="e-dest" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destination <span class="text-red-500">*</span></label>
+                  <input id="e-dest" type="text" formControlName="destination"
+                    class="w-full border rounded-lg p-2.5 text-sm outline-none transition-colors dark:bg-gray-700 dark:text-white"
+                    [class]="editForm.get('destination')!.invalid && editForm.get('destination')!.touched ? 'border-red-500 focus:ring-2 focus:ring-red-500/30' : 'border-border-light dark:border-gray-600 focus:border-primary focus:ring-2 focus:ring-primary/30'">
+                    @if (editForm.get('destination')!.invalid && editForm.get('destination')!.touched) {
+                      <p class="mt-1 text-xs text-red-500">Destination is required</p>
+                    }
+                  </div>
+                  <div>
+                    <label for="e-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                    <select id="e-status" formControlName="status"
+                      class="w-full border border-border-light dark:border-gray-600 rounded-lg p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 dark:bg-gray-700 dark:text-white">
+                      <option>Created</option>
+                      <option>Pending</option>
+                      <option>Booked</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </div>
+                  <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" (click)="closeEditModal()" class="px-5 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors">Update</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          <!-- God Mode / Financials Modal -->
+          @if (showGodModeModal) {
+            <div role="dialog" aria-modal="true" aria-labelledby="god-mode-title"
+              class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-red-500/30" (click)="$event.stopPropagation()">
+                <div class="p-6 border-b border-border-light dark:border-gray-700 flex items-center justify-between bg-red-50 dark:bg-red-900/10">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7z"/></svg>
+                    </div>
+                    <h3 id="god-mode-title" class="text-lg font-bold text-red-600 dark:text-red-400">God Mode: Financials</h3>
+                  </div>
+                  <button (click)="closeGodMode()" aria-label="Close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div class="p-6 space-y-6">
+                  <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 font-mono text-xs text-gray-600 dark:text-gray-400 space-y-2">
+                    <div class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+                      <span>Stripe Payment Intent:</span>
+                      <span class="text-gray-900 dark:text-white font-semibold">pi_3MtwBwLkdIwHu7ix28a3tq...</span>
+                    </div>
+                    <div class="flex justify-between border-b border-gray-200 dark:border-gray-700 py-2">
+                      <span>Base Booking Cost:</span>
+                      <span class="text-gray-900 dark:text-white font-semibold">$1,250.00</span>
+                    </div>
+                    <div class="flex justify-between border-b border-gray-200 dark:border-gray-700 py-2">
+                      <span>Applied Margin (10%):</span>
+                      <span class="text-green-600 dark:text-green-400 font-semibold">+$125.00</span>
+                    </div>
+                    <div class="flex justify-between pt-2 text-sm">
+                      <span class="font-bold">Total Charged:</span>
+                      <span class="font-bold text-gray-900 dark:text-white">$1,375.00</span>
+                    </div>
+                  </div>
+                  <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                      Danger Zone
+                    </h4>
+                    <p class="text-xs text-yellow-700 dark:text-yellow-500 mt-1">Issuing a refund will immediately return funds to the customer's card and update the trip status to CANCELLED. This action cannot be reversed.</p>
+                    <button (click)="issueRefund()" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors text-sm shadow-sm">
+                      Force Cancellation & Refund Stripe ($1,375.00)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
