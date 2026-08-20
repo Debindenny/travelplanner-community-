@@ -67,6 +67,23 @@ module.exports = {
           disabled: '#A3A3A3',
           inverse: '#FFFFFF',
         },
+        // Community "Events" surfaces (list + detail) mirror the Manrope /
+        // blue-gray palette from the Community Home design reference, which
+        // differs slightly from the app-wide `text` tokens above.
+        eventText: {
+          deep: '#0B1220',
+          mid: '#5A6472',
+          soft: '#8B94A3',
+        },
+        // Category badge colors (Meetup/Food share blue, Online gets purple —
+        // matches the design reference's typeStyle exactly).
+        eventTag: {
+          blueBg: '#EAF1FE',
+          blueBorder: '#BFDBFE',
+          purpleBg: '#F3EEFF',
+          purpleBorder: '#DDD0F7',
+          purpleText: '#6B3FA0',
+        },
         border: {
           DEFAULT: '#D4D4D4',
           light: '#E0E0E0',
@@ -81,6 +98,7 @@ module.exports = {
         inter: ['Inter', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
         data: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+        manrope: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       // Named type scale. Each token equals the EXACT pixel size already in use
       // via text-[Npx] arbitrary classes, so migrating to the named class is a

@@ -152,7 +152,7 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
               <div routerLink="/community/events" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
                 <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
                   <span class="w-4 text-center">📅</span>
-                  <span>Events & Meetups</span>
+                  <span>Events</span>
                 </div>
                 <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
               </div>

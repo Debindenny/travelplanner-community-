@@ -25,8 +25,10 @@ import { ToastHostComponent } from 'ui';
     >
       <router-outlet></router-outlet>
     </main>
-    @defer (on idle) {
-      <app-floating-chatbot />
+    @if (currentPath !== '/community/events') {
+      @defer (on idle) {
+        <app-floating-chatbot />
+      }
     }
     <app-command-palette />
     <lib-toast-host />
@@ -64,6 +66,7 @@ export class AppComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   /** Pathname only — query/hash updates must not steal focus from inputs. */
   private lastFocusedPath = '';
+  currentPath = '';
 
   constructor(private router: Router, private ws: WebsocketService) {
     this.router.events.pipe(
@@ -71,6 +74,7 @@ export class AppComponent implements OnInit {
       takeUntilDestroyed()
     ).subscribe((event) => {
       const path = event.urlAfterRedirects.split('?')[0].split('#')[0];
+      this.currentPath = path;
       if (path === this.lastFocusedPath) return;
       this.lastFocusedPath = path;
       setTimeout(() => {

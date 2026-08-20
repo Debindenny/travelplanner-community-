@@ -624,7 +624,9 @@
       "MATCH_COUNT": "{{n}} coincidencia",
       "MATCH_COUNT_PLURAL": "{{n}} coincidencias",
       "SEND_MESSAGE": "Enviar",
-      "SENDING": "Enviando..."
+      "SENDING": "Enviando...",
+      "EVENTS_LABEL": "Eventos",
+      "EVENTS_CTA": "Conoce viajeros en persona →"
     }
   },
   "CONTACT": {

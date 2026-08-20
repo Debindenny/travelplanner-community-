@@ -638,7 +638,9 @@
       "MATCH_COUNT": "{{n}} match",
       "MATCH_COUNT_PLURAL": "{{n}} matches",
       "SEND_MESSAGE": "Send",
-      "SENDING": "Sending..."
+      "SENDING": "Sending...",
+      "EVENTS_LABEL": "Events",
+      "EVENTS_CTA": "Meet travelers in person →"
     }
   },
   "CONTACT": {

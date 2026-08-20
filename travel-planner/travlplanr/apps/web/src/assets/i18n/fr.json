@@ -624,7 +624,9 @@
       "MATCH_COUNT": "{{n}} correspondance",
       "MATCH_COUNT_PLURAL": "{{n}} correspondances",
       "SEND_MESSAGE": "Envoyer",
-      "SENDING": "Envoi..."
+      "SENDING": "Envoi...",
+      "EVENTS_LABEL": "Événements",
+      "EVENTS_CTA": "Rencontrez des voyageurs →"
     }
   },
   "CONTACT": {

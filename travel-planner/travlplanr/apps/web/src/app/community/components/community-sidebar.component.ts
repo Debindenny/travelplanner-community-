@@ -105,7 +105,7 @@ interface EnrichedMatch {
       }
     </div>
 
-    <!-- Events & Meetups -->
+    <!-- Events -->
     <a
       routerLink="/community/events"
       class="flex items-center justify-between bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-4 hover:shadow-md transition-all duration-300"
