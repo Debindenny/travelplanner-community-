@@ -1,12 +1,34 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommunityStoryService, StoryGroup } from '../services/community-story.service';
 import { CommunityProfileService } from '../services/community-profile.service';
 import { CommunityStoryModalComponent } from './community-story-modal.component';
 import { CommunityCreateStoryComponent } from './community-create-story.component';
+import { ToastService } from '../../shared/utils/toast.service';
 
 const SEEN_STORIES_KEY = 'community_seen_stories';
+
+/**
+ * Shown only when the real story feed is empty (no backend data yet), so the rail
+ * isn't bare. Ring gradient communicates trip status, matching the design reference —
+ * green = there now, blue = going soon, grey = recently visited. Purely illustrative;
+ * clicking one explains that it's a preview rather than opening a fake story viewer.
+ */
+interface PreviewStory {
+  name: string;
+  status: 'there' | 'soon' | 'recent';
+  image: string;
+}
+
+const PREVIEW_STORIES: PreviewStory[] = [
+  { name: 'Maya', status: 'there', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=200&q=80' },
+  { name: 'Daniel', status: 'soon', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=200&q=80' },
+  { name: 'Sarah', status: 'recent', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=200&q=80' },
+  { name: 'Iker', status: 'there', image: 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=200&q=80' },
+  { name: 'Nina', status: 'soon', image: 'https://images.unsplash.com/photo-1504829857797-ddff29c27927?auto=format&fit=crop&w=200&q=80' },
+  { name: 'Tom', status: 'recent', image: 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=200&q=80' },
+];
 
 @Component({
     selector: 'app-community-stories-bar',
@@ -79,18 +101,39 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
         </button>
       }
 
+      <!-- Preview stories (shown only while the real feed is empty) -->
+      @if (!isLoading() && feed().length === 0) {
+        @for (story of previewStories; track story.name) {
+          <button
+            type="button"
+            (click)="openPreviewStory(story)"
+            class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
+          >
+            <span
+              class="relative w-16 h-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
+              [style.background]="ringGradient(story.status)"
+            >
+              <span class="block w-full h-full rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-slate-100 dark:bg-gray-700">
+                <img [src]="story.image" class="w-full h-full object-cover" alt="" />
+              </span>
+            </span>
+            <span class="text-2xs font-bold text-text-primary truncate max-w-full">{{ story.name }}</span>
+          </button>
+        }
+      }
+
     </div>
 
     @if (showStoryModal()) {
-      <app-community-story-modal 
-        [groups]="feed()" 
+      <app-community-story-modal
+        [groups]="feed()"
         [initialGroupIndex]="activeStoryIndex"
         (close)="showStoryModal.set(false)"
       />
     }
 
     @if (showCreateModal()) {
-      <app-community-create-story 
+      <app-community-create-story
         (close)="showCreateModal.set(false)"
         (created)="loadFeed()"
       />
@@ -109,6 +152,8 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
 export class CommunityStoriesBarComponent implements OnInit {
   private storyService = inject(CommunityStoryService);
   private profileService = inject(CommunityProfileService);
+  private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   feed = signal<StoryGroup[]>([]);
   showStoryModal = signal(false);
@@ -118,6 +163,8 @@ export class CommunityStoriesBarComponent implements OnInit {
   isLoading = signal(true);
   myAvatar = signal<string | null>(null);
   private seenIds = new Set<string>(this.loadSeenIds());
+
+  readonly previewStories = PREVIEW_STORIES;
 
   ngOnInit() {
     this.loadFeed();
@@ -171,5 +218,15 @@ export class CommunityStoriesBarComponent implements OnInit {
     this.activeStoryIndex = index;
     this.showStoryModal.set(true);
     this.markGroupSeen(group);
+  }
+
+  ringGradient(status: PreviewStory['status']): string {
+    if (status === 'there') return 'linear-gradient(140deg,#0F9D58,#2AA98B)';
+    if (status === 'soon') return 'linear-gradient(140deg,#0060EA,#7A4FA3)';
+    return '#E2E7EF';
+  }
+
+  openPreviewStory(story: PreviewStory): void {
+    this.toast.success(this.translate.instant('COMMUNITY.STORIES_BAR.PREVIEW_NOTICE', { name: story.name }));
   }
 }

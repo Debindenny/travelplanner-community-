@@ -214,6 +214,40 @@ main {
     @apply font-data text-2xs font-medium uppercase tracking-[0.14em] text-text-tertiary;
   }
 
+  /* Community "next trip" hero card — colors ported verbatim from the community
+     reference design, which sits outside the Aero Cartography token set. */
+  .community-hero-overlay {
+    background: linear-gradient(100deg, rgba(7, 17, 35, 0.94) 0%, rgba(7, 17, 35, 0.72) 46%, rgba(7, 17, 35, 0.18) 100%);
+  }
+
+  .community-badge-dot {
+    background: #5be3a7;
+  }
+
+  .community-hero-btn-solid {
+    color: #0b1220;
+
+    &:hover {
+      background: #eaf1fe;
+    }
+  }
+
+  .community-sidebar-item:hover {
+    background: #f4f7fb;
+  }
+
+  .community-sidebar-count {
+    background: #f2f4f7;
+  }
+
+  .community-journey-track {
+    background: #eef1f6;
+  }
+
+  .community-journey-fill {
+    background: linear-gradient(90deg, #0060ea, #2aa98b);
+  }
+
   .display-heading {
     @apply font-display tracking-[-0.04em];
   }

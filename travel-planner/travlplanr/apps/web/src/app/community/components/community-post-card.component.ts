@@ -23,7 +23,11 @@ import { A11yModule } from '@angular/cdk/a11y';
       <div class="flex items-start justify-between gap-3 p-4">
         <div class="flex items-center gap-3 min-w-0">
           <a [routerLink]="['/community/users', post.author.id]" class="block shrink-0">
-            <img [src]="post.author.avatar || '/assets/images/default-avatar.svg'" [alt]="'COMMUNITY.POST_CARD.AUTHOR_AVATAR_ALT' | translate" class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] object-cover bg-slate-50" loading="lazy" decoding="async" />
+            @if (post.author.avatar) {
+              <img [src]="post.author.avatar" [alt]="'COMMUNITY.POST_CARD.AUTHOR_AVATAR_ALT' | translate" class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] object-cover bg-slate-50" loading="lazy" decoding="async" />
+            } @else {
+              <span class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] flex items-center justify-center text-white font-extrabold text-sm" [style.background]="authorColor()">{{ authorInitial() }}</span>
+            }
           </a>
           <div class="flex flex-col min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
@@ -38,8 +42,8 @@ import { A11yModule } from '@angular/cdk/a11y';
               <app-community-level-badge [xp]="post.author.xp" [levelRank]="post.author.level_rank || post.author.level?.rank" />
               <span
                 class="h-[21px] px-2.5 rounded-md text-[9.5px] font-extrabold tracking-wide flex items-center whitespace-nowrap"
-                [class.text-primary]="kindLabel() === 'POST'"
-                [class.bg-primary-50]="kindLabel() === 'POST'"
+                [class.text-primary]="kindLabel() === 'INSIGHT'"
+                [class.bg-primary-50]="kindLabel() === 'INSIGHT'"
                 [class.text-purple-700]="kindLabel() === 'POLL'"
                 [class.bg-purple-50]="kindLabel() === 'POLL'"
                 [class.text-amber-700]="kindLabel() === 'QUESTION'"
@@ -80,13 +84,6 @@ import { A11yModule } from '@angular/cdk/a11y';
               {{ (post.is_following ? 'COMMUNITY.FOLLOWING' : 'COMMUNITY.POST_CARD.FOLLOW') | translate }}
             </button>
           }
-          <button
-            (click)="onSave.emit(post.id)"
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none"
-            [attr.aria-label]="'COMMUNITY.POST_CARD.SAVE_TO_COLLECTION_ARIA' | translate"
-            >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-          </button>
           <div class="relative">
             <button (click)="toggleOptionsMenu()" class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none" [attr.aria-label]="'COMMUNITY.POST_CARD.MORE_OPTIONS_ARIA' | translate">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -108,8 +105,11 @@ import { A11yModule } from '@angular/cdk/a11y';
       <!-- Caption -->
       <div class="px-4 pb-3">
         @if (!isEditing) {
+          @if (captionHeadline()) {
+            <p class="text-[17px] font-extrabold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
+          }
           <p class="text-[13.5px] font-medium leading-[1.65] text-text-muted whitespace-pre-wrap">
-            @for (token of getCaptionTokens(getDisplayCaption()); track $index) {
+            @for (token of getCaptionTokens(captionRest()); track $index) {
               @if (token.type === 'hashtag') {
                 <span (click)="filterByHashtag(token.value)" class="text-primary font-bold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
               } @else {
@@ -127,8 +127,8 @@ import { A11yModule } from '@angular/cdk/a11y';
         }
       </div>
 
-      <!-- Destination badge -->
-      @if (post.destination && !isEditing) {
+      <!-- Destination badge (inline pill only when there's no image to overlay it on) -->
+      @if (post.destination && !isEditing && !post.images?.length) {
         <div class="px-4 pb-3">
           <a [routerLink]="['/destinations', post.destination.id]" class="inline-flex items-center gap-1.5 bg-primary-50 border border-primary-subtle/40 rounded-full px-3 py-1 hover:bg-primary-100 transition-colors">
             <svg class="w-3 h-3 text-primary fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
@@ -146,8 +146,17 @@ import { A11yModule } from '@angular/cdk/a11y';
 
       <!-- Post Images -->
       @if (post.images?.length) {
-        <div class="border-y border-slate-100 dark:border-gray-700/70">
+        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
           <app-community-post-carousel [images]="post.images" />
+          @if (post.destination && !isEditing) {
+            <a
+              [routerLink]="['/destinations', post.destination.id]"
+              class="absolute left-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-bold hover:bg-black/70 transition-colors"
+            >
+              <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+              {{ post.destination.name }}
+            </a>
+          }
         </div>
       }
 
@@ -183,7 +192,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 
       <!-- Social line -->
       <div class="px-4 pt-3 text-[11.5px] font-bold text-text-faint">
-        {{ (post.likes === 1 ? 'COMMUNITY.POST_CARD.REACTION_COUNT' : 'COMMUNITY.POST_CARD.REACTIONS_COUNT') | translate: { count: post.likes } }}
+        {{ (post.likes === 1 ? 'COMMUNITY.POST_CARD.HELPFUL_COUNT' : 'COMMUNITY.POST_CARD.HELPFUL_COUNT_PLURAL') | translate: { count: post.likes } }}
         ·
         @if (!isDetailView) {
           <button (click)="onToggleCommentsView.emit(post.id)" class="hover:text-primary hover:underline focus:outline-none transition-colors">{{ (post.comments === 1 ? 'COMMUNITY.POST_CARD.COMMENT_COUNT' : 'COMMUNITY.POST_CARD.COMMENTS_COUNT') | translate: { count: post.comments } }}</button>
@@ -213,7 +222,15 @@ import { A11yModule } from '@angular/cdk/a11y';
         </button>
         <button
           (click)="isDetailView ? onCommentFocus.emit() : onToggleCommentsView.emit(post.id)"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-bold border transition-colors focus:outline-none"
+          [class.border-primary]="commentsOpen"
+          [class.text-primary]="commentsOpen"
+          [class.bg-primary-50]="commentsOpen"
+          [class.border-slate-200]="!commentsOpen"
+          [class.dark:border-gray-700]="!commentsOpen"
+          [class.bg-white]="!commentsOpen"
+          [class.dark:bg-gray-800]="!commentsOpen"
+          [class.text-text-secondary]="!commentsOpen"
           >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
           {{ 'COMMUNITY.POST_CARD.COMMENT' | translate }} · {{ post.comments }}
@@ -225,6 +242,16 @@ import { A11yModule } from '@angular/cdk/a11y';
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
           {{ 'COMMUNITY.POST_CARD.SHARE' | translate }}
         </button>
+        @if (!post.itinerary) {
+          <span class="flex-1"></span>
+          <button
+            (click)="onSave.emit(post.id)"
+            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-xs font-extrabold bg-primary hover:bg-primary-hover text-white transition-colors focus:outline-none"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            {{ 'COMMUNITY.POST_CARD.ADD_TO_TRIP' | translate }}
+          </button>
+        }
       </div>
 
       <ng-content></ng-content>
@@ -268,6 +295,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 export class CommunityPostCardComponent {
   @Input({ required: true }) post!: any;
   @Input() isDetailView = false;
+  @Input() commentsOpen = false;
 
   @Output() onToggleFollow = new EventEmitter<any>();
   @Output() onSave = new EventEmitter<string>();
@@ -299,7 +327,36 @@ export class CommunityPostCardComponent {
   kindLabel(): string {
     if (this.post.type === 'poll') return 'POLL';
     if (this.post.type === 'qa') return 'QUESTION';
-    return 'POST';
+    return 'INSIGHT';
+  }
+
+  private static readonly AVATAR_COLORS = ['#0060EA', '#0F9D58', '#D2604B', '#6B3FA0', '#2AA98B', '#E5734E'];
+
+  authorInitial(): string {
+    return (this.post.author?.name || '?').trim().charAt(0).toUpperCase();
+  }
+
+  authorColor(): string {
+    const name: string = this.post.author?.name || '';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = CommunityPostCardComponent.AVATAR_COLORS;
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  /** First line reads as a bold headline when the caption spans multiple lines; otherwise it's shown plain. */
+  captionHeadline(): string {
+    const caption = this.getDisplayCaption();
+    const newlineIndex = caption.indexOf('\n');
+    return newlineIndex === -1 ? '' : caption.slice(0, newlineIndex).trim();
+  }
+
+  captionRest(): string {
+    const caption = this.getDisplayCaption();
+    const newlineIndex = caption.indexOf('\n');
+    return newlineIndex === -1 ? caption : caption.slice(newlineIndex + 1).trim();
   }
 
   toggleOptionsMenu() {

@@ -65,7 +65,7 @@ export class CommunityCrewWidgetComponent {
   readonly faces = ['linear-gradient(140deg,#0060EA,#7A4FA3)', 'linear-gradient(140deg,#0F9D58,#2AA98B)', 'linear-gradient(140deg,#F2B872,#D2604B)', 'linear-gradient(140deg,#6B3FA0,#0060EA)'];
 
   readonly joined = signal(false);
-  readonly hasInvite = signal(true);
+  readonly hasInvite = signal(false);
 
   acceptInvite(): void {
     this.joined.set(true);

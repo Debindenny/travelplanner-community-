@@ -295,6 +295,7 @@ interface DestinationOption {
 })
 export class CommunityCreatePostComponent implements OnInit, OnDestroy {
   @Input() userAvatar?: string;
+  @Input() initialType?: string;
   @Output() postCreated = new EventEmitter<CommunityPost>();
   @Output() closed = new EventEmitter<void>();
 
@@ -376,6 +377,11 @@ export class CommunityCreatePostComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (this.initialType && this.postTypes.some(t => t.value === this.initialType)) {
+      this.setPostType(this.initialType);
+      this.expandForm();
+    }
+
     this.destinationSearch.load();
 
     this.http.get<any>(apiUrl('/trips')).subscribe({

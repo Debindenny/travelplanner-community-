@@ -36,7 +36,7 @@ export const SEARCH_SUGGESTIONS: SearchSuggestion[] = [
   { icon: '🗺️', label: 'Japan 7-day trips', kind: 'Trips', target: 'Trips' },
   { icon: '💡', label: 'Japan travel tips', kind: 'Posts', target: 'Discover' },
   { icon: '🧑', label: 'Travelers going to Japan', kind: 'People', target: 'Travel Circles' },
-  { icon: '📅', label: 'Japan events & meetups', kind: 'Events', target: 'Events' },
+  { icon: '📅', label: 'Japan events', kind: 'Events', target: 'Events' },
 ];
 
 export const AI_PROMPTS: AiPrompt[] = [

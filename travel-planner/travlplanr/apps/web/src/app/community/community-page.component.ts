@@ -28,6 +28,9 @@ import { CommunityJoinRequestsComponent } from './components/community-join-requ
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
 import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
+import { CommunityStartCircleCardComponent } from './components/community-start-circle-card.component';
+import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
+import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
@@ -54,6 +57,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityTravelersRailComponent,
       CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
+      CommunityStartCircleCardComponent,
+      CommunitySimilarTravelersComponent,
+      CommunityComposerModalComponent,
     ],
     template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
@@ -75,8 +81,8 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
         <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
           
           <!-- LEFT COLUMN (Subnav + Journey) -->
-          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 sticky top-[92px]">
-            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
+          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 sticky top-[92px] gap-5">
+            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
             <app-community-journey-stats />
           </div>
 
@@ -237,8 +243,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
               <!-- Posts -->
               @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
-                  <app-community-post-card 
+                  <app-community-post-card
                     [post]="post"
+                    [commentsOpen]="expandedComments.has(post.id)"
                     (onToggleFollow)="toggleFollow($event)"
                     (onSave)="openSaveModal($event)"
                     (onToggleCommentsView)="toggleCommentsView($event)"
@@ -264,6 +271,10 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                 </div>
               }
 
+              @if (postCategory() === 'forYou' && !feedMode().startsWith('hashtag-') && !isLoadingFeed) {
+                <app-community-similar-travelers />
+              }
+
               <!-- Infinite Scroll Sentinel -->
               @if (isLoadingFeed) {
                 <div class="flex justify-center py-6">
@@ -280,13 +291,24 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             }
           </div>
 
-          <!-- RIGHT COLUMN (Crew, requests, travelers, trending, events) -->
+          <!-- RIGHT COLUMN (Crew, requests, travelers, circle CTA, trending, events, footer) -->
           <div class="hidden lg:flex lg:col-span-3 flex-col gap-4 sticky top-[92px]">
             <app-community-crew-widget />
             <app-community-join-requests />
             <app-community-travelers-rail />
+            <app-community-start-circle-card />
             <app-community-destination-trending />
             <app-community-upcoming-events-widget />
+
+            <div class="text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
+              <div class="flex flex-wrap gap-x-3 gap-y-1">
+                <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
+                <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
+                <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
+                <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
+              </div>
+              <p class="mt-1.5 text-[10.5px] font-extrabold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
+            </div>
           </div>
 
         </div>
@@ -300,6 +322,14 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
           (closed)="savePostId = null"
           (saved)="onPostSaved($event)"
           (error)="onPostSaved($event)"
+        />
+      }
+
+      @if (showComposerModal()) {
+        <app-community-composer-modal
+          [userAvatar]="myProfile()?.avatar ?? undefined"
+          (postCreated)="onPostCreated($event); showComposerModal.set(false)"
+          (close)="showComposerModal.set(false)"
         />
       }
 
@@ -327,7 +357,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   profileService = inject(CommunityProfileService);
   notificationsService = inject(CommunityNotificationsService);
   posts: CommunityPostType[] = [];
-  showCreatePostModal = false;
+  showComposerModal = signal(false);
   isLoadingFeed = false;
   errorLoadingFeed = false;
   viewMode: 'feed' | 'map' = 'feed';
