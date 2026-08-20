@@ -1,0 +1,38 @@
+<div class="ds-page">
+  <app-ds-saved-tab />
+</div>
+
+@switch (store.modal()?.kind) {
+  @case ('savedDetail') {
+    @if (store.activeSavedItem(); as item) {
+      <app-ds-modal-shell width="420px" [showHeader]="false" (close)="store.closeModal()">
+        <app-ds-saved-detail-modal
+          [item]="item"
+          [saved]="true"
+          (close)="store.closeModal()"
+          (toggleSave)="store.removeSavedCollectionItem(item.id); store.closeModal()"
+          (addToTrip)="store.openAddToTrip({ spot: item.title, meta: item.tag + ' · ' + item.place, image: item.image })"
+        />
+      </app-ds-modal-shell>
+    }
+  }
+  @case ('addToTrip') {
+    @if (store.activeAddToTripPayload(); as trip) {
+      <app-ds-modal-shell title="Add to trip" subtitle="Bring this place straight into your itinerary." (close)="store.closeModal()">
+        <app-ds-add-to-trip-modal
+          [spot]="trip.spot"
+          [spotMeta]="trip.meta"
+          [spotImage]="trip.image"
+          [trips]="store.tripPickOptions"
+          [tripPick]="store.tripPick()"
+          [days]="store.addDays()"
+          [confirmationLine]="store.addConfirmationLine()"
+          (pickTrip)="store.pickTrip($event)"
+          (pickDay)="store.pickAddDay($event)"
+          (cancel)="store.closeModal()"
+          (confirm)="store.confirmAddToTrip()"
+        />
+      </app-ds-modal-shell>
+    }
+  }
+}

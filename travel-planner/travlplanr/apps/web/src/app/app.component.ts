@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, DOCUMENT } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, DOCUMENT } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 
 import { filter } from 'rxjs/operators';
@@ -25,8 +25,8 @@ import { ToastHostComponent } from 'ui';
     >
       <router-outlet></router-outlet>
     </main>
-    @if (currentPath !== '/community/events') {
-      @defer (on idle) {
+    @defer (on idle) {
+      @if (!hideFloatingChat()) {
         <app-floating-chatbot />
       }
     }
@@ -66,7 +66,11 @@ export class AppComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   /** Pathname only — query/hash updates must not steal focus from inputs. */
   private lastFocusedPath = '';
-  currentPath = '';
+
+  // The floating "Describe your trip" chat widget doesn't belong on the
+  // Discover/Saved pages — they have their own focused UI.
+  private static readonly HIDE_FLOATING_CHAT_ON = ['/community/discover', '/community/saved', '/community/events'];
+  readonly hideFloatingChat = signal(false);
 
   constructor(private router: Router, private ws: WebsocketService) {
     this.router.events.pipe(
@@ -74,7 +78,7 @@ export class AppComponent implements OnInit {
       takeUntilDestroyed()
     ).subscribe((event) => {
       const path = event.urlAfterRedirects.split('?')[0].split('#')[0];
-      this.currentPath = path;
+      this.hideFloatingChat.set(AppComponent.HIDE_FLOATING_CHAT_ON.some((route) => path.startsWith(route)));
       if (path === this.lastFocusedPath) return;
       this.lastFocusedPath = path;
       setTimeout(() => {

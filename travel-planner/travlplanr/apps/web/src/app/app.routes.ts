@@ -136,6 +136,16 @@ export const routes: Routes = [
           import('./community/community-page.component').then((m) => m.CommunityPageComponent),
       },
       {
+        path: 'community/discover',
+        loadComponent: () =>
+          import('./community/discover-saved/discover-page.component').then((m) => m.DiscoverPageComponent),
+      },
+      {
+        path: 'community/saved',
+        loadComponent: () =>
+          import('./community/discover-saved/saved-page.component').then((m) => m.SavedPageComponent),
+      },
+      {
         path: 'community/collections',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -157,6 +167,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./community/components/matching.component').then((m) => m.MatchingComponent),
+      },
+      {
+        path: 'community/travel-circles',
+        loadComponent: () =>
+          import('./community/components/community-travel-circles-page.component').then((m) => m.CommunityTravelCirclesPageComponent),
+      },
+      {
+        path: 'community/trips',
+        loadComponent: () =>
+          import('./community/components/community-trips-page.component').then((m) => m.CommunityTripsPageComponent),
       },
       {
         path: 'community/users/:id',

@@ -1,0 +1,93 @@
+<div class="breadcrumb">
+  <button type="button" class="breadcrumb__back" (click)="goHome.emit()" aria-label="Back to Home">←</button>
+  <span class="breadcrumb__crumb">Community</span>
+  <span class="breadcrumb__divider">/</span>
+  <span class="breadcrumb__current">Trips</span>
+</div>
+
+<div class="trips-header">
+  <span class="trips-header__eyebrow">Community trips</span>
+  <h1 class="trips-header__title">Real itineraries you can clone</h1>
+  <div class="trips-header__row">
+    <p class="trips-header__subtitle">
+      Every trip here was actually travelled. Clone one and TRAVL AI reshapes it to your dates and pace.
+    </p>
+    <button type="button" class="trips-header__share" (click)="onShareTrip()">Share a trip</button>
+  </div>
+</div>
+
+<div class="trips-filters">
+  @for (option of filterOptions; track option) {
+    <button type="button" class="trips-filters__pill" [class.is-active]="filter() === option" (click)="filter.set(option)">
+      {{ option }}
+    </button>
+  }
+</div>
+
+@if (filteredTrips().length === 0) {
+  <div class="empty-state">
+    <span class="empty-state__icon">
+      <app-icon name="compass" [size]="22" />
+    </span>
+    <div class="empty-state__title">No trips in this filter yet</div>
+    <p class="empty-state__copy">Try a different filter, or check back once more travelers share their trips.</p>
+  </div>
+} @else {
+  <div class="trips-grid">
+    @for (trip of filteredTrips(); track trip.id) {
+      <article class="trip-card">
+        <div class="trip-card__image" [style.background-image]="'url(' + trip.image + ')'">
+          <span class="trip-card__saves">{{ trip.saves }}</span>
+          <div class="trip-card__image-overlay">
+            <h3 class="trip-card__title">{{ trip.title }}</h3>
+            <p class="trip-card__subtitle">{{ trip.subtitle }}</p>
+          </div>
+        </div>
+
+        <div class="trip-card__body">
+          <div class="trip-card__meta-row">
+            <span class="trip-card__author">{{ trip.author }}</span>
+            <span class="trip-card__updated">{{ trip.updated }}</span>
+          </div>
+
+          <div class="trip-card__stats">
+            <div class="trip-card__stat">
+              <span class="trip-card__stat-value">{{ trip.days }}</span>
+              <span class="trip-card__stat-label">Days</span>
+            </div>
+            <div class="trip-card__stat">
+              <span class="trip-card__stat-value">{{ trip.cities }}</span>
+              <span class="trip-card__stat-label">Cities</span>
+            </div>
+            <div class="trip-card__stat">
+              <span class="trip-card__stat-value">{{ trip.activities }}</span>
+              <span class="trip-card__stat-label">Activities</span>
+            </div>
+            <div class="trip-card__stat">
+              <span class="trip-card__stat-value">{{ trip.perPerson }}</span>
+              <span class="trip-card__stat-label">Per person</span>
+            </div>
+          </div>
+
+          <div class="trip-card__actions">
+            <button type="button" class="trip-card__ghost" (click)="onViewItinerary(trip)">View itinerary</button>
+            <button type="button" class="trip-card__ghost" [class.is-active]="isSaved(trip.id)" (click)="store.toggleSave(trip.id)">
+              {{ isSaved(trip.id) ? 'Saved' : 'Save' }}
+            </button>
+            <span class="trip-card__spacer"></span>
+            <button type="button" class="trip-card__clone" (click)="onClone(trip)">
+              <app-icon name="sparkles" [size]="14" />
+              Clone
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (cloningTrip(); as trip) {
+  <app-modal-shell title="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" (close)="onCancelClone()">
+    <app-clone-trip-modal [trip]="trip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
+  </app-modal-shell>
+}

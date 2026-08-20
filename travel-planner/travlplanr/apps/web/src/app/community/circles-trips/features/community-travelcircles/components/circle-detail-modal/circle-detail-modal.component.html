@@ -1,0 +1,49 @@
+<div class="circle-detail__banner">
+  <span class="circle-detail__scrim"></span>
+  <span
+    class="circle-detail__tag"
+    [class.circle-detail__tag--public]="circle().visibility === 'Public'"
+  >{{ circle().visibility }}</span>
+  <button type="button" class="circle-detail__close" (click)="close.emit()" aria-label="Close">
+    <app-icon name="x" [size]="16" />
+  </button>
+  <span class="circle-detail__banner-text">
+    <span class="circle-detail__title">{{ circle().title }}</span>
+    <span class="circle-detail__meta">{{ circle().meta }}</span>
+  </span>
+</div>
+
+<div class="circle-detail__body">
+  <p class="circle-detail__description">{{ circle().description }}</p>
+
+  <div class="circle-detail__members">
+    <span class="circle-detail__members-label">MEMBERS</span>
+    @for (member of circle().members; track member.name) {
+      <div class="circle-detail__member">
+        <span class="circle-detail__member-copy">
+          <span class="circle-detail__member-name">{{ member.name }}</span>
+          <span class="circle-detail__member-sub">{{ memberSubtext(member) }}</span>
+        </span>
+        @if (member.role === 'Host') {
+          <span class="circle-detail__member-badge">HOST</span>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<div class="circle-detail__footer">
+  <span class="circle-detail__activity">
+    <span class="circle-detail__activity-dot" [class.circle-detail__activity-dot--live]="isRecentlyActive()"></span>
+    {{ circle().activity }}
+  </span>
+  <button
+    type="button"
+    class="circle-detail__action"
+    [class.circle-detail__action--active]="isMember()"
+    [class.circle-detail__action--owner]="isOwner()"
+    (click)="toggleMembership.emit()"
+  >
+    {{ actionLabel() }}
+  </button>
+</div>
