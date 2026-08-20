@@ -15,9 +15,10 @@ interface HeroDestination {
 }
 
 const FALLBACK_DESTINATIONS: HeroDestination[] = [
-  { name: 'Kyoto, Japan', image: 'assets/images/landing/journey-thailand.jpg' },
-  { name: 'Santorini, Greece', image: 'assets/images/landing/destination-bali.jpg' },
-  { name: 'Bali, Indonesia', image: 'assets/images/landing/destination-paris.jpg' },
+  // { name: 'Kyoto, Japan', image: 'assets/images/landing/journey-thailand.jpg' },
+  { name: 'Paris, France',image: 'your-paris-image.jpg'},
+  // { name: 'Santorini, Greece', image: 'assets/images/landing/destination-bali.jpg' },
+  // { name: 'Bali, Indonesia', image: 'assets/images/landing/destination-paris.jpg' },
 ];
 
 @Component({
@@ -32,7 +33,7 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
           [style.backgroundImage]="'url(' + (trip.image || fallbackImage) + ')'"
         ></div>
         <div class="absolute inset-0 community-hero-overlay"></div>
-        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7">
+        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7 max-w-[650px]">
           <div class="flex items-center gap-[9px] mb-3">
             <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
             <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">
@@ -85,7 +86,8 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
             ></button>
           }
         </div>
-        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7">
+        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7 max-w-[650px]">
+
           <div class="flex items-center gap-[9px] mb-3">
             <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
             <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>

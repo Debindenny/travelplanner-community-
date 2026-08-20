@@ -30,7 +30,6 @@ import { CommunityDestinationTrendingComponent } from './components/community-de
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunityStartCircleCardComponent } from './components/community-start-circle-card.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
-import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
@@ -59,7 +58,6 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityUpcomingEventsWidgetComponent,
       CommunityStartCircleCardComponent,
       CommunitySimilarTravelersComponent,
-      CommunityComposerModalComponent,
     ],
     template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
@@ -80,15 +78,14 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
         <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
           
-          <!-- LEFT COLUMN (Subnav + Journey) -->
-          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 sticky top-[92px] gap-5">
-            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
+          <!-- LEFT COLUMN (Subnav + Journey) — spans both content rows below -->
+          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 md:row-span-2 lg:row-span-2 sticky top-[92px] gap-5">
+            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
             <app-community-journey-stats />
           </div>
 
-          <!-- CENTER COLUMN (Feed) -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
-
+          <!-- TOP ROW: Hero + Stories, full width alongside the left nav -->
+          <div class="col-span-1 md:col-span-3 lg:col-span-9 space-y-5">
             <!-- Hero band -->
             <app-community-hero
               (onPost)="scrollToCreatePost()"
@@ -99,6 +96,10 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl px-2 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
               <app-community-stories-bar />
             </div>
+          </div>
+
+          <!-- CENTER COLUMN (Feed) -->
+          <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
 
             <!-- Create a Post -->
             <div #createPostAnchor>
@@ -243,9 +244,8 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
               <!-- Posts -->
               @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
-                  <app-community-post-card
+                  <app-community-post-card 
                     [post]="post"
-                    [commentsOpen]="expandedComments.has(post.id)"
                     (onToggleFollow)="toggleFollow($event)"
                     (onSave)="openSaveModal($event)"
                     (onToggleCommentsView)="toggleCommentsView($event)"
@@ -326,11 +326,40 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       }
 
       @if (showComposerModal()) {
-        <app-community-composer-modal
-          [userAvatar]="myProfile()?.avatar ?? undefined"
-          (postCreated)="onPostCreated($event); showComposerModal.set(false)"
-          (close)="showComposerModal.set(false)"
-        />
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="composer-modal-title"
+          (click)="showComposerModal.set(false)"
+        >
+          <div
+            class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-800 shadow-2xl"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-gray-700">
+              <div class="flex flex-col gap-0.5">
+                <h2 id="composer-modal-title" class="text-base font-extrabold text-text-primary">{{ 'COMMUNITY.COMPOSER_MODAL.TITLE' | translate }}</h2>
+                <p class="text-xs font-medium text-text-faint">{{ 'COMMUNITY.COMPOSER_MODAL.SUBTITLE' | translate }}</p>
+              </div>
+              <button
+                type="button"
+                (click)="showComposerModal.set(false)"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.CLOSE_ARIA' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="p-4">
+              <app-community-create-post
+                [userAvatar]="myProfile()?.avatar ?? undefined"
+                (postCreated)="onPostCreated($event); showComposerModal.set(false)"
+                (closed)="showComposerModal.set(false)"
+              />
+            </div>
+          </div>
+        </div>
       }
 
       @if (toastMessage()) {
