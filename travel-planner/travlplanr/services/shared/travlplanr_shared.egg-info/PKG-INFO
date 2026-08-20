@@ -8,3 +8,4 @@ Requires-Dist: pydantic-settings
 Requires-Dist: sqlalchemy[asyncio]
 Requires-Dist: redis
 Requires-Dist: python-jose[cryptography]
+Requires-Dist: httpx>=0.27.0

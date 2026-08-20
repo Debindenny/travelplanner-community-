@@ -159,6 +159,8 @@ from app.routers import (
     community_notifications,
     community_messages,
     community_misc,
+    community_discover,
+    community_saved,
     community_websockets,
     community_moderation,
     community_gamification,
@@ -196,6 +198,8 @@ app.include_router(community_stories.router, prefix="/api/v1/community/stories",
 app.include_router(community_notifications.router, prefix="/api/v1/community/notifications", tags=["Community"])
 app.include_router(community_messages.router, prefix="/api/v1/community/messages", tags=["Community"])
 app.include_router(community_misc.router, prefix="/api/v1/community", tags=["Community"])
+app.include_router(community_discover.router, prefix="/api/v1/community", tags=["Community"])
+app.include_router(community_saved.router, prefix="/api/v1/community", tags=["Community"])
 app.include_router(community_websockets.router, prefix="/api/v1/community", tags=["Community"])
 app.include_router(community_moderation.router, prefix="/api/v1/community", tags=["Community"])
 app.include_router(community_gamification.router, prefix="/api/v1/community/gamification", tags=["Community"])

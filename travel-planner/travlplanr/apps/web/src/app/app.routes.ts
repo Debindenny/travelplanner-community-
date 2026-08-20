@@ -136,6 +136,16 @@ export const routes: Routes = [
           import('./community/community-page.component').then((m) => m.CommunityPageComponent),
       },
       {
+        path: 'community/discover',
+        loadComponent: () =>
+          import('./community/discover-saved/discover-page.component').then((m) => m.DiscoverPageComponent),
+      },
+      {
+        path: 'community/saved',
+        loadComponent: () =>
+          import('./community/discover-saved/saved-page.component').then((m) => m.SavedPageComponent),
+      },
+      {
         path: 'community/collections',
         canActivate: [authGuard],
         loadComponent: () =>

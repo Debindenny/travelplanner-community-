@@ -1,0 +1,63 @@
+<div class="breadcrumb">
+  <a routerLink="/community" class="breadcrumb__back" aria-label="Back to Community">←</a>
+  <span class="breadcrumb__crumb">Community</span>
+  <span class="breadcrumb__divider">/</span>
+  <span class="breadcrumb__current">Saved</span>
+</div>
+
+<div class="saved-tab">
+  <div class="saved-tab__header">
+    <div class="saved-tab__heading">
+      <div class="saved-tab__eyebrow">SAVED</div>
+      <h1 class="saved-tab__title">Your collection</h1>
+      <p class="saved-tab__subtitle">{{ store.savedCollectionCount() }} — add any of them straight into a trip.</p>
+    </div>
+    <div class="saved-tab__filters">
+      @for (tab of store.savedCollectionTabs; track tab) {
+        <button
+          type="button"
+          class="saved-tab__filter"
+          [class.is-active]="store.savedCollectionTab() === tab"
+          (click)="store.selectSavedCollectionTab(tab)"
+        >
+          {{ tab }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (store.savedCollectionEmpty()) {
+    <div class="empty-state">
+      <span class="empty-state__icon">
+        <app-ds-icon name="bookmark" [size]="22" />
+      </span>
+      <div class="empty-state__title">Nothing saved here yet</div>
+      <p class="empty-state__copy">Tap Save on any post, trip or spot and it lands in this collection.</p>
+      <a routerLink="/community" class="empty-state__button">Browse the feed</a>
+    </div>
+  } @else {
+    <div class="saved-tab__grid">
+      @for (item of store.savedCollectionItems(); track item.id) {
+        <div class="saved-card">
+          <button type="button" class="saved-card__open" (click)="onOpen(item)">
+            <span class="saved-card__cover" [style.background-image]="'url(' + item.image + ')'">
+              <span class="saved-card__kind">{{ item.kind }}</span>
+            </span>
+            <span class="saved-card__title-block">
+              <span class="saved-card__title">{{ item.title }}</span>
+              <span class="saved-card__meta">{{ item.meta }}</span>
+            </span>
+          </button>
+          <div class="saved-card__body">
+            <div class="saved-card__actions">
+              <button type="button" class="saved-card__add" (click)="onAddToTrip(item)">Add to trip</button>
+              <button type="button" class="saved-card__remove" aria-label="Remove from saved" (click)="store.removeSavedCollectionItem(item.id)">
+                <app-ds-icon name="trash" [size]="14" />
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

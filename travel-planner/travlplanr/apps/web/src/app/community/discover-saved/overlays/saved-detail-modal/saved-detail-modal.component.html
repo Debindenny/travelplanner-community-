@@ -1,0 +1,30 @@
+<div class="saved-detail__banner" [style.background-image]="'url(' + item().image + ')'">
+  <span class="saved-detail__scrim"></span>
+  <span class="saved-detail__tag">{{ item().tag }}</span>
+  <button type="button" class="saved-detail__close" (click)="close.emit()" aria-label="Close">
+    <app-ds-icon name="x" [size]="16" />
+  </button>
+  <span class="saved-detail__banner-text">
+    <span class="saved-detail__title">{{ item().title }}</span>
+    <span class="saved-detail__place">{{ item().place }}</span>
+  </span>
+</div>
+
+<div class="saved-detail__body">
+  <div class="saved-detail__facts" [style.grid-template-columns]="'repeat(' + item().facts.length + ', 1fr)'">
+    @for (fact of item().facts; track fact.label) {
+      <span class="saved-detail__fact">
+        <span class="saved-detail__fact-label">{{ fact.label }}</span>
+        <span class="saved-detail__fact-value">{{ fact.value }}</span>
+      </span>
+    }
+  </div>
+</div>
+
+<div class="saved-detail__footer">
+  <span class="saved-detail__used">{{ item().used }}</span>
+  <button type="button" class="saved-detail__save" [class.is-saved]="saved()" (click)="toggleSave.emit()">
+    {{ saved() ? 'Saved' : 'Save' }}
+  </button>
+  <button type="button" class="saved-detail__confirm" (click)="addToTrip.emit()">Add to itinerary</button>
+</div>

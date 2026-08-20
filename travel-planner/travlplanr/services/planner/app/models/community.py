@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, Column, UniqueConstraint, Index, Float
+from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, Column, UniqueConstraint, Index, Float, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -185,16 +185,60 @@ class CommunityCollection(Base):
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    # One collection per customer is flagged as their implicit "Saved" list — created
+    # lazily on first save so we don't need a signup-time provisioning step.
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        # Partial unique index — allows any number of non-default collections per
+        # customer, but at most one flagged is_default=true (a plain UniqueConstraint
+        # on (customer_id, is_default) would also block multiple non-default ones).
+        Index(
+            "uq_one_default_collection_per_customer", "customer_id",
+            unique=True, postgresql_where=text("is_default = true"),
+        ),
+    )
 
 class CommunityCollectionItem(Base):
     __tablename__ = "community_collection_items"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     collection_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_collections.id", ondelete="CASCADE"), index=True)
-    item_type: Mapped[str] = mapped_column(String(50)) # 'post', 'destination', 'itinerary'
+    item_type: Mapped[str] = mapped_column(String(50)) # 'post', 'destination', 'itinerary', 'tip'
     item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("collection_id", "item_type", "item_id", name="uq_collection_item_once"),
+    )
+
+
+class CommunityTip(Base):
+    """Curated Discover content — travel tips/routes/reels/food/budget highlights.
+
+    Distinct from CommunityPost: these are editorial cards (facts grid, "why
+    travelers use it" points, author bio line) seeded/managed separately from
+    organic user posts, which don't carry that shape.
+    """
+    __tablename__ = "community_tips"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tag: Mapped[str] = mapped_column(String(20))  # 'TIP' | 'ROUTE' | 'REEL' | 'FOOD' | 'BUDGET'
+    category: Mapped[str] = mapped_column(String(50), index=True)  # 'Tips' | 'Routes' | 'Reels' | 'Food' | 'Budget'
+    place: Mapped[str] = mapped_column(String(255), index=True)
+    title: Mapped[str] = mapped_column(String(500))
+    used_label: Mapped[str] = mapped_column(String(50))  # display text, e.g. "1.2K used" / "840 saves"
+    blurb: Mapped[str] = mapped_column(String(1000))
+    author_name: Mapped[str] = mapped_column(String(255))
+    author_line: Mapped[str] = mapped_column(String(255))
+    body: Mapped[str] = mapped_column(String(4000))
+    facts: Mapped[list[dict]] = mapped_column(JSONB, default=list)  # [{"label": str, "value": str}]
+    points: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    image: Mapped[str] = mapped_column(String(1024))
+    use_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    save_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class PostReaction(Base):
     __tablename__ = "post_reactions"
