@@ -4,7 +4,6 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommunityStoriesBarComponent } from './components/community-stories-bar.component';
-import { CommunitySidebarComponent } from './components/community-sidebar.component';
 import { CommunityFeedSkeletonComponent } from './components/community-feed-skeleton.component';
 import { CommunityPostCommentsComponent } from './components/community-post-comments.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from './services/community-post.service';
@@ -15,20 +14,47 @@ import { CommunityMapComponent } from './components/community-map.component';
 import { CommunityHeroComponent } from './components/community-hero.component';
 import { apiErrorMessage } from '../shared/utils/api-error.util';
 import { CommunityMobileNavComponent } from './components/community-mobile-nav.component';
-import { CommunityCollectionService, CommunityCollection } from './services/community-collection.service';
 import { CommunityAnalyticsService } from './services/community-analytics.service';
-import { CommunityOnboardingComponent } from './components/community-onboarding.component';
 import { AuthService } from '../auth/auth.service';
-import { CommunityProfileService, MyCommunityProfile, CommunityNews, CommunityAd, CommunityShortcut } from './services/community-profile.service';
+import { CommunityProfileService, MyCommunityProfile } from './services/community-profile.service';
 import { CommunityNotificationsService } from './services/community-notifications.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ThemeService } from 'ui';
-import { CommunityAchievementsComponent } from './components/community-achievements.component';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
+import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
+import { CommunityJourneyStatsComponent } from './components/community-journey-stats.component';
+import { CommunityCrewWidgetComponent } from './components/community-crew-widget.component';
+import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
+import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
+import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
+import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
+
+type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
 @Component({
     selector: 'app-community-page',
-    imports: [CommonModule, RouterLink, CommunityCreatePostComponent, CommunityStoriesBarComponent, CommunityPostCardComponent, CommunitySaveModalComponent, CommunityMapComponent, CommunityHeroComponent, CommunityMobileNavComponent, CommunityOnboardingComponent, TranslatePipe, CommunitySidebarComponent, CommunityFeedSkeletonComponent, CommunityPostCommentsComponent, CommunityAchievementsComponent, CommunityQaThreadComponent],
+    imports: [
+      CommonModule,
+      RouterLink,
+      CommunityCreatePostComponent,
+      CommunityStoriesBarComponent,
+      CommunityPostCardComponent,
+      CommunitySaveModalComponent,
+      CommunityMapComponent,
+      CommunityHeroComponent,
+      CommunityMobileNavComponent,
+      TranslatePipe,
+      CommunityFeedSkeletonComponent,
+      CommunityPostCommentsComponent,
+      CommunityQaThreadComponent,
+      CommunityHomeSubnavComponent,
+      CommunityJourneyStatsComponent,
+      CommunityCrewWidgetComponent,
+      CommunityJoinRequestsComponent,
+      CommunityTravelersRailComponent,
+      CommunityDestinationTrendingComponent,
+      CommunityUpcomingEventsWidgetComponent,
+    ],
     template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
       <app-community-mobile-nav (onPost)="scrollToCreatePost()" />
@@ -48,173 +74,10 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
       <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
         <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
           
-          <!-- LEFT COLUMN (Profile & Shortcuts) -->
-          <div class="hidden md:block md:col-span-1 lg:col-span-3 space-y-4 sticky top-[92px]">
-            <!-- Profile Card -->
-            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative text-center">
-              <div class="h-20 bg-gradient-to-tr from-indigo-600 via-purple-500 to-pink-500"></div>
-              <div class="px-4 pb-4">
-                <a [routerLink]="myProfile()?.customer_id ? ['/community/users', myProfile()!.customer_id] : null" class="mx-auto w-20 h-20 rounded-full border-4 border-white dark:border-gray-800 -mt-10 overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center shadow-md relative group block">
-                  <img [src]="myProfile()?.avatar || '/assets/images/default-avatar.svg'" [alt]="'COMMUNITY.AVATAR_ALT' | translate" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                </a>
-                <h2 [routerLink]="myProfile()?.customer_id ? ['/community/users', myProfile()!.customer_id] : null" class="mt-3 text-sm-plus font-extrabold text-text-primary leading-tight flex items-center justify-center gap-1.5 flex-wrap cursor-pointer hover:text-primary transition-colors">
-                  {{ myProfile()?.name || user()?.email?.split('@')?.[0] || ('COMMUNITY.DEFAULT_NAME' | translate) }}
-                  @if (myProfile()?.is_verified) {
-                    <span class="text-primary cursor-help flex items-center" [title]="'COMMUNITY.VERIFIED_BADGE' | translate">
-                      <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293l-4 4a1 1 0 01-1.414 0l-2-2a1 1 0 111.414-1.414L9 10.586l3.293-3.293a1 1 0 111.414 1.414z" clip-rule="evenodd" fill-rule="evenodd"></path>
-                      </svg>
-                    </span>
-                  }
-                </h2>
-                <p class="text-xs text-text-secondary mt-1.5 line-clamp-2 px-2">{{ myProfile()?.bio || ('COMMUNITY.DEFAULT_BIO' | translate) }}</p>
-                @if (myProfile()?.countries_visited) {
-                  <div class="mt-2.5">
-                    <span class="inline-block bg-amber-50 text-amber-750 text-2xs px-2.5 py-0.5 rounded-full font-bold border border-amber-200/50 shadow-sm transition-all hover:scale-105 active:scale-95 duration-200 cursor-default select-none animate-[pulse_2s_infinite]">
-                      🎒 {{ 'COMMUNITY.COUNTRIES_VISITED' | translate: { count: animatedCountriesVisited() } }}
-                    </span>
-                  </div>
-                }
-              </div>
-              
-              <div class="border-t border-slate-100/80 dark:border-gray-700/80 py-2 text-left space-y-0.5 px-1.5">
-                <a [routerLink]="myProfile()?.customer_id ? ['/community/users', myProfile()!.customer_id] : null" class="px-3 py-2 flex justify-between items-center text-xs font-semibold text-text-secondary hover:bg-slate-50/50 rounded-lg transition-colors cursor-pointer">
-                  <span class="flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-text-tertiary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    {{ 'COMMUNITY.PROFILE_VIEWERS' | translate }}
-                  </span>
-                  <span class="text-primary font-bold transition-all duration-300">{{ animatedProfileViews() }}</span>
-                </a>
-                <a [routerLink]="myProfile()?.customer_id ? ['/community/users', myProfile()!.customer_id] : null" class="px-3 py-2 flex justify-between items-center text-xs font-semibold text-text-secondary hover:bg-slate-50/50 rounded-lg transition-colors cursor-pointer">
-                  <span class="flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-text-tertiary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    {{ 'COMMUNITY.FOLLOWERS' | translate }}
-                  </span>
-                  <span class="text-primary font-bold transition-all duration-300">{{ animatedFollowers() }}</span>
-                </a>
-              </div>
-              
-              <div class="border-t border-slate-100/80 dark:border-gray-700/80 p-3">
-                <a routerLink="/community/collections" class="flex items-center justify-between text-xs font-bold text-text-secondary hover:text-primary transition-colors mb-2">
-                  <span class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                    {{ 'COMMUNITY.SAVED_ITEMS' | translate }}
-                    @if (collectionsPreview().length) {
-                      <span class="bg-primary-50 text-primary text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-primary-subtle/40">{{ collectionsPreview().length }}</span>
-                    }
-                  </span>
-                  <svg class="w-3.5 h-3.5 text-text-disabled" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-                @if (collectionsPreview().length) {
-                  <div class="flex gap-1.5">
-                    @for (col of collectionsPreview(); track col.id) {
-                      <a [routerLink]="['/community/collections', col.id]" class="relative flex-1 h-12 rounded-lg overflow-hidden border border-slate-100 hover:border-primary/40 transition-colors group">
-                        @if (col.cover_image) {
-                          <img [src]="col.cover_image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="" loading="lazy" decoding="async" />
-                        } @else {
-                          <div class="w-full h-full bg-gradient-to-br from-primary-50 to-indigo-50 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-primary/40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                          </div>
-                        }
-                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1">
-                          <p class="text-[8px] text-white font-bold truncate">{{ col.name }}</p>
-                        </div>
-                      </a>
-                    }
-                  </div>
-                }
-              </div>
-              
-              <div routerLink="/community/reels" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <svg class="w-4 h-4 text-text-tertiary group-hover:text-primary transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  {{ 'COMMUNITY.WATCH_REELS' | translate }}
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-              
-              <div routerLink="/community/travel-circles" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <svg class="w-4 h-4 text-text-tertiary group-hover:text-primary transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                  Travel Circles
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/spaces" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">🏘️</span>
-                  <span>Travel Spaces</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/events" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">📅</span>
-                  <span>Events & Meetups</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/trips" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">🧳</span>
-                  <span>Trips</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/leaderboard" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">🏅</span>
-                  <span>Leaderboard</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/guidelines" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">🛡️</span>
-                  <span>Guidelines</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-
-              <div routerLink="/community/notification-preferences" class="border-t border-slate-100/80 dark:border-gray-700/80 p-3 text-left hover:bg-slate-50/50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center gap-2.5 text-xs font-bold text-text-secondary group-hover:text-primary transition-colors">
-                  <span class="w-4 text-center">⚙️</span>
-                  <span>Notification Settings</span>
-                </div>
-                <svg class="w-3.5 h-3.5 text-text-disabled group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-            </div>
-
-            <!-- Achievements & Challenges checklist -->
-            @if (user()) {
-              <app-community-achievements />
-            }
-
-            <!-- Onboarding checklist (logged-in users only) -->
-            @if (user()) {
-              <app-community-onboarding [onPostClick]="scrollToCreatePost.bind(this)" />
-            }
-
-            <!-- Shortcuts Card -->
-            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-4 hidden lg:block">
-              <h3 class="text-2xs font-extrabold text-text-tertiary uppercase tracking-wider mb-3 px-1">{{ 'COMMUNITY.SHORTCUTS_LABEL' | translate }}</h3>
-              <div class="space-y-1">
-                @for (shortcut of shortcuts(); track shortcut.id) {
-                  <a [routerLink]="shortcut.url" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-primary hover:bg-primary-50/50 transition-all">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0"></span>
-                    <span class="truncate">{{ shortcut.title }}</span>
-                  </a>
-                }
-                @if (shortcuts().length === 0) {
-                  <div class="text-xs text-text-disabled text-center py-2">{{ 'COMMUNITY.NO_SHORTCUTS' | translate }}</div>
-                }
-              </div>
-            </div>
+          <!-- LEFT COLUMN (Subnav + Journey) -->
+          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 sticky top-[92px]">
+            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
+            <app-community-journey-stats />
           </div>
 
           <!-- CENTER COLUMN (Feed) -->
@@ -241,17 +104,14 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
 
             <!-- Feed Filter Chips + View Toggle -->
             <div class="flex items-center gap-2 flex-wrap">
-              <!-- Feed mode chips -->
-              <button
-                (click)="setFeedMode('following')"
-                class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border"
-                [ngClass]="feedMode() === 'following' ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-              >{{ 'COMMUNITY.FOLLOWING' | translate }}</button>
-              <button
-                (click)="setFeedMode('discover')"
-                class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border"
-                [ngClass]="feedMode() === 'discover' ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-              >{{ 'COMMUNITY.DISCOVER' | translate }}</button>
+              <!-- Category chips (client-side filters over the loaded feed) -->
+              @for (cat of postCategories; track cat.key) {
+                <button
+                  (click)="setPostCategory(cat.key)"
+                  class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
+                >{{ cat.labelKey | translate }}</button>
+              }
               @for (tag of followedTags(); track tag) {
                 <button
                   (click)="setFeedMode('hashtag-' + tag)"
@@ -322,7 +182,19 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
                 </div>
               }
               
-              @if (posts.length === 0 && !isLoadingFeed && !errorLoadingFeed) {
+              @if (posts.length > 0 && visiblePosts().length === 0 && !isLoadingFeed && !errorLoadingFeed) {
+                <!-- Category filter empty: real posts loaded, none match this category -->
+                <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
+                  <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
+                  <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_CATEGORY_BODY' | translate }}</p>
+                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    {{ 'COMMUNITY.EMPTY_CATEGORY_RESET' | translate }}
+                  </button>
+                </div>
+              } @else if (posts.length === 0 && !isLoadingFeed && !errorLoadingFeed) {
                 @if (feedMode() === 'following') {
                   <!-- Following empty: suggest switching to Discover -->
                   <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
@@ -363,7 +235,7 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
               }
 
               <!-- Posts -->
-              @for (post of posts; track post.id; let i = $index) {
+              @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
                   <app-community-post-card 
                     [post]="post"
@@ -408,9 +280,13 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
             }
           </div>
 
-          <!-- RIGHT COLUMN (News & Ads) -->
-          <div class="hidden lg:block lg:col-span-3 space-y-4 sticky top-[92px]">
-            <app-community-sidebar [newsList]="news()" [ad]="ads()" />
+          <!-- RIGHT COLUMN (Crew, requests, travelers, trending, events) -->
+          <div class="hidden lg:flex lg:col-span-3 flex-col gap-4 sticky top-[92px]">
+            <app-community-crew-widget />
+            <app-community-join-requests />
+            <app-community-travelers-rail />
+            <app-community-destination-trending />
+            <app-community-upcoming-events-widget />
           </div>
 
         </div>
@@ -448,12 +324,6 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
 })
 export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy {
   myProfile = signal<MyCommunityProfile | null>(null);
-  animatedProfileViews = signal<number>(0);
-  animatedFollowers = signal<number>(0);
-  animatedCountriesVisited = signal<number>(0);
-  news = signal<CommunityNews[]>([]);
-  ads = signal<CommunityAd | null>(null);
-  shortcuts = signal<CommunityShortcut[]>([]);
   profileService = inject(CommunityProfileService);
   notificationsService = inject(CommunityNotificationsService);
   posts: CommunityPostType[] = [];
@@ -473,13 +343,22 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   feedMode = signal<string>('following');
   followedTags = signal<string[]>([]);
-  collectionsPreview = signal<CommunityCollection[]>([]);
   activeReactionPostId = signal<string | null>(null);
+
+  readonly postCategories: { key: PostCategory; labelKey: string }[] = [
+    { key: 'forYou', labelKey: 'COMMUNITY.CATEGORY_FOR_YOU' },
+    { key: 'following', labelKey: 'COMMUNITY.FOLLOWING' },
+    { key: 'nearTrip', labelKey: 'COMMUNITY.CATEGORY_NEAR_TRIP' },
+    { key: 'questions', labelKey: 'COMMUNITY.CATEGORY_QUESTIONS' },
+    { key: 'tripPlans', labelKey: 'COMMUNITY.CATEGORY_TRIP_PLANS' },
+    { key: 'tips', labelKey: 'COMMUNITY.CATEGORY_TIPS' },
+    { key: 'photos', labelKey: 'COMMUNITY.CATEGORY_PHOTOS' },
+  ];
+  postCategory = signal<PostCategory>('forYou');
 
   @ViewChild('scrollSentinel') scrollSentinel?: ElementRef;
   @ViewChild('createPostAnchor') createPostAnchor?: ElementRef;
   private observer: IntersectionObserver | null = null;
-  private statAnimationTimers: ReturnType<typeof setInterval>[] = [];
   nextCursor?: string;
   hasMorePosts = true;
 
@@ -495,7 +374,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   constructor(
     private postService: CommunityPostService,
-    private collectionService: CommunityCollectionService,
     private analytics: CommunityAnalyticsService
   ) {}
 
@@ -537,8 +415,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     if (this.wsSub) {
       this.wsSub.unsubscribe();
     }
-    this.statAnimationTimers.forEach(timer => clearInterval(timer));
-    this.statAnimationTimers = [];
   }
 
   setupIntersectionObserver() {
@@ -579,6 +455,30 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
+  setPostCategory(category: PostCategory): void {
+    this.postCategory.set(category);
+  }
+
+  /** Client-side filter over the already-loaded feed — the backend only exposes feed/explore/hashtag endpoints, not per-category ones. */
+  visiblePosts(): CommunityPostType[] {
+    switch (this.postCategory()) {
+      case 'following':
+        return this.posts.filter(p => p.is_following);
+      case 'nearTrip':
+        return this.posts.filter(p => !!p.destination);
+      case 'questions':
+        return this.posts.filter(p => p.type === 'qa');
+      case 'tripPlans':
+        return this.posts.filter(p => !!p.itinerary);
+      case 'tips':
+        return this.posts.filter(p => !p.itinerary && p.type !== 'qa' && p.type !== 'poll' && !(p.images?.length));
+      case 'photos':
+        return this.posts.filter(p => !!p.images?.length && !p.itinerary);
+      default:
+        return this.posts;
+    }
+  }
+
   setViewMode(mode: 'feed' | 'map') {
     if (this.viewMode === mode) return;
     const queryParams = { ...this.route.snapshot.queryParams, view: mode };
@@ -601,51 +501,12 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   loadWidgets() {
     if (this.auth.user()) {
-      this.profileService.getMyProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ 
-        next: p => {
-          this.myProfile.set(p);
-          if (p) {
-            this.animateStats(p);
-          }
-        }, 
-        error: () => {} 
+      this.profileService.getMyProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: p => this.myProfile.set(p),
+        error: () => {}
       });
-    }
-    this.profileService.getNews().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: n => this.news.set(n || []), error: () => {} });
-    this.profileService.getAd().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: a => this.ads.set(a), error: () => {} });
-    this.profileService.getShortcuts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: s => this.shortcuts.set(s || []), error: () => {} });
-    if (this.auth.user()) {
       this.profileService.getFollowedHashtags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: tags => this.followedTags.set(tags || []), error: () => {} });
-      this.collectionService.getCollections().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: c => this.collectionsPreview.set((c || []).slice(0, 3)), error: () => {} });
     }
-  }
-
-  private animateStats(profile: MyCommunityProfile) {
-    this.animateValue(0, profile.profile_views || 0, 800, (v) => this.animatedProfileViews.set(v));
-    this.animateValue(0, profile.followers_count || 0, 800, (v) => this.animatedFollowers.set(v));
-    this.animateValue(0, profile.countries_visited || 0, 800, (v) => this.animatedCountriesVisited.set(v));
-  }
-
-  private animateValue(start: number, end: number, duration: number, callback: (v: number) => void) {
-    if (start === end) {
-      callback(end);
-      return;
-    }
-    const range = end - start;
-    let current = start;
-    const increment = end > start ? 1 : -1;
-    const stepTime = Math.max(Math.floor(duration / Math.abs(range || 1)), 15);
-    const timer = setInterval(() => {
-      const step = Math.max(1, Math.floor(Math.abs(range) / (duration / stepTime)));
-      current += increment * step;
-      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-        current = end;
-        clearInterval(timer);
-        this.statAnimationTimers = this.statAnimationTimers.filter(t => t !== timer);
-      }
-      callback(current);
-    }, stepTime);
-    this.statAnimationTimers.push(timer);
   }
 
   loadNewPosts() {
