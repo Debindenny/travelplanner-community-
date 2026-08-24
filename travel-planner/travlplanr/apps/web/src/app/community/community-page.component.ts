@@ -7,7 +7,6 @@ import { CommunityStoriesBarComponent } from './components/community-stories-bar
 import { CommunityFeedSkeletonComponent } from './components/community-feed-skeleton.component';
 import { CommunityPostCommentsComponent } from './components/community-post-comments.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from './services/community-post.service';
-import { CommunityCreatePostComponent } from './components/community-create-post.component';
 import { CommunityPostCardComponent } from './components/community-post-card.component';
 import { CommunitySaveModalComponent } from './components/community-save-modal.component';
 import { CommunityMapComponent } from './components/community-map.component';
@@ -19,7 +18,6 @@ import { AuthService } from '../auth/auth.service';
 import { CommunityProfileService, MyCommunityProfile } from './services/community-profile.service';
 import { CommunityNotificationsService } from './services/community-notifications.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ThemeService } from 'ui';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
 import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
 import { CommunityJourneyStatsComponent } from './components/community-journey-stats.component';
@@ -30,6 +28,7 @@ import { CommunityDestinationTrendingComponent } from './components/community-de
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunityStartCircleCardComponent } from './components/community-start-circle-card.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
+import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
@@ -38,7 +37,6 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
     imports: [
       CommonModule,
       RouterLink,
-      CommunityCreatePostComponent,
       CommunityStoriesBarComponent,
       CommunityPostCardComponent,
       CommunitySaveModalComponent,
@@ -58,29 +56,17 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityUpcomingEventsWidgetComponent,
       CommunityStartCircleCardComponent,
       CommunitySimilarTravelersComponent,
+      CommunityComposerModalComponent,
     ],
     template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
-      <app-community-mobile-nav (onPost)="scrollToCreatePost()" />
-      <!-- Dark mode is currently rolled out to community + itinerary map only (see DESIGN_ENHANCEMENT_PLAN.md). -->
-      <button
-        type="button"
-        (click)="theme.toggle()"
-        class="fixed top-20 right-4 z-40 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-slate-200/80 dark:border-gray-700 shadow-sm flex items-center justify-center text-text-secondary dark:text-gray-300 hover:text-primary transition-colors"
-        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-      >
-        @if (theme.isDark()) {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-        } @else {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-        }
-      </button>
+      <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
       <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
         <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
           
           <!-- LEFT COLUMN (Subnav + Journey) — spans both content rows below -->
           <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 md:row-span-2 lg:row-span-2 sticky top-[92px] gap-5">
-            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
+            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
             <app-community-journey-stats />
           </div>
 
@@ -88,7 +74,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
           <div class="col-span-1 md:col-span-3 lg:col-span-9 space-y-5">
             <!-- Hero band -->
             <app-community-hero
-              (onPost)="scrollToCreatePost()"
+              (onPost)="showComposerModal.set(true)"
               (onMap)="setViewMode('map')"
             />
 
@@ -100,14 +86,6 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
 
           <!-- CENTER COLUMN (Feed) -->
           <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
-
-            <!-- Create a Post -->
-            <div #createPostAnchor>
-              <app-community-create-post
-                [userAvatar]="myProfile()?.avatar ?? undefined"
-                (postCreated)="onPostCreated($event)"
-              />
-            </div>
 
             <!-- Feed Filter Chips + View Toggle -->
             <div class="flex items-center gap-2 flex-wrap">
@@ -222,7 +200,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     </div>
                     <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_DISCOVER_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.SHARE_YOUR_JOURNEY' | translate }}
                     </button>
                   </div>
@@ -234,7 +212,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     </div>
                     <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_HASHTAG_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.CREATE_A_POST' | translate }}
                     </button>
                   </div>
@@ -326,40 +304,11 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       }
 
       @if (showComposerModal()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="composer-modal-title"
-          (click)="showComposerModal.set(false)"
-        >
-          <div
-            class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-800 shadow-2xl"
-            (click)="$event.stopPropagation()"
-          >
-            <div class="flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-gray-700">
-              <div class="flex flex-col gap-0.5">
-                <h2 id="composer-modal-title" class="text-base font-extrabold text-text-primary">{{ 'COMMUNITY.COMPOSER_MODAL.TITLE' | translate }}</h2>
-                <p class="text-xs font-medium text-text-faint">{{ 'COMMUNITY.COMPOSER_MODAL.SUBTITLE' | translate }}</p>
-              </div>
-              <button
-                type="button"
-                (click)="showComposerModal.set(false)"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
-                [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.CLOSE_ARIA' | translate"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="p-4">
-              <app-community-create-post
-                [userAvatar]="myProfile()?.avatar ?? undefined"
-                (postCreated)="onPostCreated($event); showComposerModal.set(false)"
-                (closed)="showComposerModal.set(false)"
-              />
-            </div>
-          </div>
-        </div>
+        <app-community-composer-modal
+          [userAvatar]="myProfile()?.avatar ?? undefined"
+          (postCreated)="onPostCreated($event); showComposerModal.set(false)"
+          (close)="showComposerModal.set(false)"
+        />
       }
 
       @if (toastMessage()) {
@@ -416,7 +365,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   postCategory = signal<PostCategory>('forYou');
 
   @ViewChild('scrollSentinel') scrollSentinel?: ElementRef;
-  @ViewChild('createPostAnchor') createPostAnchor?: ElementRef;
   private observer: IntersectionObserver | null = null;
   nextCursor?: string;
   hasMorePosts = true;
@@ -429,7 +377,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private syncingFromUrl = false;
 
   private readonly translate = inject(TranslateService);
-  readonly theme = inject(ThemeService);
 
   constructor(
     private postService: CommunityPostService,
@@ -714,11 +661,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   removePost(postId: string) {
     this.posts = this.posts.filter(p => p.id !== postId);
-  }
-
-  scrollToCreatePost() {
-    if (typeof window === 'undefined') return;
-    this.createPostAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   getPostAnimationDelay(index: number): string {

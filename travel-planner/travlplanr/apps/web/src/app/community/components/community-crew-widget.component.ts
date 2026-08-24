@@ -38,19 +38,19 @@ import { ToastService } from '../../shared/utils/toast.service';
               </button>
             </div>
           } @else {
-            <div class="flex items-center gap-2">
-              <span class="flex -space-x-2">
-                @for (face of faces; track $index) {
-                  <span class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800" [style.background]="face"></span>
+            <div class="flex items-center gap-2.5">
+              <span class="flex -space-x-2.5">
+                @for (face of faces; track face) {
+                  <img [src]="face" class="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 object-cover" alt="" />
                 }
               </span>
               <span class="text-xs font-semibold text-text-secondary">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_LOBBY' | translate }}</span>
             </div>
             <p class="text-[12.5px] font-medium leading-relaxed text-text-faint">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_NOTE' | translate }}</p>
-            <button (click)="requestToJoin()" class="w-full h-[38px] rounded-xl bg-primary hover:bg-primary-hover text-white text-[12.5px] font-extrabold transition-colors">
+            <button (click)="requestToJoin()" class="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-white text-[13.5px] font-extrabold transition-colors">
               {{ 'COMMUNITY.HOME_SIDEBAR.CREW_REQUEST' | translate }}
             </button>
-            <a routerLink="/community/spaces" class="self-start text-xs font-bold text-text-primary hover:underline">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_START_OWN' | translate }}</a>
+            <a routerLink="/community/spaces" class="self-center text-[12.5px] font-semibold text-text-primary hover:underline">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_START_OWN' | translate }}</a>
           }
         </div>
       </div>
@@ -62,7 +62,11 @@ export class CommunityCrewWidgetComponent {
   private readonly translate = inject(TranslateService);
 
   readonly inviterName = 'Maya Kondo';
-  readonly faces = ['linear-gradient(140deg,#0060EA,#7A4FA3)', 'linear-gradient(140deg,#0F9D58,#2AA98B)', 'linear-gradient(140deg,#F2B872,#D2604B)', 'linear-gradient(140deg,#6B3FA0,#0060EA)'];
+  readonly faces = [
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',
+    'https://images.unsplash.com/photo-1500614879573-5c11ba8a8e0f?auto=format&fit=crop&w=100&q=80',
+  ];
 
   readonly joined = signal(false);
   readonly hasInvite = signal(false);

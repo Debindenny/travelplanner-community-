@@ -71,7 +71,7 @@ const PREVIEW_STORIES: PreviewStory[] = [
         <button
           type="button"
           (click)="openStory(i, group)"
-          class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
+          class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none"
           [attr.aria-label]="'COMMUNITY.STORIES_BAR.VIEW_STORY_ARIA' | translate"
         >
           <!-- Gradient ring if unseen, grey ring if seen -->
@@ -107,7 +107,7 @@ const PREVIEW_STORIES: PreviewStory[] = [
           <button
             type="button"
             (click)="openPreviewStory(story)"
-            class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
+            class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none"
           >
             <span
               class="relative w-16 h-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"

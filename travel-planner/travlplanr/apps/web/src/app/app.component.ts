@@ -70,6 +70,9 @@ export class AppComponent implements OnInit {
   // The floating "Describe your trip" chat widget doesn't belong on the
   // Discover/Saved pages — they have their own focused UI.
   private static readonly HIDE_FLOATING_CHAT_ON = ['/community/discover', '/community/saved', '/community/events'];
+  // The main community feed has its own composer — exact match only, so
+  // subpages like /community/trips still get the floating widget.
+  private static readonly HIDE_FLOATING_CHAT_EXACT = ['/community'];
   readonly hideFloatingChat = signal(false);
 
   constructor(private router: Router, private ws: WebsocketService) {
@@ -78,7 +81,10 @@ export class AppComponent implements OnInit {
       takeUntilDestroyed()
     ).subscribe((event) => {
       const path = event.urlAfterRedirects.split('?')[0].split('#')[0];
-      this.hideFloatingChat.set(AppComponent.HIDE_FLOATING_CHAT_ON.some((route) => path.startsWith(route)));
+      this.hideFloatingChat.set(
+        AppComponent.HIDE_FLOATING_CHAT_EXACT.includes(path) ||
+        AppComponent.HIDE_FLOATING_CHAT_ON.some((route) => path.startsWith(route))
+      );
       if (path === this.lastFocusedPath) return;
       this.lastFocusedPath = path;
       setTimeout(() => {
