@@ -27,13 +27,13 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
     template: `
     @if (nextTrip(); as trip) {
       <!-- Personalized next-trip card, shown when the signed-in user has a real upcoming trip -->
-      <div class="relative rounded-[22px] overflow-hidden mb-5 h-48 sm:h-64 select-none font-manrope">
+      <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
         <div
           class="absolute inset-0 bg-cover bg-center"
           [style.backgroundImage]="'url(' + (trip.image || fallbackImage) + ')'"
         ></div>
         <div class="absolute inset-0 community-hero-overlay"></div>
-        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7 max-w-[650px]">
+        <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
           <div class="flex items-center gap-[9px] mb-3">
             <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
             <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">
@@ -69,7 +69,7 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
       </div>
     } @else {
       <!-- Rotating destination carousel fallback for signed-out users / users without an upcoming trip -->
-      <div class="relative rounded-[22px] overflow-hidden mb-5 h-48 sm:h-64 select-none font-manrope">
+      <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
         <div
           class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
           [style.backgroundImage]="'url(' + destinations()[currentIndex()].image + ')'"
@@ -86,7 +86,7 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
             ></button>
           }
         </div>
-        <div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7 max-w-[650px]">
+        <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
 
           <div class="flex items-center gap-[9px] mb-3">
             <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>

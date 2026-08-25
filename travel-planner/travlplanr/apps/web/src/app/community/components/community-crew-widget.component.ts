@@ -1,12 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
+import { ModalShellComponent } from '../circles-trips/features/community-home/components/overlays/modal-shell/modal-shell.component';
+import { CreateCircleModalComponent, CreateCirclePayload } from '../circles-trips/features/community-travelcircles/components/create-circle-modal/create-circle-modal.component';
 
 @Component({
   selector: 'app-community-crew-widget',
-  imports: [RouterLink, TranslatePipe],
+  imports: [TranslatePipe, ModalShellComponent, CreateCircleModalComponent],
   template: `
     @if (!joined()) {
       <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] overflow-hidden">
@@ -50,16 +52,49 @@ import { ToastService } from '../../shared/utils/toast.service';
             <button (click)="requestToJoin()" class="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-white text-[13.5px] font-extrabold transition-colors">
               {{ 'COMMUNITY.HOME_SIDEBAR.CREW_REQUEST' | translate }}
             </button>
-            <a routerLink="/community/spaces" class="self-center text-[12.5px] font-semibold text-text-primary hover:underline">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_START_OWN' | translate }}</a>
+            <button type="button" (click)="showCreateCircleModal.set(true)" class="self-center text-[12.5px] font-semibold text-text-primary hover:underline">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_START_OWN' | translate }}</button>
           }
         </div>
       </div>
     }
+
+    @if (showCreateCircleModal()) {
+      <div class="circles-theme-scope">
+        <app-modal-shell
+          title="Create a travel circle"
+          subtitle="Small groups planning the same kind of travel."
+          (close)="onCancelCreateCircle()"
+        >
+          <app-create-circle-modal (cancel)="onCancelCreateCircle()" (create)="onCircleCreated($event)" />
+        </app-modal-shell>
+      </div>
+    }
   `,
+  styles: [`
+    /* Design tokens the reused Travel Circles modal expects — normally supplied by
+       circles-trips/_theme.scss, which this widget lives outside of. */
+    .circles-theme-scope {
+      --accent: #0060ea;
+      --accent-deep: #0052c8;
+      --surface: #ffffff;
+      --text-primary: #0b1220;
+      --text-secondary: #1b2637;
+      --text-muted: #5a6472;
+      --text-faint: #8b94a3;
+      --border-soft: #e8ecf2;
+      --border: #e2e7ef;
+      --border-hover: #cbd6e4;
+      /* This reused modal has no dark-mode styles of its own, so its text relies on
+         inheriting a dark color here — without it, dark mode's light ambient text
+         color makes the heading unreadable against the modal's always-white surface. */
+      color: var(--text-primary);
+    }
+  `],
 })
 export class CommunityCrewWidgetComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
 
   readonly inviterName = 'Maya Kondo';
   readonly faces = [
@@ -70,6 +105,7 @@ export class CommunityCrewWidgetComponent {
 
   readonly joined = signal(false);
   readonly hasInvite = signal(false);
+  readonly showCreateCircleModal = signal(false);
 
   acceptInvite(): void {
     this.joined.set(true);
@@ -84,5 +120,15 @@ export class CommunityCrewWidgetComponent {
   requestToJoin(): void {
     this.joined.set(true);
     this.toast.success(this.translate.instant('COMMUNITY.HOME_SIDEBAR.CREW_TOAST_REQUESTED'));
+  }
+
+  onCancelCreateCircle(): void {
+    this.showCreateCircleModal.set(false);
+  }
+
+  onCircleCreated(payload: CreateCirclePayload): void {
+    this.showCreateCircleModal.set(false);
+    this.toast.success(`"${payload.name}" created`);
+    void this.router.navigate(['/community/travel-circles']);
   }
 }

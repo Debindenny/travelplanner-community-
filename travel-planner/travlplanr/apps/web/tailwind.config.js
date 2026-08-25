@@ -64,6 +64,11 @@ module.exports = {
           primary: '#141414',
           secondary: '#525252',
           tertiary: '#737373',
+          // Muted/meta text (section labels, stat captions, timestamps). Was missing
+          // entirely, so every existing "text-text-faint" usage across the Community
+          // components silently emitted no color and fell back to the inherited
+          // near-black body text instead of this gray.
+          faint: '#8B94A3',
           disabled: '#A3A3A3',
           inverse: '#FFFFFF',
         },

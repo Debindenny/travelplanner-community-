@@ -61,17 +61,21 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
     template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
       <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
-      <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
-        <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- LEFT COLUMN (Subnav + Journey) — spans both content rows below -->
-          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 md:row-span-2 lg:row-span-2 sticky top-[92px] gap-5">
+      <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6">
+        <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
+
+          <!-- LEFT COLUMN (Subnav + Journey). Spans every content row (Hero, Feed, Right
+               rail) and stays sticky at every width — previously it only spanned row 1
+               (paired with the Hero), so once the Feed/Right-rail's col-span-2 carried
+               them under its column for their own full-width rows, the sidebar had
+               already scrolled out of view with nothing left to stick against. -->
+          <div class="flex flex-col row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
             <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
             <app-community-journey-stats />
           </div>
 
-          <!-- TOP ROW: Hero + Stories, full width alongside the left nav -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-9 space-y-5">
+          <!-- TOP ROW: Hero + Stories, paired with the left nav at every width -->
+          <div class="lg:col-span-10 space-y-3 sm:space-y-5">
             <!-- Hero band -->
             <app-community-hero
               (onPost)="showComposerModal.set(true)"
@@ -84,30 +88,35 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             </div>
           </div>
 
-          <!-- CENTER COLUMN (Feed) -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
+          <!-- CENTER COLUMN (Feed). No base col-span: it stays in the second grid
+               column (beside the now row-spanning sidebar) instead of spanning both
+               columns, which would have fought the sidebar for column 1. -->
+          <div class="lg:col-span-7 space-y-3 sm:space-y-5">
 
-            <!-- Feed Filter Chips + View Toggle -->
-            <div class="flex items-center gap-2 flex-wrap">
-              <!-- Category chips (client-side filters over the loaded feed) -->
-              @for (cat of postCategories; track cat.key) {
-                <button
-                  (click)="setPostCategory(cat.key)"
-                  class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
-                  [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                >{{ cat.labelKey | translate }}</button>
-              }
-              @for (tag of followedTags(); track tag) {
-                <button
-                  (click)="setFeedMode('hashtag-' + tag)"
-                  class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border"
-                  [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                >#{{ tag }}</button>
-              }
-              <!-- Spacer -->
-              <div class="flex-1"></div>
+            <!-- Feed Filter Chips + View Toggle. Chips scroll horizontally instead of
+                 wrapping: with flex-wrap, the flex-1 spacer used to claim an entire
+                 wrapped line for itself and strand the view toggle alone on the next
+                 line once the chips ran out of room on phones/tablets. -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div class="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 min-w-0 -mx-1 px-1 sm:mx-0 sm:px-0">
+                <!-- Category chips (client-side filters over the loaded feed) -->
+                @for (cat of postCategories; track cat.key) {
+                  <button
+                    (click)="setPostCategory(cat.key)"
+                    class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                    [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
+                  >{{ cat.labelKey | translate }}</button>
+                }
+                @for (tag of followedTags(); track tag) {
+                  <button
+                    (click)="setFeedMode('hashtag-' + tag)"
+                    class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                    [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
+                  >#{{ tag }}</button>
+                }
+              </div>
               <!-- View mode toggle -->
-              <div class="relative flex bg-slate-100/80 dark:bg-gray-800/80 p-0.5 rounded-full border border-slate-200/50 dark:border-gray-700/50 shadow-inner">
+              <div class="relative flex self-start sm:self-auto shrink-0 bg-slate-100/80 dark:bg-gray-800/80 p-0.5 rounded-full border border-slate-200/50 dark:border-gray-700/50 shadow-inner">
                 <div
                   class="absolute top-0.5 bottom-0.5 rounded-full bg-primary shadow-sm transition-all duration-300 ease-out"
                   [style.width]="'50%'"
@@ -131,9 +140,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             @if (viewMode === 'feed') {
               
               @if (feedMode().startsWith('hashtag-') && !followedTags().includes(feedMode().replace('hashtag-', ''))) {
-                <div class="flex items-center justify-between bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
-                  <span class="text-primary font-semibold">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
-                  <button (click)="clearHashtagFilter()" class="text-primary hover:text-primary-hover font-bold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
+                <div class="flex items-center justify-between gap-3 bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
+                  <span class="text-primary font-semibold min-w-0 truncate">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
+                  <button (click)="clearHashtagFilter()" class="shrink-0 text-primary hover:text-primary-hover font-bold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
                 </div>
               }
 
@@ -269,8 +278,20 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             }
           </div>
 
-          <!-- RIGHT COLUMN (Crew, requests, travelers, circle CTA, trending, events, footer) -->
-          <div class="hidden lg:flex lg:col-span-3 flex-col gap-4 sticky top-[92px]">
+          <!-- RIGHT COLUMN (Crew, requests, travelers, circle CTA, trending, events, footer).
+               Previously "hidden lg:flex" made this whole column — including Crew, Join
+               requests, Travelers rail, Trending and Events — disappear below 1024px with
+               no way to reach it. It now stays in the second grid column (beside the
+               sticky sidebar) below the Feed on mobile/tablet, and becomes the separate
+               sticky right rail at lg+ (unchanged from before).
+               No z-index here: "sticky + z-60" made this whole card outrank the sticky
+               header (z-50) once stuck, so its top edge visually painted over/behind the
+               header instead of scrolling under it. That z-60 was added only so the
+               Crew widget's fixed-fullscreen "create circle" modal could out-rank the
+               header — but that modal already sets its own z-index:90 on a
+               position:fixed backdrop (modal-shell.component.scss), independent of this
+               column, so it doesn't need this column elevated too. -->
+          <div class="flex flex-col gap-4 lg:col-span-3 lg:sticky lg:top-[92px]">
             <app-community-crew-widget />
             <app-community-join-requests />
             <app-community-travelers-rail />
@@ -278,7 +299,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             <app-community-destination-trending />
             <app-community-upcoming-events-widget />
 
-            <div class="text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
+            <!-- The page already has a dedicated <footer> below for narrow layouts;
+                 this compact inline footer is the lg+ sticky-rail variant only. -->
+            <div class="hidden lg:block text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
               <div class="flex flex-wrap gap-x-3 gap-y-1">
                 <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
                 <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
@@ -328,7 +351,10 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       </footer>
     </div>
   `,
-    styles: []
+    styles: [`
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  `]
 })
 export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy {
   myProfile = signal<MyCommunityProfile | null>(null);
