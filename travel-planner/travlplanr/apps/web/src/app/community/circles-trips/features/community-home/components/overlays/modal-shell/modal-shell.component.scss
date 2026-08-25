@@ -18,6 +18,12 @@
 
 .modal-shell {
   max-width: 100%;
+  /* Backdrop already contributes 24px top+bottom padding; capping here keeps the
+     card (header + scrollable body together) from growing past the viewport at
+     short window heights or reduced browser zoom. */
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(11, 18, 32, 0.3);
@@ -35,11 +41,18 @@
 }
 
 .modal-shell__header {
+  flex: none;
   padding: 18px 22px;
   border-bottom: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.modal-shell__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .modal-shell__header-copy {
