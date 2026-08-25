@@ -15,7 +15,7 @@ import { ToastComponent } from '../circles-trips/shared/components/toast/toast.c
 
       @if (trips.store.modal()?.kind === 'composerMenu') {
         <app-modal-shell
-          title="Share something useful"
+          heading="Share something useful"
           subtitle="Pick a post type — we only ask for what that type needs."
           (close)="trips.store.closeModal()"
         >

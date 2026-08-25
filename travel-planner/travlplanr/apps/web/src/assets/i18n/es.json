@@ -564,7 +564,19 @@
     "STORIES_BAR": {
       "PREVIEW_NOTICE": "Esto es una vista previa del estilo de historia de {{name}} — las historias reales de tu comunidad aparecerán aquí.",
       "VIEW_STORY_ARIA": "Ver historia",
-      "YOUR_STORY": "Tu historia"
+      "YOUR_STORY": "Tu historia",
+      "PREVIEW_MODAL": {
+        "CAPTION": "{{name}} es un perfil de ejemplo que muestra cómo se verán las historias en vivo aquí — solo a nivel de destino, la ubicación exacta nunca se muestra.",
+        "STATUS_THERE": "Ahí ahora",
+        "STATUS_SOON": "Se va pronto",
+        "STATUS_RECENT": "Estuvo ahí hace poco",
+        "FOLLOW_ARIA": "Seguir",
+        "FOLLOWING_ARIA": "Siguiendo",
+        "ROUTE_ARIA": "Añadir al viaje",
+        "COMMENT_ARIA": "Comentar",
+        "LIKE_ARIA": "Me gusta",
+        "UNLIKE_ARIA": "Ya no me gusta"
+      }
     },
     "STORY_MODAL": {
       "CLOSE": "Cerrar"

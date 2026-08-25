@@ -5,10 +5,11 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
 import { ModalShellComponent } from '../circles-trips/features/community-home/components/overlays/modal-shell/modal-shell.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from '../circles-trips/features/community-travelcircles/components/create-circle-modal/create-circle-modal.component';
+import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.component';
 
 @Component({
   selector: 'app-community-crew-widget',
-  imports: [TranslatePipe, ModalShellComponent, CreateCircleModalComponent],
+  imports: [TranslatePipe, ModalShellComponent, CreateCircleModalComponent, CommunityCrewChatModalComponent],
   template: `
     @if (!joined()) {
       <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] overflow-hidden">
@@ -61,13 +62,20 @@ import { CreateCircleModalComponent, CreateCirclePayload } from '../circles-trip
     @if (showCreateCircleModal()) {
       <div class="circles-theme-scope">
         <app-modal-shell
-          title="Create a travel circle"
+          heading="Create a travel circle"
           subtitle="Small groups planning the same kind of travel."
           (close)="onCancelCreateCircle()"
         >
           <app-create-circle-modal (cancel)="onCancelCreateCircle()" (create)="onCircleCreated($event)" />
         </app-modal-shell>
       </div>
+    }
+
+    @if (showCrewChat()) {
+      <app-community-crew-chat-modal
+        (close)="showCrewChat.set(false)"
+        (exitedGroup)="onExitGroup()"
+      />
     }
   `,
   styles: [`
@@ -106,6 +114,7 @@ export class CommunityCrewWidgetComponent {
   readonly joined = signal(false);
   readonly hasInvite = signal(false);
   readonly showCreateCircleModal = signal(false);
+  readonly showCrewChat = signal(false);
 
   acceptInvite(): void {
     this.joined.set(true);
@@ -120,6 +129,12 @@ export class CommunityCrewWidgetComponent {
   requestToJoin(): void {
     this.joined.set(true);
     this.toast.success(this.translate.instant('COMMUNITY.HOME_SIDEBAR.CREW_TOAST_REQUESTED'));
+    this.showCrewChat.set(true);
+  }
+
+  onExitGroup(): void {
+    this.joined.set(false);
+    this.showCrewChat.set(false);
   }
 
   onCancelCreateCircle(): void {

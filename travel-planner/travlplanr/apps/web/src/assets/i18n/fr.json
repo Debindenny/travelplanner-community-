@@ -564,7 +564,19 @@
     "STORIES_BAR": {
       "PREVIEW_NOTICE": "Ceci est un aperçu du style de story de {{name}} — les vraies stories de votre communauté apparaîtront ici.",
       "VIEW_STORY_ARIA": "Voir la story",
-      "YOUR_STORY": "Votre story"
+      "YOUR_STORY": "Votre story",
+      "PREVIEW_MODAL": {
+        "CAPTION": "{{name}} est un profil d'aperçu montrant à quoi ressembleront les stories en direct — au niveau de la destination uniquement, la position exacte n'est jamais affichée.",
+        "STATUS_THERE": "Sur place",
+        "STATUS_SOON": "Départ bientôt",
+        "STATUS_RECENT": "Récemment sur place",
+        "FOLLOW_ARIA": "Suivre",
+        "FOLLOWING_ARIA": "Abonné",
+        "ROUTE_ARIA": "Ajouter au voyage",
+        "COMMENT_ARIA": "Commenter",
+        "LIKE_ARIA": "Aimer",
+        "UNLIKE_ARIA": "Ne plus aimer"
+      }
     },
     "STORY_MODAL": {
       "CLOSE": "Fermer"

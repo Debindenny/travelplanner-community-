@@ -10,7 +10,10 @@ import { IconComponent } from '../../../../../shared/components/icon/icon.compon
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModalShellComponent {
-  readonly title = input<string>('');
+  /* Named "heading", not "title": a static `title="..."` attribute on a custom
+     element also sets the native HTML `title` attribute, which makes the browser
+     show its own tooltip over the whole modal on hover. */
+  readonly heading = input<string>('');
   readonly titleIcon = input<string | undefined>(undefined);
   readonly subtitle = input<string>('');
   readonly showHeader = input(true);

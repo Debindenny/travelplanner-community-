@@ -34,7 +34,7 @@ interface SubnavItem {
             [routerLink]="item.route"
             routerLinkActive="bg-primary-subtle text-primary font-extrabold"
             [routerLinkActiveOptions]="{ exact: item.exact }"
-            class="flex items-center gap-3 h-[42px] min-w-0 px-3 rounded-[11px] text-[13.5px] font-[650] text-eventText-mid hover:bg-primary-50 hover:text-primary dark:hover:bg-gray-700/50 transition-colors community-sidebar-item"
+            class="flex items-center gap-3 h-[42px] min-w-0 px-3 rounded-[11px] text-[13.5px] font-[650] text-eventText-mid transition-colors community-sidebar-item"
           >
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               @for (d of item.icon; track d) {

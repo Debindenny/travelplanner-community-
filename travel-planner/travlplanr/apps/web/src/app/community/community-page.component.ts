@@ -82,10 +82,8 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
               (onMap)="setViewMode('map')"
             />
 
-            <!-- Stories (edge-to-edge, no extra card wrapper) -->
-            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl px-2 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-              <app-community-stories-bar />
-            </div>
+            <!-- Stories (edge-to-edge, no card wrapper) -->
+            <app-community-stories-bar />
           </div>
 
           <!-- CENTER COLUMN (Feed). No base col-span: it stays in the second grid
@@ -93,48 +91,25 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                columns, which would have fought the sidebar for column 1. -->
           <div class="lg:col-span-7 space-y-3 sm:space-y-5">
 
-            <!-- Feed Filter Chips + View Toggle. Chips scroll horizontally instead of
-                 wrapping: with flex-wrap, the flex-1 spacer used to claim an entire
-                 wrapped line for itself and strand the view toggle alone on the next
-                 line once the chips ran out of room on phones/tablets. -->
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-              <div class="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 min-w-0 -mx-1 px-1 sm:mx-0 sm:px-0">
-                <!-- Category chips (client-side filters over the loaded feed) -->
-                @for (cat of postCategories; track cat.key) {
-                  <button
-                    (click)="setPostCategory(cat.key)"
-                    class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
-                    [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                  >{{ cat.labelKey | translate }}</button>
-                }
-                @for (tag of followedTags(); track tag) {
-                  <button
-                    (click)="setFeedMode('hashtag-' + tag)"
-                    class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
-                    [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                  >#{{ tag }}</button>
-                }
-              </div>
-              <!-- View mode toggle -->
-              <div class="relative flex self-start sm:self-auto shrink-0 bg-slate-100/80 dark:bg-gray-800/80 p-0.5 rounded-full border border-slate-200/50 dark:border-gray-700/50 shadow-inner">
-                <div
-                  class="absolute top-0.5 bottom-0.5 rounded-full bg-primary shadow-sm transition-all duration-300 ease-out"
-                  [style.width]="'50%'"
-                  [style.left]="viewMode === 'feed' ? '2px' : 'calc(50% - 2px)'"
-                ></div>
+            <!-- Feed Filter Chips. Scroll horizontally instead of wrapping: with
+                 flex-wrap, chips used to wrap onto a second line on phones/tablets
+                 once they ran out of room. -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
+              <!-- Category chips (client-side filters over the loaded feed) -->
+              @for (cat of postCategories; track cat.key) {
                 <button
-                  (click)="setViewMode('feed')"
-                  class="relative z-10 px-3 py-1 text-2xs-plus font-bold uppercase tracking-wide rounded-full transition-colors duration-200 focus:outline-none"
-                  [class.text-white]="viewMode === 'feed'"
-                  [class.text-text-secondary]="viewMode !== 'feed'"
-                >{{ 'COMMUNITY.FEED' | translate }}</button>
+                  (click)="setPostCategory(cat.key)"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
+                >{{ cat.labelKey | translate }}</button>
+              }
+              @for (tag of followedTags(); track tag) {
                 <button
-                  (click)="setViewMode('map')"
-                  class="relative z-10 px-3 py-1 text-2xs-plus font-bold uppercase tracking-wide rounded-full transition-colors duration-200 focus:outline-none"
-                  [class.text-white]="viewMode === 'map'"
-                  [class.text-text-secondary]="viewMode !== 'map'"
-                >{{ 'COMMUNITY.MAP_VIEW' | translate }}</button>
-              </div>
+                  (click)="setFeedMode('hashtag-' + tag)"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
+                >#{{ tag }}</button>
+              }
             </div>
 
             @if (viewMode === 'feed') {

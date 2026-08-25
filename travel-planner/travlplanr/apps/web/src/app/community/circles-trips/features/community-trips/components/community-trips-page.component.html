@@ -87,7 +87,7 @@
 }
 
 @if (cloningTrip(); as trip) {
-  <app-modal-shell title="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" (close)="onCancelClone()">
+  <app-modal-shell heading="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" (close)="onCancelClone()">
     <app-clone-trip-modal [trip]="trip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
   </app-modal-shell>
 }

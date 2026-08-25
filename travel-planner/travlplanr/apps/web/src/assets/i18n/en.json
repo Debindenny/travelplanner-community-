@@ -662,7 +662,19 @@
     "STORIES_BAR": {
       "PREVIEW_NOTICE": "This is a preview of {{name}}'s story style — real stories from your community will appear here.",
       "VIEW_STORY_ARIA": "View story",
-      "YOUR_STORY": "Your Story"
+      "YOUR_STORY": "Your Story",
+      "PREVIEW_MODAL": {
+        "CAPTION": "{{name}} is a preview persona showing how live stories will look here — destination-level only, exact location is never shown.",
+        "STATUS_THERE": "There now",
+        "STATUS_SOON": "Going soon",
+        "STATUS_RECENT": "Recently there",
+        "FOLLOW_ARIA": "Follow",
+        "FOLLOWING_ARIA": "Following",
+        "ROUTE_ARIA": "Add to trip",
+        "COMMENT_ARIA": "Comment",
+        "LIKE_ARIA": "Like",
+        "UNLIKE_ARIA": "Unlike"
+      }
     },
     "STORY_MODAL": {
       "CLOSE": "Close"

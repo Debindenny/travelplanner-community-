@@ -14,13 +14,6 @@ interface HeroDestination {
   image: string;
 }
 
-const FALLBACK_DESTINATIONS: HeroDestination[] = [
-  // { name: 'Kyoto, Japan', image: 'assets/images/landing/journey-thailand.jpg' },
-  { name: 'Paris, France',image: 'your-paris-image.jpg'},
-  // { name: 'Santorini, Greece', image: 'assets/images/landing/destination-bali.jpg' },
-  // { name: 'Bali, Indonesia', image: 'assets/images/landing/destination-paris.jpg' },
-];
-
 @Component({
     selector: 'app-community-hero',
     imports: [RouterLink, TranslatePipe],
@@ -30,7 +23,7 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
       <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
         <div
           class="absolute inset-0 bg-cover bg-center"
-          [style.backgroundImage]="'url(' + (trip.image || fallbackImage) + ')'"
+          [style.backgroundImage]="trip.image ? 'url(' + trip.image + ')' : null"
         ></div>
         <div class="absolute inset-0 community-hero-overlay"></div>
         <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
@@ -68,30 +61,40 @@ const FALLBACK_DESTINATIONS: HeroDestination[] = [
         </div>
       </div>
     } @else {
-      <!-- Rotating destination carousel fallback for signed-out users / users without an upcoming trip -->
+      <!-- Hero for signed-out users / users without an upcoming trip. Shows a rotating
+           photo carousel once real destinations load from the API; the card, heading
+           and buttons below always render regardless — only the photo layer and the
+           place-name badge are conditional on real data being available, so there is
+           no fake photo/name shown while loading or if that API call fails. -->
       <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
-        <div
-          class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
-          [style.backgroundImage]="'url(' + destinations()[currentIndex()].image + ')'"
-          [class.opacity-100]="!transitioning()"
-          [class.opacity-0]="transitioning()"
-        ></div>
+        @if (destinations().length > 0) {
+          <div
+            class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+            [style.backgroundImage]="'url(' + destinations()[currentIndex()].image + ')'"
+            [class.opacity-100]="!transitioning()"
+            [class.opacity-0]="transitioning()"
+          ></div>
+        }
         <div class="absolute inset-0 community-hero-overlay"></div>
-        <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
-          @for (d of destinations(); track d.name; let i = $index) {
-            <button
-              (click)="goTo(i)"
-              class="w-1.5 h-1.5 rounded-full transition-all focus:outline-none bg-white"
-              [class.opacity-40]="i !== currentIndex()"
-            ></button>
-          }
-        </div>
+        @if (destinations().length > 0) {
+          <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
+            @for (d of destinations(); track d.name; let i = $index) {
+              <button
+                (click)="goTo(i)"
+                class="w-1.5 h-1.5 rounded-full transition-all focus:outline-none bg-white"
+                [class.opacity-40]="i !== currentIndex()"
+              ></button>
+            }
+          </div>
+        }
         <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
 
-          <div class="flex items-center gap-[9px] mb-3">
-            <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
-            <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
-          </div>
+          @if (destinations().length > 0) {
+            <div class="flex items-center gap-[9px] mb-3">
+              <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
+              <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
+            </div>
+          }
           <h2 class="text-[28px] sm:text-[34px] font-extrabold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
           <div class="flex items-center gap-2 flex-wrap">
             <button
@@ -130,7 +133,6 @@ export class CommunityHeroComponent implements OnInit, OnDestroy {
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
 
-  readonly fallbackImage = FALLBACK_DESTINATIONS[0].image;
   readonly savedSpots = signal<number | null>(null);
 
   /** The soonest real upcoming trip, if the signed-in user has one. */
@@ -142,7 +144,7 @@ export class CommunityHeroComponent implements OnInit, OnDestroy {
     return upcoming[0] ?? null;
   });
 
-  destinations = signal<HeroDestination[]>(FALLBACK_DESTINATIONS);
+  destinations = signal<HeroDestination[]>([]);
   currentIndex = signal(0);
   transitioning = signal(false);
   private rotateInterval?: ReturnType<typeof setInterval>;
@@ -180,6 +182,7 @@ export class CommunityHeroComponent implements OnInit, OnDestroy {
 
   private startRotation() {
     this.rotateInterval = setInterval(() => {
+      if (this.destinations().length < 2) return;
       this.transitioning.set(true);
       setTimeout(() => {
         this.currentIndex.update(i => (i + 1) % this.destinations().length);
