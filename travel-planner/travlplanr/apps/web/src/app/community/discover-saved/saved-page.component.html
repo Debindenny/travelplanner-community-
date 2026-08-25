@@ -1,6 +1,20 @@
-<div class="ds-page">
-  <app-ds-saved-tab />
+<div class="ds-shell">
+  <aside class="ds-sidebar">
+    <app-ds-community-subnav (sharePost)="showComposerModal.set(true)" />
+    <app-ds-community-journey-stats />
+  </aside>
+
+  <div class="ds-page">
+    <app-ds-saved-tab />
+  </div>
 </div>
+
+@if (showComposerModal()) {
+  <app-community-composer-modal
+    (postCreated)="showComposerModal.set(false)"
+    (close)="showComposerModal.set(false)"
+  />
+}
 
 @switch (store.modal()?.kind) {
   @case ('savedDetail') {

@@ -124,6 +124,9 @@ export class DiscoverSavedStore {
     return `${count} ${count === 1 ? 'item saved' : 'items saved'}`;
   });
 
+  /** Total saved items regardless of the currently-selected tab filter — used by the sidebar badge. */
+  readonly savedItemCount = computed(() => this._savedItems().length);
+
   private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
   readonly addDays = computed(() =>

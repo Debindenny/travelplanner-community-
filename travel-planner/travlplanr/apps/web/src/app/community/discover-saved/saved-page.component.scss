@@ -24,10 +24,36 @@
   color: var(--ds-text-primary);
 }
 
-.ds-page {
-  max-width: 1080px;
+.ds-shell {
+  max-width: 1280px;
   margin: 0 auto;
   padding: 24px 20px 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.ds-sidebar {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 88px;
+}
+
+@media (min-width: 900px) {
+  .ds-shell {
+    grid-template-columns: 268px minmax(0, 1fr);
+  }
+
+  .ds-sidebar {
+    display: flex;
+  }
+}
+
+.ds-page {
+  min-width: 0;
 }
 
 @keyframes ds-up {

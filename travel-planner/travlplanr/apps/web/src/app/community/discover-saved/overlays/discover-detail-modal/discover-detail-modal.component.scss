@@ -132,16 +132,16 @@
   flex: none;
   border-radius: 9px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   border: 1px solid var(--ds-accent);
-  background: var(--ds-accent);
-  color: #fff;
+  background: var(--ds-surface);
+  color: var(--ds-accent);
 
   &.is-following {
-    background: var(--ds-surface);
+    background: #f2f6fc;
     border-color: var(--ds-border);
-    color: var(--ds-text-secondary);
+    color: var(--ds-text-muted);
   }
 }
 
@@ -242,7 +242,7 @@
   cursor: pointer;
   border: 1px solid var(--ds-border);
   background: var(--ds-surface);
-  color: var(--ds-text-secondary);
+  color: #374151;
 
   &.is-saved {
     border-color: var(--ds-accent);

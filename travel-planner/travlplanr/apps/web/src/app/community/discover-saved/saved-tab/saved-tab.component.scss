@@ -75,6 +75,10 @@
 
 .saved-tab__title {
   margin: 8px 0 0;
+  /* A global `h1 { font-family: ...; letter-spacing: ... }` rule in styles.scss
+     directly targets this element and would otherwise win over the Manrope
+     inherited from the page's :host — override it explicitly here. */
+  font-family: inherit;
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.03em;
