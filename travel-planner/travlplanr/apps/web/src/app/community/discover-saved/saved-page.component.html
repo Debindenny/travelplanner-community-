@@ -19,7 +19,7 @@
 @switch (store.modal()?.kind) {
   @case ('savedDetail') {
     @if (store.activeSavedItem(); as item) {
-      <app-ds-modal-shell width="420px" [showHeader]="false" (close)="store.closeModal()">
+      <app-ds-modal-shell width="560px" [showHeader]="false" (close)="store.closeModal()">
         <app-ds-saved-detail-modal
           [item]="item"
           [saved]="true"

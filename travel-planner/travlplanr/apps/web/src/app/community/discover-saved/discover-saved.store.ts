@@ -248,6 +248,9 @@ export class DiscoverSavedStore {
       next: ({ saved }) => {
         this._discoverItems.update((items) => items.map((item) => (item.id === id ? { ...item, isSaved: saved } : item)));
         this.toast.info(saved ? 'Saved to your collection' : 'Removed from saved');
+        // Refresh the saved list so the sidebar count and Saved page reflect this immediately,
+        // without needing to navigate to Saved first.
+        this.loadSaved();
       },
       error: () => this.toast.info('Could not update saved status'),
     });
