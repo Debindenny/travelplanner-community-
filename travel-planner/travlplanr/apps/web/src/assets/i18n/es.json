@@ -330,6 +330,23 @@
       "TRIPS_HERE": "Viajes aquí",
       "BEEN_THERE": "Ya estuve allí"
     },
+    "DESTINATIONS_PAGE": {
+      "BACK_TO_COMMUNITY": "Volver a Comunidad",
+      "BREADCRUMB_COMMUNITY": "Comunidad",
+      "CLOSE": "Cerrar",
+      "FILTER_GROUP": "Ordenar destinos",
+      "FILTER_NEAR_ME": "Cerca de mí",
+      "FILTER_POPULAR": "Popular",
+      "JOIN": "Unirme",
+      "JOIN_COMMUNITY": "Unirme a la comunidad",
+      "JOINED": "Unido",
+      "JOINED_COMMUNITY": "Unido a la comunidad",
+      "PLANNING_RIGHT_NOW": "{{planning}} ahora mismo",
+      "RECENT_POSTS": "Publicaciones recientes",
+      "SUBTITLE": "Cada destino tiene su propio feed de consejos, viajes y encuentros de viajeros que están allí ahora mismo.",
+      "TITLE": "Únete al lugar, no solo al viaje",
+      "VIEW_DETAILS": "Ver detalles"
+    },
     "DISCOVER": "Descubrir",
     "FEED": "Feed",
     "FEED_ERROR_BODY": "Hubo un error al cargar las publicaciones de la comunidad. Por favor, inténtalo de nuevo.",

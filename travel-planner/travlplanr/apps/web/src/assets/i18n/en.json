@@ -430,6 +430,23 @@
       "TRIPS_HERE": "Trips here",
       "BEEN_THERE": "Been there"
     },
+    "DESTINATIONS_PAGE": {
+      "BACK_TO_COMMUNITY": "Back to Community",
+      "BREADCRUMB_COMMUNITY": "Community",
+      "CLOSE": "Close",
+      "FILTER_GROUP": "Sort destinations",
+      "FILTER_NEAR_ME": "Near me",
+      "FILTER_POPULAR": "Popular",
+      "JOIN": "Join",
+      "JOIN_COMMUNITY": "Join community",
+      "JOINED": "Joined",
+      "JOINED_COMMUNITY": "Joined community",
+      "PLANNING_RIGHT_NOW": "{{planning}} right now",
+      "RECENT_POSTS": "Recent posts",
+      "SUBTITLE": "Every destination has its own feed of tips, trips and meetups from travelers there right now.",
+      "TITLE": "Join the place, not just the trip",
+      "VIEW_DETAILS": "View details"
+    },
     "DISCOVER": "Discover",
     "FEED": "Feed",
     "FEED_ERROR_BODY": "There was an error loading the community feed. Please try again.",
