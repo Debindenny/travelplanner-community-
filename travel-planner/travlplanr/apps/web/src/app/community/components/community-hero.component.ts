@@ -29,11 +29,11 @@ interface HeroDestination {
         <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
           <div class="flex items-center gap-[9px] mb-3">
             <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
-            <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">
+            <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">
               {{ 'COMMUNITY.HERO.NEXT_TRIP_BADGE' | translate }} · {{ 'COMMUNITY.HERO.DAYS_AWAY' | translate: { count: daysAway(trip) } }}
             </p>
           </div>
-          <h2 class="text-[28px] sm:text-[34px] font-extrabold text-white leading-[1.08] tracking-[-0.025em] mb-2.5 max-w-lg">{{ trip.destination }}</h2>
+          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-2.5 max-w-lg">{{ trip.destination }}</h2>
           <p class="text-[13px] font-semibold text-white/75 mb-[22px]">
             {{ formatDateRange(trip) }} <span class="opacity-45">·</span> {{ (nightsCount(trip) === 1 ? 'COMMUNITY.HERO.NIGHT_COUNT' : 'COMMUNITY.HERO.NIGHTS_COUNT') | translate: { count: nightsCount(trip) } }}
             @if (savedSpots() !== null) {
@@ -44,17 +44,17 @@ interface HeroDestination {
             <a
               routerLink="/explore"
               [queryParams]="{ q: cityName(trip) }"
-              class="h-10 inline-flex items-center px-[18px] bg-white text-[13px] font-extrabold rounded-[11px] transition-colors whitespace-nowrap community-hero-btn-solid"
+              class="h-10 inline-flex items-center px-[18px] bg-white text-[13px] font-semibold rounded-[11px] transition-colors whitespace-nowrap community-hero-btn-solid"
             >
               {{ 'COMMUNITY.HERO.EXPLORE_DESTINATION' | translate: { name: cityName(trip) } }}
             </a>
             <a
               routerLink="/community/matching"
-              class="h-10 inline-flex items-center px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-bold rounded-[11px] transition-colors whitespace-nowrap"
+              class="h-10 inline-flex items-center px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-semibold rounded-[11px] transition-colors whitespace-nowrap"
             >
               {{ 'COMMUNITY.HERO.FIND_TRAVELERS' | translate }}
             </a>
-            <a [routerLink]="['/itinerary', trip.id]" class="h-10 inline-flex items-center px-3.5 text-white/80 hover:text-white text-[13px] font-bold transition-colors whitespace-nowrap">
+            <a [routerLink]="['/itinerary', trip.id]" class="h-10 inline-flex items-center px-3.5 text-white/80 hover:text-white text-[13px] font-semibold transition-colors whitespace-nowrap">
               {{ 'COMMUNITY.HERO.OPEN_TRIP' | translate }} →
             </a>
           </div>
@@ -92,28 +92,28 @@ interface HeroDestination {
           @if (destinations().length > 0) {
             <div class="flex items-center gap-[9px] mb-3">
               <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
-              <p class="text-[10.5px] font-extrabold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
+              <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
             </div>
           }
-          <h2 class="text-[28px] sm:text-[34px] font-extrabold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
+          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
           <div class="flex items-center gap-2 flex-wrap">
             <button
               (click)="onPost.emit()"
-              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white text-[13px] font-extrabold rounded-[11px] transition-colors community-hero-btn-solid"
+              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white text-[13px] font-semibold rounded-[11px] transition-colors community-hero-btn-solid"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
               {{ 'COMMUNITY.HERO.POST' | translate }}
             </button>
             <button
               (click)="onMap.emit()"
-              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-bold rounded-[11px] transition-colors"
+              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-semibold rounded-[11px] transition-colors"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
               {{ 'COMMUNITY.HERO.EXPLORE_MAP' | translate }}
             </button>
             <a
               routerLink="/community/matching"
-              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-primary hover:bg-primary-hover text-white text-[13px] font-bold rounded-[11px] transition-colors"
+              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-primary hover:bg-primary-hover text-white text-[13px] font-semibold rounded-[11px] transition-colors"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               {{ 'COMMUNITY.HERO.FIND_BUDDIES' | translate }}

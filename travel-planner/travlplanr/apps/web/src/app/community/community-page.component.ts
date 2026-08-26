@@ -26,7 +26,6 @@ import { CommunityJoinRequestsComponent } from './components/community-join-requ
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
 import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
-import { CommunityStartCircleCardComponent } from './components/community-start-circle-card.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
 import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 
@@ -54,12 +53,16 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityTravelersRailComponent,
       CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
-      CommunityStartCircleCardComponent,
       CommunitySimilarTravelersComponent,
       CommunityComposerModalComponent,
     ],
     template: `
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
+    <!-- font-manrope: the app-wide default (Poppins) is a rounded geometric face that
+         reads visibly larger/heavier than this feature's reference design at the same
+         px size. Manrope is already loaded at every weight this page uses (unlike Inter,
+         which this project only has at 400/900) and is the same face the sibling
+         Travel Circles/Trips island already uses for this lighter, tighter look. -->
+    <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
       <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
       <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6">
         <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
@@ -99,14 +102,14 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
               @for (cat of postCategories; track cat.key) {
                 <button
                   (click)="setPostCategory(cat.key)"
-                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
                   [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
                 >{{ cat.labelKey | translate }}</button>
               }
               @for (tag of followedTags(); track tag) {
                 <button
                   (click)="setFeedMode('hashtag-' + tag)"
-                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
                   [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
                 >#{{ tag }}</button>
               }
@@ -117,14 +120,14 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
               @if (feedMode().startsWith('hashtag-') && !followedTags().includes(feedMode().replace('hashtag-', ''))) {
                 <div class="flex items-center justify-between gap-3 bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
                   <span class="text-primary font-semibold min-w-0 truncate">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
-                  <button (click)="clearHashtagFilter()" class="shrink-0 text-primary hover:text-primary-hover font-bold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
+                  <button (click)="clearHashtagFilter()" class="shrink-0 text-primary hover:text-primary-hover font-semibold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
                 </div>
               }
 
               <!-- Live Feed Updates Pill -->
               @if (newPostsCount() > 0) {
                 <div class="fixed top-[100px] left-1/2 transform -translate-x-1/2 z-40">
-                  <button (click)="loadNewPosts()" class="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-hover hover:to-indigo-700 text-white font-bold py-2.5 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
+                  <button (click)="loadNewPosts()" class="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-hover hover:to-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
                     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     {{ (newPostsCount() === 1 ? 'COMMUNITY.NEW_POST' : 'COMMUNITY.NEW_POSTS') | translate: { n: newPostsCount() } }}
                   </button>
@@ -143,7 +146,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                   <svg class="w-12 h-12 text-danger-500/80 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <h3 class="text-red-950 font-bold mb-1">{{ 'COMMUNITY.FEED_ERROR_TITLE' | translate }}</h3>
+                  <h3 class="text-red-950 font-semibold mb-1">{{ 'COMMUNITY.FEED_ERROR_TITLE' | translate }}</h3>
                   <p class="text-danger text-sm mb-4">{{ 'COMMUNITY.FEED_ERROR_BODY' | translate }}</p>
                   <button (click)="loadPosts(false)" class="bg-red-100 hover:bg-red-200 text-danger hover:text-danger-hover font-semibold py-2 px-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
                     {{ 'COMMUNITY.RETRY' | translate }}
@@ -157,9 +160,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                   <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   </div>
-                  <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
+                  <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
                   <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_CATEGORY_BODY' | translate }}</p>
-                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                     {{ 'COMMUNITY.EMPTY_CATEGORY_RESET' | translate }}
                   </button>
                 </div>
@@ -170,9 +173,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg class="w-7 h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_FOLLOWING_TITLE' | translate }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_FOLLOWING_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_FOLLOWING_BODY' | translate }}</p>
-                    <button (click)="setFeedMode('discover')" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="setFeedMode('discover')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.DISCOVER_TRAVELERS' | translate }}
                     </button>
                   </div>
@@ -182,9 +185,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg class="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_DISCOVER_BODY' | translate }}</p>
-                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.SHARE_YOUR_JOURNEY' | translate }}
                     </button>
                   </div>
@@ -194,9 +197,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span class="text-2xl font-black text-primary">#</span>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_HASHTAG_BODY' | translate }}</p>
-                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.CREATE_A_POST' | translate }}
                     </button>
                   </div>
@@ -270,7 +273,6 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             <app-community-crew-widget />
             <app-community-join-requests />
             <app-community-travelers-rail />
-            <app-community-start-circle-card />
             <app-community-destination-trending />
             <app-community-upcoming-events-widget />
 
@@ -283,7 +285,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                 <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
                 <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
               </div>
-              <p class="mt-1.5 text-[10.5px] font-extrabold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
+              <p class="mt-1.5 text-[10.5px] font-semibold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
             </div>
           </div>
 
@@ -316,13 +318,13 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       }
 
       <footer class="py-6 text-center">
-        <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-2xs-plus font-bold text-text-tertiary">
+        <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-2xs-plus font-semibold text-text-tertiary">
           <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
           <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
           <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
           <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
         </div>
-        <p class="text-2xs text-text-disabled mt-1.5 uppercase tracking-wider font-bold">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
+        <p class="text-2xs text-text-disabled mt-1.5 uppercase tracking-wider font-semibold">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
       </footer>
     </div>
   `,

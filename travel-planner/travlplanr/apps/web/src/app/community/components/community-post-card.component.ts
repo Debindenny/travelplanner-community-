@@ -26,12 +26,12 @@ import { A11yModule } from '@angular/cdk/a11y';
             @if (post.author.avatar) {
               <img [src]="post.author.avatar" [alt]="'COMMUNITY.POST_CARD.AUTHOR_AVATAR_ALT' | translate" class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] object-cover bg-slate-50" loading="lazy" decoding="async" />
             } @else {
-              <span class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] flex items-center justify-center text-white font-extrabold text-sm" [style.background]="authorColor()">{{ authorInitial() }}</span>
+              <span class="w-12 h-12 rounded-full shadow-[0_0_0_1px_rgba(11,18,32,0.06)] flex items-center justify-center text-white font-semibold text-sm" [style.background]="authorColor()">{{ authorInitial() }}</span>
             }
           </a>
           <div class="flex flex-col min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <a [routerLink]="['/community/users', post.author.id]" class="font-extrabold text-sm text-text-primary hover:text-primary hover:underline tracking-tight flex items-center gap-1.5">
+              <a [routerLink]="['/community/users', post.author.id]" class="font-semibold text-sm text-text-primary hover:text-primary hover:underline tracking-tight flex items-center gap-1.5">
                 {{ post.author.name }}
                 @if (post.author.is_verified) {
                   <span class="text-primary flex items-center" [title]="'COMMUNITY.VERIFIED_BADGE' | translate">
@@ -41,7 +41,7 @@ import { A11yModule } from '@angular/cdk/a11y';
               </a>
               <app-community-level-badge [xp]="post.author.xp" [levelRank]="post.author.level_rank || post.author.level?.rank" />
               <span
-                class="h-[21px] px-2.5 rounded-md text-[9.5px] font-extrabold tracking-wide flex items-center whitespace-nowrap"
+                class="h-[21px] px-2.5 rounded-md text-[9.5px] font-semibold tracking-wide flex items-center whitespace-nowrap"
                 [class.text-primary]="kindLabel() === 'INSIGHT'"
                 [class.bg-primary-50]="kindLabel() === 'INSIGHT'"
                 [class.text-purple-700]="kindLabel() === 'POLL'"
@@ -64,13 +64,13 @@ import { A11yModule } from '@angular/cdk/a11y';
 
         <div class="flex items-center gap-1.5 shrink-0">
           @if (isAuthor()) {
-            <button (click)="deletePost()" class="h-8 px-3.5 rounded-lg text-[11.5px] font-extrabold whitespace-nowrap border border-slate-200 dark:border-gray-700 text-text-faint bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none">
+            <button (click)="deletePost()" class="h-8 px-3.5 rounded-lg text-[11.5px] font-semibold whitespace-nowrap border border-slate-200 dark:border-gray-700 text-text-faint bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none">
               {{ 'COMMUNITY.POST_CARD.DELETE' | translate }}
             </button>
           } @else {
             <button
               (click)="onToggleFollow.emit(post)"
-              class="h-8 px-3.5 rounded-lg text-[11.5px] font-extrabold whitespace-nowrap border transition-colors focus:outline-none"
+              class="h-8 px-3.5 rounded-lg text-[11.5px] font-semibold whitespace-nowrap border transition-colors focus:outline-none"
               [class.border-primary]="!post.is_following"
               [class.text-primary]="!post.is_following"
               [class.bg-white]="!post.is_following"
@@ -91,10 +91,10 @@ import { A11yModule } from '@angular/cdk/a11y';
             @if (showOptionsMenu) {
               <div class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-xl shadow-lg z-50 border border-slate-100 dark:border-gray-700/80 divide-y divide-slate-50 dark:divide-gray-700 overflow-hidden text-slate-800 dark:text-slate-100">
                 @if (isAuthor()) {
-                  <button (click)="startEdit()" class="w-full text-left px-4 py-2 text-xs font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">{{ 'COMMUNITY.POST_CARD.EDIT_POST' | translate }}</button>
-                  <button (click)="deletePost()" class="w-full text-left px-4 py-2 text-xs font-bold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">{{ 'COMMUNITY.POST_CARD.DELETE' | translate }}</button>
+                  <button (click)="startEdit()" class="w-full text-left px-4 py-2 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">{{ 'COMMUNITY.POST_CARD.EDIT_POST' | translate }}</button>
+                  <button (click)="deletePost()" class="w-full text-left px-4 py-2 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">{{ 'COMMUNITY.POST_CARD.DELETE' | translate }}</button>
                 } @else {
-                  <button (click)="showOptionsMenu = false; showReportModal.set(true)" class="w-full text-left px-4 py-2 text-xs font-bold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">🛡️ Report Post</button>
+                  <button (click)="showOptionsMenu = false; showReportModal.set(true)" class="w-full text-left px-4 py-2 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">🛡️ Report Post</button>
                 }
               </div>
             }
@@ -106,12 +106,12 @@ import { A11yModule } from '@angular/cdk/a11y';
       <div class="px-4 pb-3">
         @if (!isEditing) {
           @if (captionHeadline()) {
-            <p class="text-[17px] font-extrabold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
+            <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
           }
-          <p class="text-[13.5px] font-medium leading-[1.65] text-text-muted whitespace-pre-wrap">
+          <p class="text-[13.5px] font-normal leading-[1.65] text-text-muted whitespace-pre-wrap">
             @for (token of getCaptionTokens(captionRest()); track $index) {
               @if (token.type === 'hashtag') {
-                <span (click)="filterByHashtag(token.value)" class="text-primary font-bold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
+                <span (click)="filterByHashtag(token.value)" class="text-primary font-semibold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
               } @else {
                 <span>{{ token.value }}</span>
               }
@@ -121,8 +121,8 @@ import { A11yModule } from '@angular/cdk/a11y';
         @if (isEditing) {
           <textarea [(ngModel)]="editCaption" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" rows="3"></textarea>
           <div class="flex justify-end gap-2 mt-2">
-            <button (click)="cancelEdit()" class="px-4 py-1.5 text-xs text-text-secondary hover:bg-slate-100 rounded-full font-bold transition-all">{{ 'COMMUNITY.POST_CARD.CANCEL' | translate }}</button>
-            <button (click)="saveEdit()" class="px-4 py-1.5 text-xs bg-primary hover:bg-primary-hover text-white rounded-full font-bold transition-all shadow-sm">{{ 'COMMUNITY.POST_CARD.SAVE' | translate }}</button>
+            <button (click)="cancelEdit()" class="px-4 py-1.5 text-xs text-text-secondary hover:bg-slate-100 rounded-full font-semibold transition-all">{{ 'COMMUNITY.POST_CARD.CANCEL' | translate }}</button>
+            <button (click)="saveEdit()" class="px-4 py-1.5 text-xs bg-primary hover:bg-primary-hover text-white rounded-full font-semibold transition-all shadow-sm">{{ 'COMMUNITY.POST_CARD.SAVE' | translate }}</button>
           </div>
         }
       </div>
@@ -132,7 +132,7 @@ import { A11yModule } from '@angular/cdk/a11y';
         <div class="px-4 pb-3">
           <a [routerLink]="['/destinations', post.destination.id]" class="inline-flex items-center gap-1.5 bg-primary-50 border border-primary-subtle/40 rounded-full px-3 py-1 hover:bg-primary-100 transition-colors">
             <svg class="w-3 h-3 text-primary fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-            <span class="text-xs font-extrabold text-primary">{{ post.destination.name }}</span>
+            <span class="text-xs font-semibold text-primary">{{ post.destination.name }}</span>
           </a>
         </div>
       }
@@ -151,7 +151,7 @@ import { A11yModule } from '@angular/cdk/a11y';
           @if (post.destination && !isEditing) {
             <a
               [routerLink]="['/destinations', post.destination.id]"
-              class="absolute left-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-bold hover:bg-black/70 transition-colors"
+              class="absolute left-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold hover:bg-black/70 transition-colors"
             >
               <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
               {{ post.destination.name }}
@@ -171,9 +171,9 @@ import { A11yModule } from '@angular/cdk/a11y';
             decoding="async"
             />
           <div class="flex-1 min-w-0">
-            <h4 class="font-extrabold text-sm text-text-primary truncate">{{ post.itinerary.title }}</h4>
+            <h4 class="font-semibold text-sm text-text-primary truncate">{{ post.itinerary.title }}</h4>
             <p class="text-xs text-text-secondary truncate mt-0.5">{{ post.itinerary.destination }}</p>
-            <p class="text-xs font-bold text-primary mt-1 flex items-center gap-2">
+            <p class="text-xs font-semibold text-primary mt-1 flex items-center gap-2">
               <span class="bg-primary-50 text-primary px-2 py-0.5 rounded-full text-2xs border border-primary-subtle/50">
                 {{ (getDayCount(post.itinerary) === 1 ? 'COMMUNITY.POST_CARD.DAY_COUNT' : 'COMMUNITY.POST_CARD.DAYS_COUNT') | translate: { count: getDayCount(post.itinerary) } }}
               </span>
@@ -183,7 +183,7 @@ import { A11yModule } from '@angular/cdk/a11y';
           </div>
           <button
             (click)="onCloneTrip.emit(post.itinerary.id)"
-            class="shrink-0 bg-primary hover:bg-primary-hover text-white text-xs font-extrabold px-4 py-2.5 rounded-xl transition-colors"
+            class="shrink-0 bg-primary hover:bg-primary-hover text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
             >
             {{ 'COMMUNITY.POST_CARD.CLONE_TRIP' | translate }}
           </button>
@@ -191,7 +191,7 @@ import { A11yModule } from '@angular/cdk/a11y';
       }
 
       <!-- Social line -->
-      <div class="px-4 pt-3 text-[11.5px] font-bold text-text-faint">
+      <div class="px-4 pt-3 text-[11.5px] font-semibold text-text-faint">
         {{ (post.likes === 1 ? 'COMMUNITY.POST_CARD.HELPFUL_COUNT' : 'COMMUNITY.POST_CARD.HELPFUL_COUNT_PLURAL') | translate: { count: post.likes } }}
         ·
         @if (!isDetailView) {
@@ -205,7 +205,7 @@ import { A11yModule } from '@angular/cdk/a11y';
       <div class="flex items-center gap-2 mx-4 mt-3 mb-4 pt-3 border-t border-slate-100 dark:border-gray-700 flex-wrap">
         <button
           (click)="reactPost()"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-bold border transition-colors focus:outline-none"
+          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
           [class.border-primary]="post.isLiked"
           [class.bg-primary-50]="post.isLiked"
           [class.text-primary]="post.isLiked"
@@ -222,7 +222,7 @@ import { A11yModule } from '@angular/cdk/a11y';
         </button>
         <button
           (click)="isDetailView ? onCommentFocus.emit() : onToggleCommentsView.emit(post.id)"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-bold border transition-colors focus:outline-none"
+          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
           [class.border-primary]="commentsOpen"
           [class.text-primary]="commentsOpen"
           [class.bg-primary-50]="commentsOpen"
@@ -237,7 +237,7 @@ import { A11yModule } from '@angular/cdk/a11y';
         </button>
         <button
           (click)="sharePost()"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none"
           >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
           {{ 'COMMUNITY.POST_CARD.SHARE' | translate }}
@@ -246,7 +246,7 @@ import { A11yModule } from '@angular/cdk/a11y';
           <span class="flex-1"></span>
           <button
             (click)="onSave.emit(post.id)"
-            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-xs font-extrabold bg-primary hover:bg-primary-hover text-white transition-colors focus:outline-none"
+            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors focus:outline-none"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             {{ 'COMMUNITY.POST_CARD.ADD_TO_TRIP' | translate }}
@@ -260,7 +260,7 @@ import { A11yModule } from '@angular/cdk/a11y';
     @if (postToDelete(); as p) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" [attr.aria-labelledby]="'delete-confirm-title-' + post.id" (keydown.escape)="postToDelete.set(null)">
         <div class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl" cdkTrapFocus cdkTrapFocusAutoCapture>
-          <h2 [id]="'delete-confirm-title-' + post.id" class="text-xl font-bold text-text-primary">{{ 'COMMUNITY.POST_CARD.DELETE_CONFIRM_TITLE' | translate }}</h2>
+          <h2 [id]="'delete-confirm-title-' + post.id" class="text-xl font-semibold text-text-primary">{{ 'COMMUNITY.POST_CARD.DELETE_CONFIRM_TITLE' | translate }}</h2>
           <p class="mt-2 text-text-secondary">{{ 'COMMUNITY.POST_CARD.DELETE_CONFIRM_MSG' | translate }}</p>
           <div class="mt-6 flex justify-end gap-3">
             <button

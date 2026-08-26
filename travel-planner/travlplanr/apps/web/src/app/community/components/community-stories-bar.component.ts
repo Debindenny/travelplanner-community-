@@ -33,7 +33,7 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
             </svg>
           </span>
         </span>
-        <span class="text-2xs font-bold text-text-tertiary truncate max-w-full">{{ 'COMMUNITY.STORIES_BAR.YOUR_STORY' | translate }}</span>
+        <span class="text-2xs font-semibold text-text-tertiary truncate max-w-full">{{ 'COMMUNITY.STORIES_BAR.YOUR_STORY' | translate }}</span>
       </button>
 
       <!-- Skeletons (when loading) -->
@@ -77,7 +77,7 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
           </span>
 
           <!-- Author name -->
-          <span class="text-2xs font-bold text-text-primary truncate max-w-full">{{ group.author.name }}</span>
+          <span class="text-2xs font-semibold text-text-primary truncate max-w-full">{{ group.author.name }}</span>
         </button>
       }
 
@@ -97,7 +97,7 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
                 <img [src]="story.image" class="w-full h-full object-cover" alt="" />
               </span>
             </span>
-            <span class="text-2xs font-bold text-text-primary truncate max-w-full">{{ story.name }}</span>
+            <span class="text-2xs font-semibold text-text-primary truncate max-w-full">{{ story.name }}</span>
           </button>
         }
       }

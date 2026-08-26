@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject, afterNextRender } from '@angular/core';
 
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { A11yModule } from '@angular/cdk/a11y';
 import {
@@ -25,7 +26,7 @@ import { ToastService } from '../../shared/utils/toast.service';
          dimming the page behind it, since the panel docks beside the feed
          (not over it) rather than behaving like a centered dialog. -->
     <div
-      class="fixed inset-0 z-[89]"
+      class="font-manrope fixed inset-0 z-[89]"
       (click)="close.emit()"
       (window:keydown.escape)="close.emit()"
     >
@@ -72,7 +73,7 @@ import { ToastService } from '../../shared/utils/toast.service';
       <!-- Member count / expiry -->
       <div class="flex items-center justify-between px-4 py-2 border-b border-slate-100">
         <p class="text-[11.5px] font-semibold text-text-faint">{{ chat.memberCount }} members · {{ chat.onlineCount }} online now</p>
-        <span class="text-[10.5px] font-extrabold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">
+        <span class="text-[10.5px] font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">
           Ends in {{ chat.endsInDays }}d
         </span>
       </div>
@@ -125,7 +126,7 @@ import { ToastService } from '../../shared/utils/toast.service';
                     <button
                       type="button"
                       (click)="rsvpMeetup(msg.id, 'in')"
-                      class="flex-1 h-9 rounded-lg text-[12px] font-extrabold transition-colors focus:outline-none"
+                      class="flex-1 h-9 rounded-lg text-[12px] font-semibold transition-colors focus:outline-none"
                       [class.bg-primary]="meetupRsvp()[msg.id] !== 'out'"
                       [class.text-white]="meetupRsvp()[msg.id] !== 'out'"
                       [class.bg-slate-100]="meetupRsvp()[msg.id] === 'out'"
@@ -136,7 +137,7 @@ import { ToastService } from '../../shared/utils/toast.service';
                     <button
                       type="button"
                       (click)="rsvpMeetup(msg.id, 'out')"
-                      class="flex-1 h-9 rounded-lg border text-[12px] font-extrabold transition-colors focus:outline-none"
+                      class="flex-1 h-9 rounded-lg border text-[12px] font-semibold transition-colors focus:outline-none"
                       [class.border-primary]="meetupRsvp()[msg.id] === 'out'"
                       [class.text-primary]="meetupRsvp()[msg.id] === 'out'"
                       [class.border-slate-200]="meetupRsvp()[msg.id] !== 'out'"
@@ -161,7 +162,7 @@ import { ToastService } from '../../shared/utils/toast.service';
                   <button
                     type="button"
                     (click)="settleExpense(msg.id)"
-                    class="shrink-0 h-8 px-3 rounded-lg border text-[12px] font-extrabold transition-colors focus:outline-none"
+                    class="shrink-0 h-8 px-3 rounded-lg border text-[12px] font-semibold transition-colors focus:outline-none"
                     [class.border-primary]="!settledExpenses().has(msg.id)"
                     [class.text-primary]="!settledExpenses().has(msg.id)"
                     [class.border-slate-200]="settledExpenses().has(msg.id)"
@@ -184,7 +185,7 @@ import { ToastService } from '../../shared/utils/toast.service';
                     <button
                       type="button"
                       (click)="addPlaceToTrip(msg.id)"
-                      class="w-full h-9 rounded-lg text-[12px] font-extrabold transition-colors focus:outline-none"
+                      class="w-full h-9 rounded-lg text-[12px] font-semibold transition-colors focus:outline-none"
                       [class.bg-primary-50]="!addedPlaces().has(msg.id)"
                       [class.text-primary]="!addedPlaces().has(msg.id)"
                       [class.bg-slate-100]="addedPlaces().has(msg.id)"
@@ -291,6 +292,8 @@ export class CommunityCrewChatModalComponent {
   @ViewChild('draftInput') draftInputRef?: ElementRef<HTMLInputElement>;
 
   private readonly toast = inject(ToastService);
+  private readonly hostRef: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly document = inject(DOCUMENT);
 
   readonly chat = PARIS_CREW_CHAT_MOCK;
   readonly messages = signal<CrewMessage[]>(this.chat.messages);
@@ -301,6 +304,24 @@ export class CommunityCrewChatModalComponent {
   readonly meetupRsvp = signal<Record<string, 'in' | 'out'>>({});
   readonly settledExpenses = signal<Set<string>>(new Set());
   readonly addedPlaces = signal<Set<string>>(new Set());
+
+  constructor() {
+    /* This modal is only ever opened from the Crew widget, which sits inside
+       the community page's sticky right rail (`position: sticky`) — that,
+       despite z-index:auto, creates its own stacking context in real
+       browsers, trapping this modal's fixed/z-[90] panel locally so it no
+       longer outranks unrelated page chrome painted outside that rail (e.g.
+       the sticky header). Reparenting the host to <body> once rendered
+       escapes that trap; the template is plain Tailwind utility classes with
+       no dependency on inherited CSS custom properties, so it's safe to move
+       as-is. */
+    afterNextRender(() => {
+      const host = this.hostRef.nativeElement;
+      if (host.parentElement !== this.document.body) {
+        this.document.body.appendChild(host);
+      }
+    });
+  }
 
   votePoll(messageId: string, option: string): void {
     this.pollVotes.update(votes => ({ ...votes, [messageId]: option }));

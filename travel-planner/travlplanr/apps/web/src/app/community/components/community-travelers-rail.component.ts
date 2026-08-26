@@ -22,18 +22,18 @@ const MOCK_TRAVELERS: RailTraveler[] = [
   imports: [TranslatePipe],
   template: `
     <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] p-4">
-      <span class="block text-[10.5px] font-extrabold tracking-[0.1em] text-text-faint uppercase mb-3">{{ 'COMMUNITY.HOME_SIDEBAR.TRAVELERS_RAIL_TITLE' | translate }}</span>
+      <span class="block text-[10.5px] font-semibold tracking-[0.1em] text-text-faint uppercase mb-3">{{ 'COMMUNITY.HOME_SIDEBAR.TRAVELERS_RAIL_TITLE' | translate }}</span>
       <div class="flex flex-col gap-3">
         @for (traveler of travelers(); track traveler.id) {
           <div class="flex items-center gap-2.5">
-            <span class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-extrabold" [style.background]="traveler.gradient">{{ traveler.initial }}</span>
+            <span class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-semibold" [style.background]="traveler.gradient">{{ traveler.initial }}</span>
             <div class="flex-1 min-w-0 flex flex-col">
               <span class="text-[13px] font-bold text-text-primary truncate">{{ traveler.name }}</span>
               <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ traveler.line }}</span>
             </div>
             <button
               (click)="toggleFollow(traveler)"
-              class="h-8 px-3 rounded-lg text-[11px] font-extrabold whitespace-nowrap border transition-colors shrink-0"
+              class="h-8 px-3 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-colors shrink-0"
               [class.border-primary]="!followedIds().has(traveler.id)"
               [class.text-primary]="!followedIds().has(traveler.id)"
               [class.bg-white]="!followedIds().has(traveler.id)"
