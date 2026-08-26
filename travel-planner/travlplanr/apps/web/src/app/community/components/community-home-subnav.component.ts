@@ -22,7 +22,7 @@ interface SubnavItem {
       <button
         type="button"
         (click)="sharePost.emit()"
-        class="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 px-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-white text-[13px] font-bold shadow-[0_8px_20px_rgba(0,96,234,0.22)] transition-colors focus:outline-none"
+        class="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 px-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-white text-[13px] font-extrabold shadow-[0_8px_20px_rgba(0,96,234,0.22)] transition-colors focus:outline-none"
       >
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         {{ 'COMMUNITY.HOME_SUBNAV.SHARE' | translate }}
@@ -32,9 +32,9 @@ interface SubnavItem {
         @for (item of items; track item.label) {
           <a
             [routerLink]="item.route"
-            routerLinkActive="bg-primary-subtle text-primary font-bold"
+            routerLinkActive="bg-primary-subtle text-primary font-extrabold"
             [routerLinkActiveOptions]="{ exact: item.exact }"
-            class="flex items-center gap-3 h-[42px] min-w-0 px-3 rounded-[11px] text-[14.5px] font-bold text-eventText-mid transition-colors community-sidebar-item"
+            class="flex items-center gap-3 h-[42px] min-w-0 px-3 rounded-[11px] text-[13.5px] font-[650] text-eventText-mid transition-colors community-sidebar-item"
           >
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               @for (d of item.icon; track d) {
@@ -43,7 +43,7 @@ interface SubnavItem {
             </svg>
             <span class="flex-1 min-w-0 truncate text-left">{{ item.label | translate }}</span>
             @if (item.count && item.count(); as count) {
-              <span class="h-5 min-w-5 px-1.5 rounded-full dark:bg-gray-700 text-[10.5px] font-semibold text-text-faint flex items-center justify-center community-sidebar-count">{{ count }}</span>
+              <span class="h-5 min-w-5 px-1.5 rounded-full dark:bg-gray-700 text-[10.5px] font-extrabold text-text-faint flex items-center justify-center community-sidebar-count">{{ count }}</span>
             }
           </a>
         }
