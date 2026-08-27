@@ -46,7 +46,7 @@ import { Subscription } from 'rxjs';
                 >
                 <div class="relative z-10">
                   <div class="w-14 h-14 rounded-lg bg-white shadow flex flex-col items-center justify-center leading-none shrink-0">
-                    <span class="text-[10px] font-extrabold uppercase text-eventText-soft">{{ monthLabel(ev.starts_at) }}</span>
+                    <span class="text-[10px] font-extrabold uppercase" style="color: #2563eb!important;">{{ monthLabel(ev.starts_at) }}</span>
                     <span class="text-lg font-black text-eventText-deep">{{ dayLabel(ev.starts_at) }}</span>
                   </div>
                 </div>
