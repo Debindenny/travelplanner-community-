@@ -1,200 +1,197 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CommunityEventsService, CommunityEvent, isEventOnline } from '../services/community-events.service';
-
-type EventsFilter = 'All' | 'Near me' | 'Online';
+import { CommunityEventsService, CommunityEvent } from '../services/community-events.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-community-events',
-    imports: [CommonModule, RouterLink, TranslatePipe],
+    imports: [CommonModule, RouterLink, TranslatePipe, FormsModule],
     template: `
-    <div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 font-manrope">
-      <!-- Breadcrumb -->
-      <nav class="flex items-center gap-2 mb-4 text-[12.5px] font-bold text-eventText-soft">
-        <a
-          routerLink="/community"
-          class="w-7 h-7 rounded-full border border-slate-200 dark:border-gray-700 flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
-          aria-label="Back to Community"
-          >←</a
-        >
-        <a routerLink="/community" class="hover:text-primary transition-colors">Community</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <span class="font-extrabold text-eventText-deep dark:text-white">Events</span>
-      </nav>
-
+    <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6">
       <!-- Header -->
-      <div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <p class="text-[11px] font-extrabold text-eventText-soft uppercase tracking-[0.12em] mb-1.5">Events &amp; Meetups</p>
-          <h1 class="font-manrope text-2xl sm:text-3xl font-black text-eventText-deep dark:text-white mb-1">Meet travelers in person</h1>
-          <p class="text-eventText-mid dark:text-gray-300 text-sm">Photo walks, food crawls and live planning sessions — hosted by travelers, not brands.</p>
-        </div>
-
-        <div class="flex items-center gap-3 shrink-0">
-          <!-- Filter segmented control -->
-          <div class="flex items-center gap-0.5 p-1 rounded-xl bg-slate-100 dark:bg-gray-800" role="group" aria-label="Filter events">
-            @for (f of filters; track f) {
-              <button
-                type="button"
-                (click)="activeFilter.set(f)"
-                [attr.aria-pressed]="activeFilter() === f"
-                class="h-8 px-4 rounded-lg text-xs font-bold transition-colors"
-                [class.bg-white]="activeFilter() === f"
-                [class.dark:bg-gray-700]="activeFilter() === f"
-                [class.text-eventText-deep]="activeFilter() === f"
-                [class.dark:text-white]="activeFilter() === f"
-                [class.shadow-sm]="activeFilter() === f"
-                [class.text-eventText-soft]="activeFilter() !== f"
-                [class.hover:text-eventText-mid]="activeFilter() !== f"
-              >
-                {{ f }}
-              </button>
-            }
-          </div>
-
-          <a
-            routerLink="/community/events/host"
-            class="h-9 pl-3.5 pr-4 rounded-lg text-xs font-bold bg-primary hover:bg-primary-hover text-white transition-colors shrink-0 flex items-center gap-1.5 shadow-sm"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Host an event
-          </a>
+          <h1 class="text-2xl font-black text-text-primary dark:text-white mb-1">📅 Community Events</h1>
+          <p class="text-text-secondary dark:text-gray-300 text-sm">Join events organized by other travelers.</p>
         </div>
       </div>
-
+    
+      <!-- Action Banner -->
+      <div class="mb-6 flex justify-between items-center bg-indigo-50/50 dark:bg-gray-800/50 border border-primary-subtle/30 dark:border-gray-700/50 p-4 rounded-2xl shadow-inner gap-4">
+        <p class="text-xs text-text-secondary dark:text-gray-300">Are you hosting a meetup? Share it with the community!</p>
+        <button
+          (click)="showCreateModal.set(true)"
+          class="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-xs font-extrabold shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0"
+          >
+          Create Meetup
+        </button>
+      </div>
+    
       <!-- Loading skeleton -->
       @if (isLoading()) {
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          @for (i of [1, 2, 3, 4]; track i) {
-            <div class="bg-white/80 dark:bg-gray-800/90 rounded-2xl border border-slate-100 dark:border-gray-700/80 overflow-hidden animate-pulse">
-              <div class="h-[180px] bg-slate-200 dark:bg-gray-700"></div>
-              <div class="p-4">
-                <div class="h-3 bg-slate-200 dark:bg-gray-700 rounded w-1/3"></div>
-              </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="bg-white/80 rounded-2xl border border-slate-100 p-5 animate-pulse h-56">
+              <div class="h-28 bg-slate-200 rounded-xl mb-3"></div>
+              <div class="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+              <div class="h-3 bg-slate-200 rounded w-1/2"></div>
             </div>
           }
         </div>
       } @else if (loadError()) {
         <div class="bg-white/80 border border-slate-100 rounded-2xl p-12 text-center shadow-sm">
           <span class="text-3xl mb-3 block">⚠️</span>
-          <h3 class="font-manrope font-extrabold text-base text-eventText-deep mb-1">Couldn't load meetups</h3>
-          <p class="text-eventText-mid text-xs mb-4">Something went wrong while fetching events.</p>
+          <h3 class="font-extrabold text-base text-text-primary mb-1">Couldn't load meetups</h3>
+          <p class="text-text-secondary text-xs mb-4">Something went wrong while fetching events.</p>
           <button (click)="loadEvents()" class="px-4 py-2 text-xs bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all">
             Retry
           </button>
         </div>
       } @else {
         <!-- Events grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          @for (ev of visibleEvents(); track ev.id) {
-            <article
-              class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col group"
-            >
-              <!-- Banner: date chip + category badge -->
-              <div
-                class="relative h-[180px] p-4 flex flex-col justify-between bg-cover bg-center"
-                [style.background-image]="cardBackground(ev)"
-              >
-                <div class="flex items-start justify-between">
-                  <div class="w-12 h-12 rounded-lg bg-white shadow flex flex-col items-center justify-center leading-none shrink-0">
-                    <span class="text-[9px] font-extrabold uppercase text-eventText-soft">{{ monthLabel(ev.starts_at) }}</span>
-                    <span class="text-2xl font-black text-eventText-deep">{{ dayLabel(ev.starts_at) }}</span>
-                  </div>
-
-                  <span
-                    class="px-3 py-1.5 rounded-md border text-[11.5px] font-extrabold shrink-0"
-                    [class.bg-eventTag-blueBg]="!isOnline(ev)"
-                    [class.border-eventTag-blueBorder]="!isOnline(ev)"
-                    [class.text-primary]="!isOnline(ev)"
-                    [class.bg-eventTag-purpleBg]="isOnline(ev)"
-                    [class.border-eventTag-purpleBorder]="isOnline(ev)"
-                    [class.text-eventTag-purpleText]="isOnline(ev)"
-                  >
-                    {{ ev.badge ?? (isOnline(ev) ? 'Online' : 'Meetup') }}
-                  </span>
-                </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (ev of events(); track ev.id) {
+            <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-md transition-all duration-300 flex flex-col group relative">
+    
+              <!-- Cover image / visual card top -->
+              <div class="h-32 bg-gradient-to-tr from-slate-900 to-indigo-950 flex items-center justify-center relative overflow-hidden select-none">
+                @if (ev.image_url) {
+                  <img [src]="ev.image_url" class="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-500" />
+                }
+                <span class="text-3xl relative z-10">🍻</span>
+              </div>
+    
+              <!-- Card body -->
+              <div class="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 class="font-manrope text-lg font-extrabold text-white leading-tight [text-shadow:0_1px_8px_rgba(0,0,0,0.35)]">
+                  <span class="text-[9px] font-extrabold text-primary uppercase tracking-wide block mb-1">
+                    {{ formatDate(ev.starts_at) }}
+                  </span>
+                  <h3 class="font-extrabold text-sm text-text-primary dark:text-white leading-snug mb-1.5 group-hover:text-primary transition-colors">
                     <a [routerLink]="['/community/events', ev.id]">{{ ev.title }}</a>
                   </h3>
-                  <p class="text-xs font-semibold text-white/85 mt-1 [text-shadow:0_1px_8px_rgba(0,0,0,0.35)]">
-                    {{ ev.location || 'Online' }} · {{ timeLabel(ev.starts_at) }}
+                  <p class="text-2xs text-text-tertiary dark:text-gray-400 font-bold mb-3 flex items-center gap-1">
+                    @if (ev.location) {
+                      <span>📍 {{ ev.location }}</span>
+                      <span>•</span>
+                    }
+                    <span>👥 {{ ev.attendee_count }} going</span>
+                  </p>
+                  <p class="text-xs text-text-secondary dark:text-gray-300 line-clamp-2 leading-relaxed mb-4">
+                    {{ ev.description }}
                   </p>
                 </div>
-              </div>
-
-              <!-- Content -->
-              <div class="p-4 flex flex-col gap-3">
-                <span class="inline-flex items-center gap-1.5 self-start px-2.5 py-1 rounded-full bg-primary-50 dark:bg-primary/10 text-primary text-2xs-plus font-bold">
-                  <svg class="text-primary shrink-0" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path
-                      d="M8 1C8.6 5.2 8.8 6.6 12.5 8C8.8 9.4 8.6 10.8 8 15C7.4 10.8 7.2 9.4 3.5 8C7.2 6.6 7.4 5.2 8 1Z"
-                      stroke="currentColor"
-                      stroke-width="1.75"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                  {{ personalizationReason(ev) }}
-                </span>
-
-                <div class="flex items-center justify-between">
-                  <span
-                    class="inline-block px-3 py-1 rounded-lg text-sm font-extrabold"
-                    [class.bg-success-50]="isFree(ev)"
-                    [class.text-success]="isFree(ev)"
-                    [class.bg-primary-50]="!isFree(ev)"
-                    [class.text-primary]="!isFree(ev)"
-                  >
-                    {{ ev.cost || 'Free' }}
-                  </span>
-                  <span class="text-xs font-bold text-eventText-mid dark:text-gray-300">
-                    {{ ev.attendee_count }} going
-                  </span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <a
-                    [routerLink]="['/community/events', ev.id]"
-                    class="h-9 px-4 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 text-eventText-mid dark:text-gray-300 hover:border-slate-300 transition-colors flex items-center justify-center"
-                  >
-                    Details
-                  </a>
+    
+                <div class="border-t border-slate-100 dark:border-gray-700/50 pt-3.5 mt-auto flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img [src]="ev.organizer.avatar || '/assets/images/default-avatar.svg'" class="w-7 h-7 rounded-full object-cover border shrink-0 bg-slate-50" />
+                    <span class="text-2xs font-extrabold text-text-secondary dark:text-gray-300 truncate max-w-[100px]">{{ ev.organizer.name }}</span>
+                  </div>
+    
                   <button
-                    type="button"
                     (click)="toggleRsvp(ev)"
-                    class="h-9 flex-1 rounded-lg text-xs font-bold transition-colors"
-                    [class.bg-primary-50]="ev.rsvp_status === 'going'"
-                    [class.text-primary]="ev.rsvp_status === 'going'"
+                    class="px-4 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-102 focus:outline-none"
+                    [class.bg-slate-100]="ev.rsvp_status === 'going'"
+                    [class.text-text-secondary]="ev.rsvp_status === 'going'"
                     [class.bg-primary]="ev.rsvp_status !== 'going'"
                     [class.text-white]="ev.rsvp_status !== 'going'"
-                    [class.hover:bg-primary-hover]="ev.rsvp_status !== 'going'"
-                  >
-                    {{ ev.rsvp_status === 'going' ? 'Going' : 'Join' }}
+                    [ngClass]="{
+                      'dark:bg-gray-700': ev.rsvp_status === 'going',
+                      'dark:text-gray-300': ev.rsvp_status === 'going',
+                      'hover:bg-primary-hover': ev.rsvp_status !== 'going'
+                    }"
+                    >
+                    {{ ev.rsvp_status === 'going' ? 'Going' : 'RSVP' }}
                   </button>
                 </div>
               </div>
-            </article>
+            </div>
           }
-          @if (visibleEvents().length === 0) {
-            <div class="col-span-full bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
+          @if (events().length === 0) {
+            <div class="col-span-full bg-white/80 border border-slate-100 rounded-2xl p-12 text-center shadow-sm">
               <span class="text-3xl mb-3 block">📅</span>
-              <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">No events match this filter</h3>
-              <p class="text-eventText-mid dark:text-gray-300 text-xs">Check back soon, or host one yourself.</p>
+              <h3 class="font-extrabold text-base text-text-primary mb-1">No Events Found</h3>
+              <p class="text-text-secondary text-xs">There are no upcoming meetups right now.</p>
             </div>
           }
         </div>
       }
-
-      @if (toastMessage()) {
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg">
-          {{ toastMessage() }}
+    
+      <!-- Create Event Modal -->
+      @if (showCreateModal()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl border border-slate-100 dark:border-gray-700 animate-fade-in-up">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-gray-700 pb-3 mb-4">
+              <h3 class="font-extrabold text-base text-text-primary dark:text-white flex items-center gap-2">
+                <span>📅</span> Create Meetup
+              </h3>
+              <button (click)="showCreateModal.set(false)" class="text-text-tertiary hover:text-text-primary dark:hover:text-white text-lg focus:outline-none">&times;</button>
+            </div>
+    
+            <!-- Form -->
+            <div class="space-y-4">
+              <div>
+                <label class="block text-2xs font-extrabold text-text-tertiary uppercase mb-1.5">Meetup Title</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newEventTitle"
+                  placeholder="e.g. Kyoto Food Crawl"
+                  class="w-full text-xs px-3 py-2.5 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 text-slate-800 dark:text-white font-medium"
+                  />
+              </div>
+    
+              <div>
+                <label class="block text-2xs font-extrabold text-text-tertiary uppercase mb-1.5">Description</label>
+                <textarea
+                  [(ngModel)]="newEventDesc"
+                  rows="3"
+                  placeholder="What will you do? Where will you meet?"
+                  class="w-full text-xs p-3 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 text-slate-800 dark:text-white resize-none"
+                ></textarea>
+              </div>
+    
+              <div>
+                <label class="block text-2xs font-extrabold text-text-tertiary uppercase mb-1.5">Location</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newEventLocation"
+                  placeholder="e.g. Kyoto, Japan"
+                  class="w-full text-xs px-3 py-2.5 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 text-slate-800 dark:text-white font-medium"
+                  />
+              </div>
+              <div>
+                <label class="block text-2xs font-extrabold text-text-tertiary uppercase mb-1.5">Date & Time</label>
+                <input
+                  type="datetime-local"
+                  [(ngModel)]="newEventDate"
+                  class="w-full text-xs px-3 py-2.5 border border-slate-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 text-slate-800 dark:text-white font-medium"
+                  />
+              </div>
+              @if (createError()) {
+                <p class="text-2xs font-bold text-red-500">{{ createError() }}</p>
+              }
+            </div>
+    
+            <!-- Footer actions -->
+            <div class="mt-6 flex justify-end gap-2 border-t border-slate-100 dark:border-gray-700 pt-4">
+              <button
+                (click)="showCreateModal.set(false)"
+                class="px-4 py-2 text-xs font-bold text-text-secondary hover:bg-slate-100 dark:hover:bg-gray-700 rounded-xl transition-all"
+                >
+                Cancel
+              </button>
+              <button
+                (click)="submitCreateEvent()"
+                [disabled]="!newEventTitle || !newEventDesc || !newEventLocation || !newEventDate"
+                class="px-5 py-2 text-xs bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all shadow-sm disabled:opacity-50"
+                >
+                Create Meetup
+              </button>
+            </div>
+          </div>
         </div>
       }
     </div>
@@ -207,63 +204,16 @@ export class CommunityEventsComponent implements OnInit {
   isLoading = signal(true);
   loadError = signal(false);
 
-  readonly filters: EventsFilter[] = ['All', 'Near me', 'Online'];
-  activeFilter = signal<EventsFilter>('All');
-  visibleEvents = computed(() => {
-    const filter = this.activeFilter();
-    if (filter === 'All') return this.events();
-    return this.events().filter(ev => (filter === 'Online') === this.isOnline(ev));
-  });
-
-  toastMessage = signal<string | null>(null);
+  // Create Form State
+  showCreateModal = signal(false);
+  createError = signal<string | null>(null);
+  newEventTitle = '';
+  newEventDesc = '';
+  newEventLocation = '';
+  newEventDate = '';
 
   ngOnInit() {
     this.loadEvents();
-  }
-
-  isOnline(ev: CommunityEvent): boolean {
-    return isEventOnline(ev);
-  }
-
-  cardBackground(ev: CommunityEvent): string {
-    const overlay = 'linear-gradient(180deg, rgba(11,18,32,.05) 40%, rgba(11,18,32,.85) 100%)';
-    return ev.image_url ? `${overlay}, url(${ev.image_url})` : `linear-gradient(135deg, #0f172a, #1e1b4b)`;
-  }
-
-  monthLabel(dateString: string): string {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-    } catch {
-      return '';
-    }
-  }
-
-  dayLabel(dateString: string): string {
-    try {
-      return String(new Date(dateString).getDate()).padStart(2, '0');
-    } catch {
-      return '';
-    }
-  }
-
-  timeLabel(dateString: string): string {
-    try {
-      return new Date(dateString).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return dateString;
-    }
-  }
-
-  isFree(ev: CommunityEvent): boolean {
-    return !ev.cost || /^free$/i.test(ev.cost);
-  }
-
-  /** Surfaces the strongest available signal for why this meetup is worth a look. */
-  personalizationReason(ev: CommunityEvent): string {
-    if (ev.attendee_count >= 50) return 'Popular with travelers like you';
-    if (ev.badge === 'Food') return 'Matches your interest in food';
-    if (!this.isOnline(ev) && ev.location) return `Because you're exploring ${ev.location.split(',')[0].trim()}`;
-    return `Hosted by ${ev.organizer.name}`;
   }
 
   loadEvents() {
@@ -287,21 +237,47 @@ export class CommunityEventsComponent implements OnInit {
    * an authoritative attendee_count rather than guessing at the delta.
    */
   toggleRsvp(ev: CommunityEvent) {
-    const wasGoing = ev.rsvp_status === 'going';
     this.eventsService.setRsvp(ev.id, 'going').subscribe(() => {
-      this.eventsService.getEvent(ev.id).subscribe(fresh => {
-        Object.assign(ev, fresh);
-        this.showToast(
-          wasGoing
-            ? `Spot released · ${ev.title}`
-            : `You're going · added to your ${isEventOnline(ev) ? 'calendar' : 'trip itinerary'}`
-        );
-      });
+      this.eventsService.getEvent(ev.id).subscribe(fresh => Object.assign(ev, fresh));
     });
   }
 
-  private showToast(message: string) {
-    this.toastMessage.set(message);
-    setTimeout(() => this.toastMessage.set(null), 3000);
+  formatDate(dateString: string): string {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  }
+
+  submitCreateEvent() {
+    if (!this.newEventTitle.trim() || !this.newEventDesc.trim() || !this.newEventLocation.trim() || !this.newEventDate) return;
+    this.createError.set(null);
+
+    this.eventsService.createEvent({
+      title: this.newEventTitle.trim(),
+      description: this.newEventDesc.trim(),
+      location: this.newEventLocation.trim(),
+      starts_at: new Date(this.newEventDate).toISOString()
+    }).subscribe({
+      next: () => {
+        this.showCreateModal.set(false);
+        this.loadEvents();
+        // Reset Form
+        this.newEventTitle = '';
+        this.newEventDesc = '';
+        this.newEventLocation = '';
+        this.newEventDate = '';
+      },
+      error: () => {
+        this.createError.set("Couldn't create meetup. Please check the details and try again.");
+      }
+    });
   }
 }

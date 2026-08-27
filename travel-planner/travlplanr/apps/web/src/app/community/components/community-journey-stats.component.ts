@@ -25,11 +25,11 @@ import { TranslatePipe } from '@ngx-translate/core';
         <div class="h-full rounded-full community-journey-fill" [style.width.%]="xpPercent"></div>
       </div>
 
-      <div class="grid grid-cols-2 gap-x-6 gap-y-4 pt-[14px] mt-1 border-t border-slate-100 dark:border-gray-700">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
         @for (stat of stats; track stat.labelKey) {
           <div class="flex flex-col gap-0.5">
-            <span class="text-xl font-extrabold text-text-primary">{{ stat.value }}</span>
-            <span class="text-[11px] font-bold text-text-faint">{{ stat.labelKey | translate }}</span>
+            <span class="text-lg font-semibold text-text-primary">{{ stat.value }}</span>
+            <span class="text-[11px] text-text-faint">{{ stat.labelKey | translate }}</span>
           </div>
         }
       </div>

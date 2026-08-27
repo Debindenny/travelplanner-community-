@@ -349,17 +349,10 @@ class CommunityMeetup(Base):
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    cost: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    schedule: Mapped[list | None] = mapped_column(JSONB, nullable=True)  # [{"time": str, "text": str}]
-    what_to_bring: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    category: Mapped[str | None] = mapped_column(String(20), nullable=True)  # 'meetup' | 'food' | 'online'
-    meeting_link: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     starts_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    
 
 
 class MeetupRsvp(Base):

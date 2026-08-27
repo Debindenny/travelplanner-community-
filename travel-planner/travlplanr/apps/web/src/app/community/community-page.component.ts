@@ -57,27 +57,23 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityComposerModalComponent,
     ],
     template: `
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
-      <app-community-mobile-nav (onPost)="scrollToCreatePost()" />
-      <!-- Dark mode is currently rolled out to community + itinerary map only (see DESIGN_ENHANCEMENT_PLAN.md). -->
-      <button
-        type="button"
-        (click)="theme.toggle()"
-        class="fixed top-20 right-4 z-40 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-slate-200/80 dark:border-gray-700 shadow-sm flex items-center justify-center text-text-secondary dark:text-gray-300 hover:text-primary transition-colors"
-        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-      >
-        @if (theme.isDark()) {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-        } @else {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-        }
-      </button>
-      <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
-        <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- LEFT COLUMN (Subnav + Journey) — spans both content rows below -->
-          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 md:row-span-2 lg:row-span-2 sticky top-[92px] gap-5">
-            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
+    <!-- font-manrope: the app-wide default (Poppins) is a rounded geometric face that
+         reads visibly larger/heavier than this feature's reference design at the same
+         px size. Manrope is already loaded at every weight this page uses (unlike Inter,
+         which this project only has at 400/900) and is the same face the sibling
+         Travel Circles/Trips island already uses for this lighter, tighter look. -->
+    <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
+      <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
+      <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6">
+        <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
+
+          <!-- LEFT COLUMN (Subnav + Journey). Spans every content row (Hero, Feed, Right
+               rail) and stays sticky at every width — previously it only spanned row 1
+               (paired with the Hero), so once the Feed/Right-rail's col-span-2 carried
+               them under its column for their own full-width rows, the sidebar had
+               already scrolled out of view with nothing left to stick against. -->
+          <div class="flex flex-col row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
+            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
             <app-community-journey-stats />
           </div>
 
@@ -93,19 +89,15 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             <app-community-stories-bar />
           </div>
 
-          <!-- CENTER COLUMN (Feed) -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
+          <!-- CENTER COLUMN (Feed). No base col-span: it stays in the second grid
+               column (beside the now row-spanning sidebar) instead of spanning both
+               columns, which would have fought the sidebar for column 1. -->
+          <div class="lg:col-span-7 space-y-3 sm:space-y-5">
 
-            <!-- Create a Post -->
-            <div #createPostAnchor>
-              <app-community-create-post
-                [userAvatar]="myProfile()?.avatar ?? undefined"
-                (postCreated)="onPostCreated($event)"
-              />
-            </div>
-
-            <!-- Feed Filter Chips + View Toggle -->
-            <div class="flex items-center gap-2 flex-wrap">
+            <!-- Feed Filter Chips. Scroll horizontally instead of wrapping: with
+                 flex-wrap, chips used to wrap onto a second line on phones/tablets
+                 once they ran out of room. -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
               <!-- Category chips (client-side filters over the loaded feed) -->
               @for (cat of postCategories; track cat.key) {
                 <button
@@ -195,7 +187,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     </div>
                     <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_DISCOVER_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.SHARE_YOUR_JOURNEY' | translate }}
                     </button>
                   </div>
@@ -207,7 +199,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     </div>
                     <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_HASHTAG_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.CREATE_A_POST' | translate }}
                     </button>
                   </div>

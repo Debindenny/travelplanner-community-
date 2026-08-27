@@ -54,7 +54,7 @@ class CustomerProfile(Base):
     phone: Mapped[str | None] = mapped_column(String)
     country_code: Mapped[str | None] = mapped_column(String, default="+91")
     customer_type: Mapped[CustomerType | None] = mapped_column(
-        Enum(CustomerType, name="customer_type_enum", values_callable=lambda obj: [e.value for e in obj])
+        Enum(CustomerType, name="customer_type_enum")
     )
 
     # Profile fields from UserProfile

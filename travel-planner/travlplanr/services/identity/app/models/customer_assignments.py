@@ -40,8 +40,7 @@ class CustomerAssignment(Base):
         Uuid, ForeignKey("staff.id"), nullable=False
     )
     role: Mapped[AssignmentRole] = mapped_column(
-        Enum(AssignmentRole, name="assignment_role_enum", values_callable=lambda obj: [e.value for e in obj]),
-        nullable=False,
+        Enum(AssignmentRole, name="assignment_role_enum"), nullable=False
     )
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
