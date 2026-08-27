@@ -14,7 +14,7 @@
             @if (titleIcon()) {
               <app-icon [name]="titleIcon()!" [size]="16" />
             }
-            {{ title() }}
+            {{ heading() }}
           </div>
           @if (subtitle()) {
             <div class="modal-shell__subtitle">{{ subtitle() }}</div>
@@ -24,6 +24,8 @@
       </div>
     }
 
-    <ng-content></ng-content>
+    <div class="modal-shell__body">
+      <ng-content></ng-content>
+    </div>
   </div>
 </div>

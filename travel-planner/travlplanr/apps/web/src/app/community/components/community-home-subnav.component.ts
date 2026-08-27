@@ -18,13 +18,13 @@ interface SubnavItem {
   selector: 'app-community-home-subnav',
   imports: [RouterLink, RouterLinkActive, TranslatePipe],
   template: `
-    <div class="font-manrope">
+    <div class="font-[inherit]">
       <button
         type="button"
         (click)="sharePost.emit()"
-        class="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-primary hover:bg-primary-hover text-white text-[13px] font-extrabold shadow-[0_8px_20px_rgba(0,96,234,0.22)] transition-colors focus:outline-none"
+        class="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 px-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-white text-[13px] font-extrabold shadow-[0_8px_20px_rgba(0,96,234,0.22)] transition-colors focus:outline-none"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         {{ 'COMMUNITY.HOME_SUBNAV.SHARE' | translate }}
       </button>
 
@@ -32,16 +32,16 @@ interface SubnavItem {
         @for (item of items; track item.label) {
           <a
             [routerLink]="item.route"
-            routerLinkActive="bg-primary-50 text-primary font-extrabold"
+            routerLinkActive="bg-primary-subtle text-primary font-extrabold"
             [routerLinkActiveOptions]="{ exact: item.exact }"
-            class="flex items-center gap-3 h-[42px] px-3 rounded-[11px] text-[13.5px] font-[650] text-text-secondary dark:hover:bg-gray-700/50 transition-colors community-sidebar-item"
+            class="flex items-center gap-3 h-[42px] min-w-0 px-3 rounded-[11px] text-[13.5px] font-[650] text-eventText-mid transition-colors community-sidebar-item"
           >
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               @for (d of item.icon; track d) {
                 <path [attr.d]="d"/>
               }
             </svg>
-            <span class="flex-1 text-left">{{ item.label | translate }}</span>
+            <span class="flex-1 min-w-0 truncate text-left">{{ item.label | translate }}</span>
             @if (item.count && item.count(); as count) {
               <span class="h-5 min-w-5 px-1.5 rounded-full dark:bg-gray-700 text-[10.5px] font-extrabold text-text-faint flex items-center justify-center community-sidebar-count">{{ count }}</span>
             }
@@ -64,7 +64,7 @@ export class CommunityHomeSubnavComponent implements OnInit {
   readonly items: SubnavItem[] = [
     { label: 'COMMUNITY.HOME_SUBNAV.HOME', route: '/community', exact: true, icon: ['M15 21v-8H9v8', 'M3 10.2V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8.8a2 2 0 0 0-.7-1.5l-7-6a2 2 0 0 0-2.6 0l-7 6a2 2 0 0 0-.7 1.5Z'] },
     { label: 'COMMUNITY.HOME_SUBNAV.DISCOVER', route: '/community/discover', exact: false, icon: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z', 'm16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12Z'] },
-    { label: 'COMMUNITY.HOME_SUBNAV.DESTINATIONS', route: '/explore', exact: false, icon: ['M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z', 'M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'] },
+    { label: 'COMMUNITY.HOME_SUBNAV.DESTINATIONS', route: '/community/destinations', exact: false, icon: ['M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z', 'M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'] },
     { label: 'COMMUNITY.HOME_SUBNAV.TRIPS', route: '/community/trips', exact: false, icon: ['M6.5 6.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M17.5 22.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M6.5 6.5h7a4 4 0 0 1 0 8h-4a4 4 0 0 0 0 8h8'] },
     { label: 'COMMUNITY.HOME_SUBNAV.TRAVEL_CIRCLES', route: '/community/travel-circles', exact: false, icon: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'] },
     { label: 'COMMUNITY.HOME_SUBNAV.EVENTS', route: '/community/events', exact: false, icon: ['M8 2v4', 'M16 2v4', 'M3 10h18', 'M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7', 'm16 20 2 2 4-4'], count: () => this.eventsCount() },

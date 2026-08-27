@@ -7,7 +7,6 @@ import { CommunityStoriesBarComponent } from './components/community-stories-bar
 import { CommunityFeedSkeletonComponent } from './components/community-feed-skeleton.component';
 import { CommunityPostCommentsComponent } from './components/community-post-comments.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from './services/community-post.service';
-import { CommunityCreatePostComponent } from './components/community-create-post.component';
 import { CommunityPostCardComponent } from './components/community-post-card.component';
 import { CommunitySaveModalComponent } from './components/community-save-modal.component';
 import { CommunityMapComponent } from './components/community-map.component';
@@ -19,7 +18,6 @@ import { AuthService } from '../auth/auth.service';
 import { CommunityProfileService, MyCommunityProfile } from './services/community-profile.service';
 import { CommunityNotificationsService } from './services/community-notifications.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ThemeService } from 'ui';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
 import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
 import { CommunityJourneyStatsComponent } from './components/community-journey-stats.component';
@@ -28,8 +26,8 @@ import { CommunityJoinRequestsComponent } from './components/community-join-requ
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
 import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
-import { CommunityStartCircleCardComponent } from './components/community-start-circle-card.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
+import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
@@ -38,7 +36,6 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
     imports: [
       CommonModule,
       RouterLink,
-      CommunityCreatePostComponent,
       CommunityStoriesBarComponent,
       CommunityPostCardComponent,
       CommunitySaveModalComponent,
@@ -56,113 +53,81 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityTravelersRailComponent,
       CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
-      CommunityStartCircleCardComponent,
       CommunitySimilarTravelersComponent,
+      CommunityComposerModalComponent,
     ],
     template: `
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
-      <app-community-mobile-nav (onPost)="scrollToCreatePost()" />
-      <!-- Dark mode is currently rolled out to community + itinerary map only (see DESIGN_ENHANCEMENT_PLAN.md). -->
-      <button
-        type="button"
-        (click)="theme.toggle()"
-        class="fixed top-20 right-4 z-40 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-slate-200/80 dark:border-gray-700 shadow-sm flex items-center justify-center text-text-secondary dark:text-gray-300 hover:text-primary transition-colors"
-        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-      >
-        @if (theme.isDark()) {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-        } @else {
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-        }
-      </button>
-      <main class="flex-1 flex justify-center py-8 px-4 sm:px-6">
-        <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- LEFT COLUMN (Subnav + Journey) — spans both content rows below -->
-          <div class="hidden md:flex md:flex-col md:col-span-1 lg:col-span-3 md:row-span-2 lg:row-span-2 sticky top-[92px] gap-5">
-            <app-community-home-subnav (sharePost)="scrollToCreatePost()" />
+    <!-- font-manrope: the app-wide default (Poppins) is a rounded geometric face that
+         reads visibly larger/heavier than this feature's reference design at the same
+         px size. Manrope is already loaded at every weight this page uses (unlike Inter,
+         which this project only has at 400/900) and is the same face the sibling
+         Travel Circles/Trips island already uses for this lighter, tighter look. -->
+    <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
+      <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
+      <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6">
+        <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
+
+          <!-- LEFT COLUMN (Subnav + Journey). Spans every content row (Hero, Feed, Right
+               rail) and stays sticky at every width — previously it only spanned row 1
+               (paired with the Hero), so once the Feed/Right-rail's col-span-2 carried
+               them under its column for their own full-width rows, the sidebar had
+               already scrolled out of view with nothing left to stick against. -->
+          <div class="flex flex-col row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
+            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
             <app-community-journey-stats />
           </div>
 
-          <!-- TOP ROW: Hero + Stories, full width alongside the left nav -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-9 space-y-5">
+          <!-- TOP ROW: Hero + Stories, paired with the left nav at every width -->
+          <div class="lg:col-span-10 space-y-3 sm:space-y-5">
             <!-- Hero band -->
             <app-community-hero
-              (onPost)="scrollToCreatePost()"
+              (onPost)="showComposerModal.set(true)"
               (onMap)="setViewMode('map')"
             />
 
-            <!-- Stories (edge-to-edge, no extra card wrapper) -->
-            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl px-2 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-              <app-community-stories-bar />
-            </div>
+            <!-- Stories (edge-to-edge, no card wrapper) -->
+            <app-community-stories-bar />
           </div>
 
-          <!-- CENTER COLUMN (Feed) -->
-          <div class="col-span-1 md:col-span-3 lg:col-span-6 space-y-5">
+          <!-- CENTER COLUMN (Feed). No base col-span: it stays in the second grid
+               column (beside the now row-spanning sidebar) instead of spanning both
+               columns, which would have fought the sidebar for column 1. -->
+          <div class="lg:col-span-7 space-y-3 sm:space-y-5">
 
-            <!-- Create a Post -->
-            <div #createPostAnchor>
-              <app-community-create-post
-                [userAvatar]="myProfile()?.avatar ?? undefined"
-                (postCreated)="onPostCreated($event)"
-              />
-            </div>
-
-            <!-- Feed Filter Chips + View Toggle -->
-            <div class="flex items-center gap-2 flex-wrap">
+            <!-- Feed Filter Chips. Scroll horizontally instead of wrapping: with
+                 flex-wrap, chips used to wrap onto a second line on phones/tablets
+                 once they ran out of room. -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
               <!-- Category chips (client-side filters over the loaded feed) -->
               @for (cat of postCategories; track cat.key) {
                 <button
                   (click)="setPostCategory(cat.key)"
-                  class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border whitespace-nowrap"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
                   [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
                 >{{ cat.labelKey | translate }}</button>
               }
               @for (tag of followedTags(); track tag) {
                 <button
                   (click)="setFeedMode('hashtag-' + tag)"
-                  class="px-3 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none border"
+                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
                   [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
                 >#{{ tag }}</button>
               }
-              <!-- Spacer -->
-              <div class="flex-1"></div>
-              <!-- View mode toggle -->
-              <div class="relative flex bg-slate-100/80 dark:bg-gray-800/80 p-0.5 rounded-full border border-slate-200/50 dark:border-gray-700/50 shadow-inner">
-                <div
-                  class="absolute top-0.5 bottom-0.5 rounded-full bg-primary shadow-sm transition-all duration-300 ease-out"
-                  [style.width]="'50%'"
-                  [style.left]="viewMode === 'feed' ? '2px' : 'calc(50% - 2px)'"
-                ></div>
-                <button
-                  (click)="setViewMode('feed')"
-                  class="relative z-10 px-3 py-1 text-2xs-plus font-bold uppercase tracking-wide rounded-full transition-colors duration-200 focus:outline-none"
-                  [class.text-white]="viewMode === 'feed'"
-                  [class.text-text-secondary]="viewMode !== 'feed'"
-                >{{ 'COMMUNITY.FEED' | translate }}</button>
-                <button
-                  (click)="setViewMode('map')"
-                  class="relative z-10 px-3 py-1 text-2xs-plus font-bold uppercase tracking-wide rounded-full transition-colors duration-200 focus:outline-none"
-                  [class.text-white]="viewMode === 'map'"
-                  [class.text-text-secondary]="viewMode !== 'map'"
-                >{{ 'COMMUNITY.MAP_VIEW' | translate }}</button>
-              </div>
             </div>
 
             @if (viewMode === 'feed') {
               
               @if (feedMode().startsWith('hashtag-') && !followedTags().includes(feedMode().replace('hashtag-', ''))) {
-                <div class="flex items-center justify-between bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
-                  <span class="text-primary font-semibold">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
-                  <button (click)="clearHashtagFilter()" class="text-primary hover:text-primary-hover font-bold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
+                <div class="flex items-center justify-between gap-3 bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
+                  <span class="text-primary font-semibold min-w-0 truncate">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
+                  <button (click)="clearHashtagFilter()" class="shrink-0 text-primary hover:text-primary-hover font-semibold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
                 </div>
               }
 
               <!-- Live Feed Updates Pill -->
               @if (newPostsCount() > 0) {
                 <div class="fixed top-[100px] left-1/2 transform -translate-x-1/2 z-40">
-                  <button (click)="loadNewPosts()" class="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-hover hover:to-indigo-700 text-white font-bold py-2.5 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
+                  <button (click)="loadNewPosts()" class="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-hover hover:to-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
                     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     {{ (newPostsCount() === 1 ? 'COMMUNITY.NEW_POST' : 'COMMUNITY.NEW_POSTS') | translate: { n: newPostsCount() } }}
                   </button>
@@ -181,7 +146,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                   <svg class="w-12 h-12 text-danger-500/80 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <h3 class="text-red-950 font-bold mb-1">{{ 'COMMUNITY.FEED_ERROR_TITLE' | translate }}</h3>
+                  <h3 class="text-red-950 font-semibold mb-1">{{ 'COMMUNITY.FEED_ERROR_TITLE' | translate }}</h3>
                   <p class="text-danger text-sm mb-4">{{ 'COMMUNITY.FEED_ERROR_BODY' | translate }}</p>
                   <button (click)="loadPosts(false)" class="bg-red-100 hover:bg-red-200 text-danger hover:text-danger-hover font-semibold py-2 px-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
                     {{ 'COMMUNITY.RETRY' | translate }}
@@ -195,9 +160,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                   <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   </div>
-                  <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
+                  <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
                   <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_CATEGORY_BODY' | translate }}</p>
-                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                     {{ 'COMMUNITY.EMPTY_CATEGORY_RESET' | translate }}
                   </button>
                 </div>
@@ -208,9 +173,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg class="w-7 h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_FOLLOWING_TITLE' | translate }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_FOLLOWING_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_FOLLOWING_BODY' | translate }}</p>
-                    <button (click)="setFeedMode('discover')" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="setFeedMode('discover')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.DISCOVER_TRAVELERS' | translate }}
                     </button>
                   </div>
@@ -220,9 +185,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg class="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_DISCOVER_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.SHARE_YOUR_JOURNEY' | translate }}
                     </button>
                   </div>
@@ -232,9 +197,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <div class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span class="text-2xl font-black text-primary">#</span>
                     </div>
-                    <h3 class="text-text-primary font-extrabold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
+                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
                     <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_HASHTAG_BODY' | translate }}</p>
-                    <button (click)="scrollToCreatePost()" class="inline-block bg-primary hover:bg-primary-hover text-white font-bold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
+                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
                       {{ 'COMMUNITY.CREATE_A_POST' | translate }}
                     </button>
                   </div>
@@ -291,23 +256,36 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             }
           </div>
 
-          <!-- RIGHT COLUMN (Crew, requests, travelers, circle CTA, trending, events, footer) -->
-          <div class="hidden lg:flex lg:col-span-3 flex-col gap-4 sticky top-[92px]">
+          <!-- RIGHT COLUMN (Crew, requests, travelers, circle CTA, trending, events, footer).
+               Previously "hidden lg:flex" made this whole column — including Crew, Join
+               requests, Travelers rail, Trending and Events — disappear below 1024px with
+               no way to reach it. It now stays in the second grid column (beside the
+               sticky sidebar) below the Feed on mobile/tablet, and becomes the separate
+               sticky right rail at lg+ (unchanged from before).
+               No z-index here: "sticky + z-60" made this whole card outrank the sticky
+               header (z-50) once stuck, so its top edge visually painted over/behind the
+               header instead of scrolling under it. That z-60 was added only so the
+               Crew widget's fixed-fullscreen "create circle" modal could out-rank the
+               header — but that modal already sets its own z-index:90 on a
+               position:fixed backdrop (modal-shell.component.scss), independent of this
+               column, so it doesn't need this column elevated too. -->
+          <div class="flex flex-col gap-4 lg:col-span-3 lg:sticky lg:top-[92px]">
             <app-community-crew-widget />
             <app-community-join-requests />
             <app-community-travelers-rail />
-            <app-community-start-circle-card />
             <app-community-destination-trending />
             <app-community-upcoming-events-widget />
 
-            <div class="text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
+            <!-- The page already has a dedicated <footer> below for narrow layouts;
+                 this compact inline footer is the lg+ sticky-rail variant only. -->
+            <div class="hidden lg:block text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
               <div class="flex flex-wrap gap-x-3 gap-y-1">
                 <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
                 <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
                 <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
                 <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
               </div>
-              <p class="mt-1.5 text-[10.5px] font-extrabold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
+              <p class="mt-1.5 text-[10.5px] font-semibold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
             </div>
           </div>
 
@@ -326,40 +304,11 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       }
 
       @if (showComposerModal()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="composer-modal-title"
-          (click)="showComposerModal.set(false)"
-        >
-          <div
-            class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-800 shadow-2xl"
-            (click)="$event.stopPropagation()"
-          >
-            <div class="flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-gray-700">
-              <div class="flex flex-col gap-0.5">
-                <h2 id="composer-modal-title" class="text-base font-extrabold text-text-primary">{{ 'COMMUNITY.COMPOSER_MODAL.TITLE' | translate }}</h2>
-                <p class="text-xs font-medium text-text-faint">{{ 'COMMUNITY.COMPOSER_MODAL.SUBTITLE' | translate }}</p>
-              </div>
-              <button
-                type="button"
-                (click)="showComposerModal.set(false)"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
-                [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.CLOSE_ARIA' | translate"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="p-4">
-              <app-community-create-post
-                [userAvatar]="myProfile()?.avatar ?? undefined"
-                (postCreated)="onPostCreated($event); showComposerModal.set(false)"
-                (closed)="showComposerModal.set(false)"
-              />
-            </div>
-          </div>
-        </div>
+        <app-community-composer-modal
+          [userAvatar]="myProfile()?.avatar ?? undefined"
+          (postCreated)="onPostCreated($event); showComposerModal.set(false)"
+          (close)="showComposerModal.set(false)"
+        />
       }
 
       @if (toastMessage()) {
@@ -369,17 +318,20 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       }
 
       <footer class="py-6 text-center">
-        <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-2xs-plus font-bold text-text-tertiary">
+        <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-2xs-plus font-semibold text-text-tertiary">
           <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
           <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
           <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
           <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
         </div>
-        <p class="text-2xs text-text-disabled mt-1.5 uppercase tracking-wider font-bold">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
+        <p class="text-2xs text-text-disabled mt-1.5 uppercase tracking-wider font-semibold">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
       </footer>
     </div>
   `,
-    styles: []
+    styles: [`
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  `]
 })
 export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy {
   myProfile = signal<MyCommunityProfile | null>(null);
@@ -416,7 +368,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   postCategory = signal<PostCategory>('forYou');
 
   @ViewChild('scrollSentinel') scrollSentinel?: ElementRef;
-  @ViewChild('createPostAnchor') createPostAnchor?: ElementRef;
   private observer: IntersectionObserver | null = null;
   nextCursor?: string;
   hasMorePosts = true;
@@ -429,7 +380,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private syncingFromUrl = false;
 
   private readonly translate = inject(TranslateService);
-  readonly theme = inject(ThemeService);
 
   constructor(
     private postService: CommunityPostService,
@@ -714,11 +664,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   removePost(postId: string) {
     this.posts = this.posts.filter(p => p.id !== postId);
-  }
-
-  scrollToCreatePost() {
-    if (typeof window === 'undefined') return;
-    this.createPostAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   getPostAnimationDelay(index: number): string {

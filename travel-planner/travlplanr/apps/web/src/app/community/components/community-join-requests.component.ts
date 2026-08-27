@@ -22,10 +22,10 @@ const MOCK_REQUESTS: JoinRequest[] = [
     @if (requests().length > 0) {
       <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] p-4">
         <div class="flex items-center gap-2 mb-3.5">
-          <span class="flex-1 text-[10.5px] font-extrabold tracking-[0.1em] text-text-faint uppercase">{{ 'COMMUNITY.HOME_SIDEBAR.REQUESTS_TITLE' | translate }}</span>
-          <span class="h-5 px-2 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold flex items-center">{{ requests().length }}</span>
+          <span class="flex-1 text-[11.5px] font-bold tracking-[0.1em] text-text-faint uppercase">{{ 'COMMUNITY.HOME_SIDEBAR.REQUESTS_TITLE' | translate }}</span>
+          <span class="h-5 px-2 rounded-full bg-amber-50 text-amber-700 text-[10.5px] font-bold flex items-center">{{ requests().length }}</span>
         </div>
-        <p class="text-xs font-bold text-text-primary mb-3">{{ ownedCircleName }}</p>
+        <p class="text-[13.5px] font-bold text-text-primary mb-3">{{ ownedCircleName }}</p>
 
         <div class="flex flex-col gap-3.5">
           @for (request of requests(); track request.id) {
@@ -33,16 +33,16 @@ const MOCK_REQUESTS: JoinRequest[] = [
               <div class="flex items-center gap-2.5">
                 <img src="/assets/images/default-avatar.svg" class="w-9 h-9 rounded-full shrink-0 bg-slate-100" alt="" />
                 <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                  <span class="text-[13px] font-extrabold text-text-primary truncate">{{ request.name }}</span>
-                  <span class="text-[11px] font-semibold text-text-faint truncate">{{ request.line }}</span>
+                  <span class="text-[14px] font-semibold text-text-primary truncate">{{ request.name }}</span>
+                  <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ request.line }}</span>
                 </div>
               </div>
-              <p class="text-[11.5px] font-medium leading-relaxed text-text-secondary pl-[46px]">{{ request.note }}</p>
+              <p class="text-[12.5px] font-medium leading-relaxed text-text-secondary pl-[46px]">{{ request.note }}</p>
               <div class="flex gap-1.5 pl-[46px]">
-                <button (click)="respond(request, true)" class="flex-1 h-8 rounded-lg bg-primary hover:bg-primary-hover text-white text-[11.5px] font-extrabold transition-colors">
+                <button (click)="respond(request, true)" class="flex-1 h-8 rounded-lg bg-primary hover:bg-primary-hover text-white text-[12.5px] font-semibold transition-colors">
                   {{ 'COMMUNITY.HOME_SIDEBAR.REQUEST_ACCEPT' | translate }}
                 </button>
-                <button (click)="respond(request, false)" class="flex-1 h-8 rounded-lg border border-slate-200 dark:border-gray-700 text-text-secondary text-[11.5px] font-extrabold hover:border-slate-300 transition-colors">
+                <button (click)="respond(request, false)" class="flex-1 h-8 rounded-lg border border-slate-200 dark:border-gray-700 text-text-secondary text-[12.5px] font-semibold hover:border-slate-300 transition-colors">
                   {{ 'COMMUNITY.HOME_SIDEBAR.REQUEST_DECLINE' | translate }}
                 </button>
               </div>

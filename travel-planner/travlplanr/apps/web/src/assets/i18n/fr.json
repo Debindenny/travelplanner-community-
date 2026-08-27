@@ -330,6 +330,23 @@
       "TRIPS_HERE": "Voyages ici",
       "BEEN_THERE": "Déjà visité"
     },
+    "DESTINATIONS_PAGE": {
+      "BACK_TO_COMMUNITY": "Retour à Communauté",
+      "BREADCRUMB_COMMUNITY": "Communauté",
+      "CLOSE": "Fermer",
+      "FILTER_GROUP": "Trier les destinations",
+      "FILTER_NEAR_ME": "Près de moi",
+      "FILTER_POPULAR": "Populaire",
+      "JOIN": "Rejoindre",
+      "JOIN_COMMUNITY": "Rejoindre la communauté",
+      "JOINED": "Rejoint",
+      "JOINED_COMMUNITY": "Communauté rejointe",
+      "PLANNING_RIGHT_NOW": "{{planning}} en ce moment",
+      "RECENT_POSTS": "Publications récentes",
+      "SUBTITLE": "Chaque destination a son propre fil de conseils, de voyages et de rencontres avec des voyageurs qui s'y trouvent en ce moment.",
+      "TITLE": "Rejoignez le lieu, pas seulement le voyage",
+      "VIEW_DETAILS": "Voir les détails"
+    },
     "DISCOVER": "Découvrir",
     "FEED": "Fil d'actualité",
     "FEED_ERROR_BODY": "Une erreur est survenue lors du chargement du fil de la communauté. Veuillez réessayer.",
@@ -564,7 +581,19 @@
     "STORIES_BAR": {
       "PREVIEW_NOTICE": "Ceci est un aperçu du style de story de {{name}} — les vraies stories de votre communauté apparaîtront ici.",
       "VIEW_STORY_ARIA": "Voir la story",
-      "YOUR_STORY": "Votre story"
+      "YOUR_STORY": "Votre story",
+      "PREVIEW_MODAL": {
+        "CAPTION": "{{name}} est un profil d'aperçu montrant à quoi ressembleront les stories en direct — au niveau de la destination uniquement, la position exacte n'est jamais affichée.",
+        "STATUS_THERE": "Sur place",
+        "STATUS_SOON": "Départ bientôt",
+        "STATUS_RECENT": "Récemment sur place",
+        "FOLLOW_ARIA": "Suivre",
+        "FOLLOWING_ARIA": "Abonné",
+        "ROUTE_ARIA": "Ajouter au voyage",
+        "COMMENT_ARIA": "Commenter",
+        "LIKE_ARIA": "Aimer",
+        "UNLIKE_ARIA": "Ne plus aimer"
+      }
     },
     "STORY_MODAL": {
       "CLOSE": "Fermer"

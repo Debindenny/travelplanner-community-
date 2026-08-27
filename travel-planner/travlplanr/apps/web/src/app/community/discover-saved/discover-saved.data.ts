@@ -36,10 +36,10 @@ export const TRIP_PICK_OPTIONS: TripPickOption[] = [
 
 export const TRIP_ITINERARIES: Record<string, ItineraryDay[]> = {
   t1: [
-    { date: 'Wed 03', items: [{ time: '15:00', name: 'Check in · Hôtel Bachaumont' }, { time: '19:00', name: 'Dinner in Le Marais' }] },
-    { date: 'Thu 04', items: [{ time: '09:30', name: 'Louvre · Denon wing' }] },
-    { date: 'Fri 05', items: [{ time: '10:00', name: 'Montmartre walk' }, { time: '20:30', name: 'Seine at dusk' }] },
-    { date: 'Sat 06', items: [{ time: '11:00', name: 'Flight home · CDG' }] },
+    { date: 'Jun 03', items: [{ time: '15:00', name: 'Check in · Hôtel Bachaumont' }, { time: '19:00', name: 'Dinner in Le Marais' }] },
+    { date: 'Jun 04', items: [{ time: '09:30', name: 'Louvre · Denon wing' }] },
+    { date: 'Jun 05', items: [{ time: '10:00', name: 'Montmartre walk' }, { time: '20:30', name: 'Seine at dusk' }] },
+    { date: 'Jun 06', items: [{ time: '11:00', name: 'Flight home · CDG' }] },
   ],
   t2: [
     { date: 'Apr 04', items: [{ time: '14:00', name: 'Land · Haneda' }] },

@@ -6,8 +6,12 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(11, 18, 32, 0.46);
-  backdrop-filter: blur(3px);
+  /* Much darker than a typical overlay, and blur is here only for texture:
+     blur alone can't mute a small, flat, saturated-color control (e.g. the
+     stories bar's solid-blue "add story" button) since blur softens edges,
+     not fill color — only a near-opaque tint reliably knocks that back. */
+  background: rgba(8, 12, 22, 0.86);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,6 +23,13 @@
 .modal-shell {
   margin: auto;
   max-width: 100%;
+  /* Backdrop already contributes 24px top+bottom padding; capping here keeps the
+     card (header + scrollable body together) from growing past the viewport at
+     short window heights or reduced browser zoom. Also capped at 640px so the
+     card doesn't stretch tall and thin on generously sized windows. */
+  max-height: min(640px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border-radius: 18px;
   box-shadow: 0 30px 80px rgba(11, 18, 32, 0.3);
@@ -36,11 +47,18 @@
 }
 
 .modal-shell__header {
-  padding: 18px 22px;
+  flex: none;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.modal-shell__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .modal-shell__header-copy {
@@ -52,7 +70,7 @@
   align-items: center;
   gap: 8px;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .modal-shell__subtitle {

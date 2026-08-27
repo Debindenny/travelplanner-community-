@@ -330,6 +330,23 @@
       "TRIPS_HERE": "Viajes aquí",
       "BEEN_THERE": "Ya estuve allí"
     },
+    "DESTINATIONS_PAGE": {
+      "BACK_TO_COMMUNITY": "Volver a Comunidad",
+      "BREADCRUMB_COMMUNITY": "Comunidad",
+      "CLOSE": "Cerrar",
+      "FILTER_GROUP": "Ordenar destinos",
+      "FILTER_NEAR_ME": "Cerca de mí",
+      "FILTER_POPULAR": "Popular",
+      "JOIN": "Unirme",
+      "JOIN_COMMUNITY": "Unirme a la comunidad",
+      "JOINED": "Unido",
+      "JOINED_COMMUNITY": "Unido a la comunidad",
+      "PLANNING_RIGHT_NOW": "{{planning}} ahora mismo",
+      "RECENT_POSTS": "Publicaciones recientes",
+      "SUBTITLE": "Cada destino tiene su propio feed de consejos, viajes y encuentros de viajeros que están allí ahora mismo.",
+      "TITLE": "Únete al lugar, no solo al viaje",
+      "VIEW_DETAILS": "Ver detalles"
+    },
     "DISCOVER": "Descubrir",
     "FEED": "Feed",
     "FEED_ERROR_BODY": "Hubo un error al cargar las publicaciones de la comunidad. Por favor, inténtalo de nuevo.",
@@ -564,7 +581,19 @@
     "STORIES_BAR": {
       "PREVIEW_NOTICE": "Esto es una vista previa del estilo de historia de {{name}} — las historias reales de tu comunidad aparecerán aquí.",
       "VIEW_STORY_ARIA": "Ver historia",
-      "YOUR_STORY": "Tu historia"
+      "YOUR_STORY": "Tu historia",
+      "PREVIEW_MODAL": {
+        "CAPTION": "{{name}} es un perfil de ejemplo que muestra cómo se verán las historias en vivo aquí — solo a nivel de destino, la ubicación exacta nunca se muestra.",
+        "STATUS_THERE": "Ahí ahora",
+        "STATUS_SOON": "Se va pronto",
+        "STATUS_RECENT": "Estuvo ahí hace poco",
+        "FOLLOW_ARIA": "Seguir",
+        "FOLLOWING_ARIA": "Siguiendo",
+        "ROUTE_ARIA": "Añadir al viaje",
+        "COMMENT_ARIA": "Comentar",
+        "LIKE_ARIA": "Me gusta",
+        "UNLIKE_ARIA": "Ya no me gusta"
+      }
     },
     "STORY_MODAL": {
       "CLOSE": "Cerrar"

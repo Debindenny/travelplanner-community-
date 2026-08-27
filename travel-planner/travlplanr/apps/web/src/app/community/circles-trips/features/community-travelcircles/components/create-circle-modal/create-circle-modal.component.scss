@@ -3,16 +3,16 @@
 }
 
 .ccm__body {
-  padding: 18px 22px 20px;
+  padding: 14px 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .ccm__field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .ccm__label {
@@ -40,13 +40,13 @@
 }
 
 .ccm__input {
-  height: 42px;
+  height: 38px;
 }
 
 .ccm__textarea {
-  padding: 11px 13px;
+  padding: 9px 13px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .ccm__pills {
@@ -56,8 +56,8 @@
 }
 
 .ccm__pill {
-  height: 36px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 14px;
   flex: none;
   white-space: nowrap;
   border-radius: 10px;
@@ -92,15 +92,15 @@
 .ccm__audience-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .ccm__audience-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 11px 14px;
+  padding: 9px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #fff;
@@ -121,8 +121,8 @@
 
 .ccm__audience-icon {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -155,7 +155,14 @@
 }
 
 .ccm__footer {
-  padding: 14px 22px;
+  /* Sticky rather than a plain block: the form fields above can grow taller
+     than the modal-shell's scrollable body, and without this the Cancel/Create
+     buttons scroll out of view along with the rest of the content instead of
+     staying reachable at the bottom of the popup. */
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  padding: 12px 20px;
   border-top: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
@@ -174,7 +181,7 @@
 }
 
 .ccm__cancel {
-  height: 40px;
+  height: 38px;
   padding: 0 18px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -195,7 +202,7 @@
 }
 
 .ccm__submit {
-  height: 40px;
+  height: 38px;
   padding: 0 20px;
   border: 0;
   border-radius: 10px;

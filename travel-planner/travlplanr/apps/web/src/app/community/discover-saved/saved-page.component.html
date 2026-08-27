@@ -1,11 +1,25 @@
-<div class="ds-page">
-  <app-ds-saved-tab />
+<div class="ds-shell">
+  <aside class="ds-sidebar">
+    <app-ds-community-subnav (sharePost)="showComposerModal.set(true)" />
+    <app-ds-community-journey-stats />
+  </aside>
+
+  <div class="ds-page">
+    <app-ds-saved-tab />
+  </div>
 </div>
+
+@if (showComposerModal()) {
+  <app-community-composer-modal
+    (postCreated)="showComposerModal.set(false)"
+    (close)="showComposerModal.set(false)"
+  />
+}
 
 @switch (store.modal()?.kind) {
   @case ('savedDetail') {
     @if (store.activeSavedItem(); as item) {
-      <app-ds-modal-shell width="420px" [showHeader]="false" (close)="store.closeModal()">
+      <app-ds-modal-shell width="560px" [showHeader]="false" (close)="store.closeModal()">
         <app-ds-saved-detail-modal
           [item]="item"
           [saved]="true"

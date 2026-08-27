@@ -6,17 +6,17 @@ import { TranslatePipe } from '@ngx-translate/core';
   selector: 'app-community-journey-stats',
   imports: [TranslatePipe],
   template: `
-    <div class="pt-4 border-t border-slate-100 dark:border-gray-700 flex flex-col gap-3 font-manrope">
+    <div class="pt-4 border-t border-slate-100 dark:border-gray-700 flex flex-col gap-3 font-[inherit]">
       <div class="flex items-center gap-3.5">
         <span class="relative w-16 h-16 rounded-full shrink-0" [style.background]="ringBackground">
           <span class="absolute inset-[6px] rounded-full bg-white dark:bg-gray-800 flex flex-col items-center justify-center leading-[1.1]">
-            <span class="text-[14px] font-extrabold text-text-primary">{{ xpPercent }}%</span>
-            <span class="text-[8px] font-extrabold tracking-[0.06em] text-text-faint">LV.1</span>
+            <span class="text-[14px] font-semibold text-text-primary">{{ xpPercent }}%</span>
+            <span class="text-[8px] font-semibold tracking-[0.06em] text-text-faint">LV.1</span>
           </span>
         </span>
         <div class="flex-1 min-w-0 flex flex-col gap-[3px]">
-          <span class="text-[10.5px] font-extrabold tracking-[0.1em] text-text-faint uppercase">{{ 'COMMUNITY.HOME_SUBNAV.JOURNEY_LABEL' | translate }}</span>
-          <span class="text-[15px] font-extrabold text-text-primary">{{ 'COMMUNITY.HOME_SUBNAV.JOURNEY_TITLE' | translate }}</span>
+          <span class="text-[10.5px] font-semibold tracking-[0.1em] text-text-faint uppercase">{{ 'COMMUNITY.HOME_SUBNAV.JOURNEY_LABEL' | translate }}</span>
+          <span class="text-[15px] text-text-primary">{{ 'COMMUNITY.HOME_SUBNAV.JOURNEY_TITLE' | translate }}</span>
           <span class="text-[11.5px] font-semibold text-text-faint">{{ 'COMMUNITY.HOME_SUBNAV.JOURNEY_NEXT_LEVEL' | translate: { xp: xpToNext } }}</span>
         </div>
       </div>
@@ -25,11 +25,11 @@ import { TranslatePipe } from '@ngx-translate/core';
         <div class="h-full rounded-full community-journey-fill" [style.width.%]="xpPercent"></div>
       </div>
 
-      <div class="grid grid-cols-4 gap-2 pt-[14px] mt-1 border-t border-slate-100 dark:border-gray-700">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
         @for (stat of stats; track stat.labelKey) {
-          <div class="flex flex-col gap-[1px]">
-            <span class="text-[15px] font-extrabold text-text-primary">{{ stat.value }}</span>
-            <span class="text-[10px] font-bold text-text-faint">{{ stat.labelKey | translate }}</span>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-lg font-semibold text-text-primary">{{ stat.value }}</span>
+            <span class="text-[11px] text-text-faint">{{ stat.labelKey | translate }}</span>
           </div>
         }
       </div>

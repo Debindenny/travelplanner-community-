@@ -141,6 +141,11 @@ export const routes: Routes = [
           import('./community/discover-saved/discover-page.component').then((m) => m.DiscoverPageComponent),
       },
       {
+        path: 'community/destinations',
+        loadComponent: () =>
+          import('./community/components/community-destinations-page.component').then((m) => m.CommunityDestinationsPageComponent),
+      },
+      {
         path: 'community/saved',
         loadComponent: () =>
           import('./community/discover-saved/saved-page.component').then((m) => m.SavedPageComponent),
