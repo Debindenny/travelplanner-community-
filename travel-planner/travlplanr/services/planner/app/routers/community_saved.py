@@ -8,6 +8,7 @@ from sqlalchemy import desc, select
 
 from shared.auth_dependencies import require_customer
 from app.models.community import CommunityCollection, CommunityCollectionItem, CommunityPost, CommunityTip
+from app.models.destinations import Destination
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ router = APIRouter()
 
 ITEM_TYPES = {"tip", "post", "destination", "itinerary"}
 
-_KIND_BY_ITEM_TYPE = {"tip": "Tip", "itinerary": "Trip", "post": "Spot", "destination": "Spot"}
+_KIND_BY_ITEM_TYPE = {"tip": "Tip", "itinerary": "Trip", "post": "Spot", "destination": "Destination"}
 
 
 def _relative_time(when: datetime) -> str:
@@ -79,13 +80,17 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
 
         tip_ids = [i.item_id for i in saved_items if i.item_type == "tip"]
         post_ids = [i.item_id for i in saved_items if i.item_type == "post"]
-        tips_map, posts_map = {}, {}
+        destination_ids = [i.item_id for i in saved_items if i.item_type == "destination"]
+        tips_map, posts_map, destinations_map = {}, {}, {}
         if tip_ids:
             rows = (await session.execute(select(CommunityTip).where(CommunityTip.id.in_(tip_ids)))).scalars().all()
             tips_map = {t.id: t for t in rows}
         if post_ids:
             rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(post_ids)))).scalars().all()
             posts_map = {p.id: p for p in rows}
+        if destination_ids:
+            rows = (await session.execute(select(Destination).where(Destination.id.in_(destination_ids)))).scalars().all()
+            destinations_map = {d.id: d for d in rows}
 
         result = []
         for item in saved_items:
@@ -94,6 +99,7 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
                 tip = tips_map[item.item_id]
                 result.append({
                     "id": str(item.id),
+                    "item_id": str(item.item_id),
                     "kind": _KIND_BY_ITEM_TYPE["tip"],
                     "title": tip.title,
                     "meta": f"{tip.place} · saved {when}",
@@ -104,13 +110,24 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
                 title = (post.caption or "Untitled post").strip().splitlines()[0][:120]
                 result.append({
                     "id": str(item.id),
+                    "item_id": str(item.item_id),
                     "kind": _KIND_BY_ITEM_TYPE["post"],
                     "title": title,
                     "meta": f"{post.author_name} · saved {when}",
                     "image": (post.images or [None])[0],
                 })
-            # 'destination'/'itinerary' saves resolve once those services expose a
-            # lookup here — skipped for now rather than shown with missing data.
+            elif item.item_type == "destination" and item.item_id in destinations_map:
+                dest = destinations_map[item.item_id]
+                result.append({
+                    "id": str(item.id),
+                    "item_id": str(item.item_id),
+                    "kind": _KIND_BY_ITEM_TYPE["destination"],
+                    "title": dest.name,
+                    "meta": f"{dest.region} · saved {when}",
+                    "image": dest.image_url,
+                })
+            # 'itinerary' saves resolve once that service exposes a lookup here —
+            # skipped for now rather than shown with missing data.
 
         return {"items": result}
 

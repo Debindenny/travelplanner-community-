@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -7,10 +7,30 @@ import { CommunityHomeSubnavComponent } from './community-home-subnav.component'
 import { CommunityJourneyStatsComponent } from './community-journey-stats.component';
 import { CommunityDestinationCardComponent } from './community-destination-card.component';
 import { CommunityDestinationDetailModalComponent } from './community-destination-detail-modal.component';
-import { buildCommunityHomeData } from '../circles-trips/core/data/community-mock-data';
 import { CommunityDestination } from '../circles-trips/core/models/community.models';
+import {
+  CommunityDestinationService,
+  CommunityDestinationSummary,
+} from '../services/community-destination.service';
 
 type DestinationFilter = 'popular' | 'nearMe';
+
+/** Maps the real backend destination shape onto the page's existing display model. */
+function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestination {
+  return {
+    id: d.id,
+    name: d.name,
+    image: d.image,
+    members: `${d.been_there_count} been there`,
+    livePlanning: '',
+    stats: [
+      { value: String(d.been_there_count), label: 'Been there' },
+      { value: `${d.currency} ${Math.round(d.price)}`, label: 'From' },
+      { value: String(d.tags.length), label: 'Tags' },
+    ],
+    recentPosts: [],
+  };
+}
 
 @Component({
   selector: 'app-community-destinations-page',
@@ -26,11 +46,11 @@ type DestinationFilter = 'popular' | 'nearMe';
   ],
   template: `
     <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-      <main class="flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-10 px-4 sm:px-6">
-        <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
+      <main class="flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-10 px-3 sm:px-4">
+        <div class="w-full max-w-[1280px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
 
           <!-- LEFT COLUMN: same subnav + journey widget as Community Home -->
-          <div class="flex flex-col lg:col-span-2 sticky top-[92px] gap-3 sm:gap-5">
+          <div class="flex flex-col lg:col-span-2 sticky top-[92px] gap-6 sm:gap-5">
             <app-community-home-subnav />
             <app-community-journey-stats />
           </div>
@@ -84,12 +104,10 @@ type DestinationFilter = 'popular' | 'nearMe';
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-              @for (destination of destinations; track destination.id) {
+              @for (destination of destinations(); track destination.id) {
                 <app-community-destination-card
                   [destination]="destination"
-                  [joined]="joinedIds().has(destination.id)"
-                  (viewDetails)="selectedDestination.set($event)"
-                  (joinToggled)="toggleJoin($event)"
+                  (viewDetails)="openDetails($event)"
                 />
               }
             </div>
@@ -109,22 +127,57 @@ type DestinationFilter = 'popular' | 'nearMe';
     </div>
   `,
 })
-export class CommunityDestinationsPageComponent {
+export class CommunityDestinationsPageComponent implements OnInit {
+  private readonly destinationService = inject(CommunityDestinationService);
+
   readonly filter = signal<DestinationFilter>('popular');
-  readonly destinations: CommunityDestination[] = buildCommunityHomeData().destinations;
+  readonly destinations = signal<CommunityDestination[]>([]);
 
   readonly joinedIds = signal<ReadonlySet<string>>(new Set());
   readonly selectedDestination = signal<CommunityDestination | null>(null);
 
+  ngOnInit(): void {
+    this.destinationService.getDestinations().subscribe({
+      next: (data) => this.destinations.set(data.map(toCommunityDestination)),
+      error: () => this.destinations.set([]),
+    });
+
+    this.destinationService.getSavedDestinationIds().subscribe({
+      next: (ids) => this.joinedIds.set(new Set(ids)),
+      error: () => {},
+    });
+  }
+
+  openDetails(destination: CommunityDestination): void {
+    this.selectedDestination.set(destination);
+    this.destinationService.getDestination(destination.id).subscribe({
+      next: (detail) => {
+        const recentPosts = detail.posts.slice(0, 5).map((post) => ({
+          title: (post.caption || 'Untitled post').slice(0, 120),
+          author: post.author.name,
+          kind: post.type || 'post',
+        }));
+        this.selectedDestination.update((current) =>
+          current && current.id === destination.id ? { ...current, recentPosts } : current
+        );
+      },
+      error: () => {},
+    });
+  }
+
   toggleJoin(destination: CommunityDestination): void {
-    this.joinedIds.update(current => {
-      const next = new Set(current);
-      if (next.has(destination.id)) {
-        next.delete(destination.id);
-      } else {
-        next.add(destination.id);
-      }
-      return next;
+    this.destinationService.toggleSave(destination.id).subscribe({
+      next: ({ saved }) => {
+        this.joinedIds.update((current) => {
+          const next = new Set(current);
+          if (saved) {
+            next.add(destination.id);
+          } else {
+            next.delete(destination.id);
+          }
+          return next;
+        });
+      },
     });
   }
 }
