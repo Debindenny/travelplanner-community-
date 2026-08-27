@@ -209,9 +209,14 @@ export const routes: Routes = [
           import('./community/components/community-events.component').then((m) => m.CommunityEventsComponent),
       },
       {
+        path: 'community/events/host',
+        loadComponent: () =>
+          import('./community/components/community-host-event.component').then((m) => m.CommunityHostEventComponent),
+      },
+      {
         path: 'community/events/:id',
         loadComponent: () =>
-          import('./community/components/community-event-detail.component').then((m) => m.CommunityEventDetailComponent),
+          import('./community/components/community-event-view.component').then((m) => m.CommunityEventDetailViewComponent),
       },
       {
         path: 'community/journals',

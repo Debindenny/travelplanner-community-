@@ -224,6 +224,63 @@ async def tripadvisor_recommendations(
     return results
 
 
+# Category -> Google Places Text Search intent. Extend this map to add a new
+# Host an Event category; no other code needs to change.
+_PLACE_SUGGESTION_QUERIES = {
+    "food": "restaurants and food spots",
+    "meetup": "cafes, parks and public meetup spots",
+}
+
+
+@router.get("/place-suggestions")
+async def place_suggestions(
+    location: str = Query(..., min_length=2, max_length=200, description="Destination, e.g. 'Paris, France'"),
+    category: str = Query(..., description="One of: " + ", ".join(_PLACE_SUGGESTION_QUERIES)),
+    limit: int = Query(5, ge=1, le=10),
+    redis=Depends(get_redis),
+    request: Request = None,
+):
+    """Category-specific place suggestions for a destination — Host an Event flow."""
+    if request:
+        client_ip = request.client.host
+        rl_key = f"rl:inventory:place_suggestions:{client_ip}"
+        pipe = redis.pipeline()
+        pipe.incr(rl_key)
+        pipe.expire(rl_key, 60)
+        results = await pipe.execute()
+        if results[0] > 30:
+            raise HTTPException(status_code=429, detail="Too Many Requests")
+
+    type_of_place = _PLACE_SUGGESTION_QUERIES.get(category.strip().lower())
+    if not type_of_place:
+        raise HTTPException(status_code=400, detail="Unknown category")
+
+    location = location.strip()
+    cache_key = f"inventory:place_suggestions:{location.lower()}:{category.lower()}:{limit}"
+    cached = await redis.get(cache_key)
+    if cached:
+        import json
+
+        return json.loads(cached)
+
+    items = await google_places.search_places(location, type_of_place, None)
+    suggestions = [
+        {
+            "name": item.title,
+            "address": (item.details or {}).get("address"),
+            "rating": (item.details or {}).get("rating"),
+            "imageUrl": item.image_url,
+        }
+        for item in items[:limit]
+    ]
+    import json
+
+    # Don't cache empty results for long — often a transient upstream miss.
+    ttl = 900 if suggestions else 60
+    await redis.setex(cache_key, ttl, json.dumps(suggestions))
+    return suggestions
+
+
 @router.get("/search", response_model=List[InventoryItem])
 async def search_inventory(
     type: str = Query(
