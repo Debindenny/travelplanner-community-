@@ -48,31 +48,18 @@ import { CommunityDestination } from '../circles-trips/core/models/community.mod
           }
         </div>
 
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            (click)="viewDetails.emit(destination)"
-            class="flex-1 h-10 rounded-xl border border-slate-200 dark:border-gray-600 text-[13px] font-bold text-text-primary dark:text-gray-100 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {{ 'COMMUNITY.DESTINATIONS_PAGE.VIEW_DETAILS' | translate }}
-          </button>
-          <button
-            type="button"
-            (click)="joinToggled.emit(destination)"
-            [attr.aria-pressed]="joined"
-            class="flex-1 h-10 rounded-xl text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            [ngClass]="joined ? 'bg-primary-subtle text-primary' : 'bg-primary hover:bg-primary-hover text-white'"
-          >
-            {{ (joined ? 'COMMUNITY.DESTINATIONS_PAGE.JOINED' : 'COMMUNITY.DESTINATIONS_PAGE.JOIN') | translate }}
-          </button>
-        </div>
+        <button
+          type="button"
+          (click)="viewDetails.emit(destination)"
+          class="w-full h-10 rounded-xl border border-slate-200 dark:border-gray-600 text-[13px] font-bold text-text-primary dark:text-gray-100 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {{ 'COMMUNITY.DESTINATIONS_PAGE.VIEW_DETAILS' | translate }}
+        </button>
       </div>
     </article>
   `,
 })
 export class CommunityDestinationCardComponent {
   @Input({ required: true }) destination!: CommunityDestination;
-  @Input() joined = false;
   @Output() viewDetails = new EventEmitter<CommunityDestination>();
-  @Output() joinToggled = new EventEmitter<CommunityDestination>();
 }

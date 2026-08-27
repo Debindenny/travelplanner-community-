@@ -20,7 +20,7 @@ import { CommunityNotificationsService } from './services/community-notification
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
 import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
-import { CommunityJourneyStatsComponent } from './components/community-journey-stats.component';
+import { CommunityProfileSummaryComponent } from './components/community-profile-summary.component';
 import { CommunityCrewWidgetComponent } from './components/community-crew-widget.component';
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
@@ -47,7 +47,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityPostCommentsComponent,
       CommunityQaThreadComponent,
       CommunityHomeSubnavComponent,
-      CommunityJourneyStatsComponent,
+      CommunityProfileSummaryComponent,
       CommunityCrewWidgetComponent,
       CommunityJoinRequestsComponent,
       CommunityTravelersRailComponent,
@@ -64,17 +64,22 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
          Travel Circles/Trips island already uses for this lighter, tighter look. -->
     <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
       <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
-      <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-4 sm:px-6">
-        <div class="w-full max-w-[1400px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
+      <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-3 sm:px-4">
+        <div class="w-full max-w-[1280px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
 
           <!-- LEFT COLUMN (Subnav + Journey). Spans every content row (Hero, Feed, Right
                rail) and stays sticky at every width — previously it only spanned row 1
                (paired with the Hero), so once the Feed/Right-rail's col-span-2 carried
                them under its column for their own full-width rows, the sidebar had
-               already scrolled out of view with nothing left to stick against. -->
-          <div class="flex flex-col row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
+               already scrolled out of view with nothing left to stick against.
+               Height is capped to one viewport (not stretched to the row-span, which
+               spans the entire feed and could be thousands of px tall) so the profile
+               card pinned to its bottom via mt-auto stays visible alongside the nav
+               links instead of only appearing once you scroll to the very end of the
+               page. -->
+          <div class="flex flex-col h-[calc(100vh-120px)] row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
             <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
-            <app-community-journey-stats />
+            <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
           </div>
 
           <!-- TOP ROW: Hero + Stories, paired with the left nav at every width -->

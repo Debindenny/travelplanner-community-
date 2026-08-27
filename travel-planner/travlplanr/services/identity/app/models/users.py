@@ -42,10 +42,13 @@ class User(Base):
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     password_hash: Mapped[str | None] = mapped_column(String)
     user_kind: Mapped[UserKind] = mapped_column(
-        Enum(UserKind, name="user_kind_enum"), nullable=False
+        Enum(UserKind, name="user_kind_enum", values_callable=lambda cls: [e.value for e in cls]),
+        nullable=False,
     )
     status: Mapped[UserStatus] = mapped_column(
-        Enum(UserStatus, name="user_status_enum"), nullable=False, default=UserStatus.ACTIVE
+        Enum(UserStatus, name="user_status_enum", values_callable=lambda cls: [e.value for e in cls]),
+        nullable=False,
+        default=UserStatus.ACTIVE,
     )
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     tenant_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, index=True)
