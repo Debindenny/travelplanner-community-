@@ -60,6 +60,20 @@ const KIND_OPTIONS: MeetupKind[] = [
       </div>
 
       <div>
+        <label class="block text-[9.5px] font-extrabold tracking-wide text-text-faint uppercase mb-1">
+          Event Cost
+        </label>
+
+        <input
+          type="text"
+          [value]="cost()"
+          (input)="cost.set($any($event.target).value)"
+          placeholder="Free, ¥3000, ₹500, $20"
+          class="w-full px-3 py-1.5 bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-xs font-medium text-text-primary"
+        />
+      </div>
+
+      <div>
         <label class="block text-[9.5px] font-extrabold tracking-wide text-text-faint uppercase mb-1">{{ 'COMMUNITY.COMPOSER_MODAL.MEETUP_DETAILS_LABEL' | translate }}</label>
         <textarea
           [value]="details()"
@@ -138,6 +152,7 @@ export class CommunityMeetupComposerComponent {
   readonly date = signal('');
   readonly time = signal('');
   readonly location = signal('');
+  readonly cost = signal('');
   readonly details = signal('');
   readonly kind = signal<string | null>(null);
   readonly audience = signal<TipAudience>('everyone');
@@ -165,6 +180,7 @@ export class CommunityMeetupComposerComponent {
       title: this.title().trim(),
       description: this.details().trim() + kindTag,
       location: this.location().trim() || undefined,
+      cost: this.cost().trim() || undefined,
       starts_at: startsAt,
     }).subscribe({
       next: () => {

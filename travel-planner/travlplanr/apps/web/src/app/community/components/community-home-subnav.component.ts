@@ -1,5 +1,4 @@
 import { Component, OnInit, Output, EventEmitter, inject, signal } from '@angular/core';
-
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';

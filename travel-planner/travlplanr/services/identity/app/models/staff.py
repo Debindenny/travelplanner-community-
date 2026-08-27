@@ -40,7 +40,9 @@ class StaffProfile(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     phone: Mapped[str | None] = mapped_column(String)
     role: Mapped[StaffRole] = mapped_column(
-        Enum(StaffRole, name="staff_role_enum"), nullable=False, default=StaffRole.STAFF
+        Enum(StaffRole, name="staff_role_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=StaffRole.STAFF,
     )
     date_joined: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
