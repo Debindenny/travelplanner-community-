@@ -1,0 +1,21 @@
+<div class="events-tab">
+  <header class="events-tab__header">
+    <div>
+      <p class="events-tab__label">EVENTS &amp; MEETUPS</p>
+      <h1 class="events-tab__title">Meet travelers in person</h1>
+      <p class="events-tab__description">Photo walks, food crawls and live planning sessions — hosted by travelers, not brands.</p>
+    </div>
+
+    <app-event-filter-bar [activeFilter]="store.eventsFilter()" (selectFilter)="onSelectFilter($event)" />
+  </header>
+
+  @if (store.visibleEventListings().length) {
+    <div class="events-tab__grid">
+      @for (event of store.visibleEventListings(); track event.id) {
+        <app-event-card [event]="event" [joined]="isJoined(event.id)" (join)="onJoinEvent($event)" (details)="onShowDetails($event)" />
+      }
+    </div>
+  } @else {
+    <p class="events-tab__empty">No events match this filter yet — check back soon.</p>
+  }
+</div>
