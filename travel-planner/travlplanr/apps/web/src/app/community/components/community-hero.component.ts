@@ -95,15 +95,9 @@ interface HeroDestination {
               <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
             </div>
           }
-          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg">{{ 'COMMUNITY.HERO.TITLE_LINE1' | translate }}<br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
+
+          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg"> <br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
           <div class="flex items-center gap-2 flex-wrap">
-            <button
-              (click)="onPost.emit()"
-              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white text-[13px] font-semibold rounded-[11px] transition-colors community-hero-btn-solid"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-              {{ 'COMMUNITY.HERO.POST' | translate }}
-            </button>
             <button
               (click)="onMap.emit()"
               class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-semibold rounded-[11px] transition-colors"
@@ -116,7 +110,7 @@ interface HeroDestination {
               class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-primary hover:bg-primary-hover text-white text-[13px] font-semibold rounded-[11px] transition-colors"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-              {{ 'COMMUNITY.HERO.FIND_BUDDIES' | translate }}
+              {{ 'COMMUNITY.HERO.FIND_TRAVELERS' | translate }}
             </a>
           </div>
         </div>
