@@ -729,7 +729,7 @@
     "HERO": {
       "DAYS_AWAY": "In {{count}} days",
       "EXPLORE_DESTINATION": "Explore {{name}}",
-      "EXPLORE_MAP": "Explore map",
+      "EXPLORE_MAP": "Explore",
       "FIND_BUDDIES": "Find buddies",
       "FIND_TRAVELERS": "Find travelers",
       "NEXT_TRIP_BADGE": "Your next trip",

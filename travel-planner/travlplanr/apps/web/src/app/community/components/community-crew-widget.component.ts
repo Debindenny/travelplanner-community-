@@ -78,6 +78,19 @@ import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.com
         (exitedGroup)="onExitGroup()"
       />
     }
+
+    <!-- Floating launcher for the Paris Crew chat, always reachable from the
+         Community Home page regardless of scroll position or join state. -->
+    <button
+      type="button"
+      (click)="showCrewChat.set(true)"
+      class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-white shadow-[0_10px_28px_rgba(0,96,234,0.35)] border-2 border-white flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+      aria-label="Open Paris Crew chat"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 20l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+      </svg>
+    </button>
   `,
   styles: [`
     /* Design tokens the reused Travel Circles modal expects — normally supplied by
