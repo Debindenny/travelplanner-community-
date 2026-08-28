@@ -1,6 +1,90 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CommunityEventCard, TRIP_OPTIONS, TripDayOption, TripOption } from '../services/community-mock-events.service';
+import { CommunityEventCard } from '../services/community-event-view.model';
+
+/**
+ * "Which trip / which day" itinerary picker — presentation-only, not part of
+ * the meetups API. There is no backend concept of a meetup being attached to
+ * a specific trip day, so this stays local UI state exactly as it was before
+ * the mock-data reconnect; only the RSVP itself (handled by the parent) is
+ * backed by the real API.
+ */
+export interface TripDayItem {
+  time: string;
+  title: string;
+}
+
+export interface TripDayOption {
+  id: string;
+  label: string;
+  dateLabel: string;
+  itemsCount: number;
+  items: TripDayItem[];
+}
+
+export interface TripOption {
+  id: string;
+  name: string;
+  dateRangeLabel: string;
+  activitiesCount: number;
+  days: TripDayOption[];
+}
+
+export const TRIP_OPTIONS: TripOption[] = [
+  {
+    id: 'trip-1',
+    name: 'Paris · Long weekend',
+    dateRangeLabel: 'Jun 03 – Jun 08',
+    activitiesCount: 8,
+    days: [
+      {
+        id: 'd1',
+        label: 'Day 1',
+        dateLabel: 'Wed 03',
+        itemsCount: 2,
+        items: [
+          { time: '15:00', title: 'Check in · Hôtel Bachaumont' },
+          { time: '19:00', title: 'Dinner in Le Marais' }
+        ]
+      },
+      { id: 'd2', label: 'Day 2', dateLabel: 'Thu 04', itemsCount: 1, items: [{ time: '10:00', title: 'Louvre — timed entry' }] },
+      {
+        id: 'd3',
+        label: 'Day 3',
+        dateLabel: 'Fri 05',
+        itemsCount: 2,
+        items: [
+          { time: '09:30', title: 'Eiffel Tower — summit access' },
+          { time: '20:00', title: 'Seine river cruise' }
+        ]
+      },
+      { id: 'd4', label: 'Day 4', dateLabel: 'Sat 06', itemsCount: 1, items: [{ time: '11:00', title: 'Musée d\'Orsay' }] },
+      { id: 'd5', label: 'Day 5', dateLabel: 'Sun 07', itemsCount: 1, items: [{ time: '14:00', title: 'Versailles day trip' }] },
+      { id: 'd6', label: 'Day 6', dateLabel: 'Mon 08', itemsCount: 1, items: [{ time: '12:00', title: 'Check out · Hôtel Bachaumont' }] }
+    ]
+  },
+  {
+    id: 'trip-2',
+    name: 'Japan 2027',
+    dateRangeLabel: 'Apr 04 – Apr 11',
+    activitiesCount: 9,
+    days: [
+      { id: 'd1', label: 'Day 1', dateLabel: 'Apr 04', itemsCount: 1, items: [{ time: '16:00', title: 'Check in · Shinjuku' }] },
+      {
+        id: 'd2',
+        label: 'Day 2',
+        dateLabel: 'Apr 05',
+        itemsCount: 2,
+        items: [
+          { time: '09:00', title: 'Senso-ji Temple' },
+          { time: '19:00', title: 'Shibuya crossing at night' }
+        ]
+      },
+      { id: 'd3', label: 'Day 3', dateLabel: 'Apr 06', itemsCount: 1, items: [{ time: '10:00', title: 'teamLab Planets' }] },
+      { id: 'd4', label: 'Day 4', dateLabel: 'Apr 07', itemsCount: 1, items: [{ time: '08:00', title: 'Tsukiji Outer Market' }] }
+    ]
+  }
+];
 
 @Component({
   selector: 'app-add-to-trip-modal',

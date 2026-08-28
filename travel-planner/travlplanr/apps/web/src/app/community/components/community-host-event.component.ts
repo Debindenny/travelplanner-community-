@@ -2,10 +2,18 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommunityEventCard, CommunityMockEventsService, unsplashUrl } from '../services/community-mock-events.service';
+import { CommunityEventsService } from '../services/community-events.service';
+import { BRING_MARKER, MEETING_MARKER, PLAN_MARKER } from '../services/community-event-view.model';
+import { CommunityProfileService } from '../services/community-profile.service';
 import { PlaceSuggestion, PlaceSuggestionsService } from '../services/place-suggestions.service';
 import { DestinationTypeaheadComponent } from '../../shared/components/destination-typeahead/destination-typeahead.component';
 import { DestinationListItem } from '../../shared/utils/destination.util';
+
+function parseDurationMinutes(label: string): number {
+  const hours = Number(label.match(/(\d+)h/)?.[1] ?? 0);
+  const mins = Number(label.match(/(\d+)m/)?.[1] ?? 0);
+  return hours * 60 + mins;
+}
 
 type WizardStep = 1 | 2 | 3;
 
@@ -23,6 +31,29 @@ interface TripDayPick {
   weekday: string;
   day: string;
   iso: string;
+}
+
+function toLocalIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** Tomorrow through 6 days out — always real, publishable future dates. */
+function buildUpcomingTripDays(): TripDayPick[] {
+  const days: TripDayPick[] = [];
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    days.push({
+      id: `d${i}`,
+      weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      day: d.getDate().toString().padStart(2, '0'),
+      iso: toLocalIsoDate(d)
+    });
+  }
+  return days;
 }
 
 @Component({
@@ -182,15 +213,29 @@ interface TripDayPick {
             </div>
 
             <div *ngIf="!suggestionsLoading && suggestions.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div *ngFor="let s of suggestions" class="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-gray-700 p-2.5">
+              <button
+                *ngFor="let s of suggestions"
+                type="button"
+                (click)="selectSuggestion(s)"
+                class="flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors"
+                [class.border-primary]="form.meetingPoint === s.name"
+                [class.bg-primary-50]="form.meetingPoint === s.name"
+                [class.dark:bg-primary/10]="form.meetingPoint === s.name"
+                [class.border-slate-200]="form.meetingPoint !== s.name"
+                [class.dark:border-gray-700]="form.meetingPoint !== s.name"
+                [class.hover:border-slate-300]="form.meetingPoint !== s.name"
+              >
                 <span class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-gray-700 bg-cover bg-center shrink-0" [style.background-image]="s.imageUrl ? 'url(' + s.imageUrl + ')' : null"></span>
-                <span class="min-w-0">
+                <span class="min-w-0 flex-1">
                   <span class="block text-xs font-extrabold text-eventText-deep dark:text-white truncate">{{ s.name }}</span>
                   <span class="block text-[10.5px] font-semibold text-eventText-soft truncate">
                     {{ s.rating ? '★ ' + s.rating + (s.address ? ' · ' : '') : '' }}{{ s.address }}
                   </span>
                 </span>
-              </div>
+                <svg *ngIf="form.meetingPoint === s.name" class="w-4 h-4 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -198,28 +243,39 @@ interface TripDayPick {
         <!-- Step 2: When & where -->
         <div *ngIf="step === 2" class="px-6 sm:px-8 py-6 flex flex-col gap-5">
           <div>
-            <label class="block text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">Pick a day from your trip</label>
-            <div class="grid grid-cols-6 gap-1.5">
+            <label class="flex items-center gap-1.5 text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">
+              <span class="w-5 h-5 rounded-md bg-[#EEF3FF] flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#1D63ED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 2v4" />
+                  <path d="M17 2v4" />
+                  <path d="M3 9h18" />
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M15 18l2 2 4-4" />
+                </svg>
+              </span>
+              Pick a day from your trip
+            </label>
+            <div class="flex flex-wrap gap-1.5">
               <button
                 *ngFor="let d of tripDays"
                 type="button"
                 (click)="pickTripDay(d)"
-                class="rounded-lg border py-1.5 text-center transition-colors"
+                class="w-14 rounded-md border py-1 text-center transition-colors shrink-0"
                 [ngClass]="form.date === d.iso ? 'bg-primary border-primary' : 'bg-white dark:bg-gray-800 border-slate-200 dark:border-gray-700'"
               >
-                <span class="block text-[11px] font-semibold leading-tight" [class.text-white]="form.date === d.iso" [class.text-eventText-soft]="form.date !== d.iso">{{ d.weekday }}</span>
-                <span class="block text-[15px] font-extrabold leading-tight" [class.text-white]="form.date === d.iso" [class.text-eventText-deep]="form.date !== d.iso">{{ d.day }}</span>
+                <span class="block text-[9.5px] font-semibold leading-tight" [class.text-white]="form.date === d.iso" [class.text-eventText-soft]="form.date !== d.iso">{{ d.weekday }}</span>
+                <span class="block text-[13px] font-extrabold leading-tight" [class.text-white]="form.date === d.iso" [class.text-eventText-deep]="form.date !== d.iso">{{ d.day }}</span>
               </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-2.5">
             <div>
               <label class="block text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">Date</label>
               <input
                 type="date"
                 [(ngModel)]="form.date"
-                class="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full h-9 px-2.5 rounded-lg border border-slate-200 dark:border-gray-700 text-xs font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
@@ -227,14 +283,14 @@ interface TripDayPick {
               <input
                 type="time"
                 [(ngModel)]="form.time"
-                class="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full h-9 px-2.5 rounded-lg border border-slate-200 dark:border-gray-700 text-xs font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
               <label class="block text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">Duration</label>
               <select
                 [(ngModel)]="form.duration"
-                class="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-no-repeat bg-[right_0.9rem_center] bg-[length:12px]"
+                class="w-full h-9 px-2.5 rounded-lg border border-slate-200 dark:border-gray-700 text-xs font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-no-repeat bg-[right_0.7rem_center] bg-[length:10px]"
                 style="background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%235A6472%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22/></svg>')"
               >
                 <option *ngFor="let opt of durationOptions" [value]="opt">{{ opt }}</option>
@@ -420,8 +476,8 @@ interface TripDayPick {
                 [style.background-image]="previewImageStyle"
               >
                 <div class="flex items-start justify-between">
-                  <div class="w-9 h-9 rounded-md bg-white shadow flex flex-col items-center justify-center leading-none shrink-0">
-                    <span class="text-[7px] font-extrabold uppercase text-eventText-soft">{{ previewMonth }}</span>
+                  <div class="w-9 h-9 rounded-lg bg-[#EEF3FF] shadow flex flex-col items-center justify-center leading-none shrink-0">
+                    <span class="text-[7px] font-extrabold uppercase text-[#1D63ED]">{{ previewMonth }}</span>
                     <span class="text-sm font-black text-eventText-deep">{{ previewDay }}</span>
                   </div>
                   <span class="px-2 py-1 rounded-full bg-white/95 text-[9.5px] font-extrabold" [class.text-rose-600]="form.category === 'Food'" [class.text-primary]="form.category === 'Meetup'">
@@ -478,9 +534,10 @@ interface TripDayPick {
             *ngIf="step === 3"
             type="button"
             (click)="publish()"
-            class="h-10 px-5 rounded-xl text-xs font-bold bg-primary hover:bg-primary-hover text-white transition-colors shrink-0"
+            [disabled]="publishing"
+            class="h-10 px-5 rounded-xl text-xs font-bold bg-primary hover:bg-primary-hover text-white transition-colors shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Publish event
+            {{ publishing ? 'Publishing…' : 'Publish event' }}
           </button>
         </div>
       </div>
@@ -493,7 +550,8 @@ interface TripDayPick {
   `
 })
 export class CommunityHostEventComponent {
-  private readonly eventsService = inject(CommunityMockEventsService);
+  private readonly eventsService = inject(CommunityEventsService);
+  private readonly profileService = inject(CommunityProfileService);
   private readonly router = inject(Router);
   private readonly placeSuggestions = inject(PlaceSuggestionsService);
 
@@ -508,15 +566,12 @@ export class CommunityHostEventComponent {
     { tag: 'Food', label: 'Food', description: 'Eating and drinking together', icon: 'utensils' }
   ];
 
-  /** Mirrors the "Paris · Long weekend" trip from the events list/Add-to-trip picker. */
-  readonly tripDays: TripDayPick[] = [
-    { id: 'd1', weekday: 'Wed', day: '03', iso: '2026-06-03' },
-    { id: 'd2', weekday: 'Thu', day: '04', iso: '2026-06-04' },
-    { id: 'd3', weekday: 'Fri', day: '05', iso: '2026-06-05' },
-    { id: 'd4', weekday: 'Sat', day: '06', iso: '2026-06-06' },
-    { id: 'd5', weekday: 'Sun', day: '07', iso: '2026-06-07' },
-    { id: 'd6', weekday: 'Mon', day: '08', iso: '2026-06-08' }
-  ];
+  /**
+   * A rolling 6-day window starting tomorrow — the backend rejects
+   * starts_at in the past, so these must always be real future dates
+   * rather than a fixed demo range that eventually expires.
+   */
+  readonly tripDays: TripDayPick[] = buildUpcomingTripDays();
 
   readonly durationOptions = ['30m', '1h', '1h 30m', '2h', '2h 30m', '3h', '3h 30m', '4h+'];
 
@@ -542,6 +597,8 @@ export class CommunityHostEventComponent {
   };
 
   coverPreviewUrl: string | null = null;
+  private coverFile: File | null = null;
+  publishing = false;
 
   // Destination validation + category-aware place suggestions.
   destinationPanelOpen = false;
@@ -566,7 +623,9 @@ export class CommunityHostEventComponent {
       return !!(this.form.title.trim() && this.destinationValidated);
     }
     if (this.step === 2) {
-      return !!(this.form.date && this.form.time && this.form.meetingPoint.trim());
+      if (!(this.form.date && this.form.time && this.form.meetingPoint.trim())) return false;
+      // The backend rejects a starts_at in the past, so catch it here rather than at publish time.
+      return new Date(`${this.form.date}T${this.form.time}`).getTime() > Date.now() - 5 * 60000;
     }
     return true;
   }
@@ -601,6 +660,11 @@ export class CommunityHostEventComponent {
     if (this.destinationValidated) {
       this.fetchSuggestions();
     }
+  }
+
+  /** Tapping a suggested spot uses it as the event's meeting point (Step 2). */
+  selectSuggestion(s: PlaceSuggestion): void {
+    this.form.meetingPoint = this.form.meetingPoint === s.name ? '' : s.name;
   }
 
   private fetchSuggestions(): void {
@@ -653,6 +717,7 @@ export class CommunityHostEventComponent {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
+    this.coverFile = file;
     this.coverPreviewUrl = URL.createObjectURL(file);
   }
 
@@ -697,43 +762,69 @@ export class CommunityHostEventComponent {
     this.step = (this.step - 1) as WizardStep;
   }
 
+  /**
+   * Publishes to the real /community/meetups API. The backend meetup schema
+   * only stores title/description/location/image_url/starts_at/ends_at — it
+   * has no fields for category, price, capacity, an agenda, or "what to
+   * bring" notes, so those parts of the form are folded into the free-text
+   * description behind markers (see PLAN_MARKER/BRING_MARKER) and split back
+   * out on read by toEventCard() — category, price and capacity have no such
+   * round-trip and are simply not persisted. See the integration report for
+   * the full list of what's mapped vs. dropped.
+   */
   publish(): void {
-    if (!this.stepValid) return;
-    const startDate = new Date(`${this.form.date}T${this.form.time}`);
-    const price = this.form.pricePaid && this.form.price.trim() ? this.form.price.trim() : 'Free';
-    const groupMax = this.form.capacityLimited && this.form.groupMax.trim() ? `${this.form.groupMax.trim()} max` : 'No limit';
-    const title = this.form.title.trim();
+    if (!this.stepValid || this.publishing) return;
+    this.publishing = true;
 
-    const created: CommunityEventCard = {
-      id: `evt-${Date.now()}`,
-      title,
-      location: this.form.destination.trim(),
-      time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      duration: this.form.duration,
-      price,
-      travelersGoing: 1,
-      month: startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
-      day: startDate.getDate().toString().padStart(2, '0'),
-      tag: this.form.category,
-      joined: true,
-      followed: false,
-      imageUrl: this.coverPreviewUrl || unsplashUrl('1488646953014-85cb44e25828'),
-      hostName: 'You',
-      hostRole: 'Event host',
-      reason: 'Hosted by you',
-      description: this.form.description.trim() || 'Details coming soon — edit this meetup to add a description.',
-      groupMax,
-      spacesLeftBase: 999,
-      schedule: this.form.scheduleSteps
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((text) => ({ time: '', text })),
-      locationName: this.form.meetingPoint.trim(),
-      locationNote: this.form.note.trim()
+    const startDate = new Date(`${this.form.date}T${this.form.time}`);
+    const minutes = parseDurationMinutes(this.form.duration);
+    const endsAt = minutes > 0 ? new Date(startDate.getTime() + minutes * 60000) : null;
+    const destination = this.form.destination.trim();
+    const meetingPoint = this.form.meetingPoint.trim();
+    // `location` stays just the destination — the specific meeting point is
+    // folded into the description instead, so card/detail-page location
+    // lines don't show "<meeting point>, <destination>" concatenated.
+    const location = destination;
+
+    const scheduleLines = this.form.scheduleSteps.map((s) => s.trim()).filter(Boolean);
+    const bringNote = this.form.note.trim();
+    let description: string | undefined = this.form.description.trim();
+    if (scheduleLines.length) description += PLAN_MARKER + scheduleLines.join('\n');
+    if (bringNote) description += BRING_MARKER + bringNote;
+    if (meetingPoint) description += MEETING_MARKER + meetingPoint;
+    description = description.trim() || undefined;
+
+    const createEvent = (imageUrl: string | undefined) => {
+      this.eventsService
+        .createEvent({
+          title: this.form.title.trim(),
+          description,
+          location,
+          image_url: imageUrl,
+          starts_at: startDate.toISOString(),
+          ends_at: endsAt ? endsAt.toISOString() : undefined
+        })
+        .subscribe({
+          next: (created) => {
+            this.publishing = false;
+            this.router.navigateByUrl('/community/events', {
+              state: { toast: `"${created.title}" is live — visible to the community` }
+            });
+          },
+          error: (err) => {
+            this.publishing = false;
+            this.showError(err?.error?.detail || "Couldn't publish this event — try again");
+          }
+        });
     };
 
-    this.eventsService.addEvent(created);
-    this.eventsService.setPendingToast(`"${created.title}" is live — visible to the community`);
-    this.router.navigateByUrl('/community/events');
+    if (this.coverFile) {
+      this.profileService.uploadImage(this.coverFile).subscribe({
+        next: (res) => createEvent(res.url),
+        error: () => createEvent(undefined) // cover photo upload failing shouldn't block publishing
+      });
+    } else {
+      createEvent(undefined);
+    }
   }
 }

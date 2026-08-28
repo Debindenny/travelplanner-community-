@@ -1,21 +1,40 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommunityEventCard, CommunityMockEventsService } from '../services/community-mock-events.service';
+import { CommunityEventsService } from '../services/community-events.service';
+import { attendeesFor, eventDestination, toEventCard, CommunityEventCard, EventAttendee } from '../services/community-event-view.model';
+import { CommunityProfileService } from '../services/community-profile.service';
+import { AttendeesModalComponent } from './attendees-modal.component';
 
 @Component({
   selector: 'app-community-event-view',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AttendeesModalComponent],
   template: `
     <div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 font-manrope">
       <a
         routerLink="/community/events"
-        class="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full border border-slate-200 dark:border-gray-700 text-[12.5px] font-bold text-eventText-mid dark:text-gray-300 hover:border-primary hover:text-primary transition-colors mb-4"
+        class="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-sm text-[12.5px] font-bold text-eventText-mid dark:text-gray-300 hover:border-primary hover:text-primary hover:shadow-md transition-all mb-4"
       >
-        <span aria-hidden="true">←</span> Events
+        <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Events
       </a>
 
-      @if (!event) {
+      @if (loading) {
+        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm flex flex-col items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin shrink-0"></span>
+          <p class="text-xs font-semibold text-eventText-soft">Loading event…</p>
+        </div>
+      } @else if (loadError) {
+        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
+          <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">Couldn't load this event</h3>
+          <p class="text-eventText-mid dark:text-gray-300 text-xs mb-4">Check your connection and try again.</p>
+          <a routerLink="/community/events" class="inline-block px-4 py-2 text-xs bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all">
+            Back to events
+          </a>
+        </div>
+      } @else if (!event) {
         <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
           <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">Event not found</h3>
           <p class="text-eventText-mid dark:text-gray-300 text-xs mb-4">It may have been removed.</p>
@@ -32,8 +51,8 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
               'linear-gradient(180deg, rgba(11,18,32,.05) 40%, rgba(11,18,32,.55) 100%), url(' + event.imageUrl + ')'
             "
           >
-            <div class="w-12 h-12 rounded-lg bg-white shadow flex flex-col items-center justify-center leading-none shrink-0">
-              <span class="text-[9px] font-extrabold uppercase text-blue-500">{{ event.month }}</span>
+            <div class="w-12 h-12 rounded-xl bg-[#EEF3FF] shadow flex flex-col items-center justify-center leading-none shrink-0">
+              <span class="text-[9px] font-extrabold uppercase text-[#1D63ED]">{{ event.month }}</span>
               <span class="text-2xl font-black text-eventText-deep">{{ event.day }}</span>
             </div>
           </div>
@@ -60,18 +79,22 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
                   </span>
                 </div>
 
-                <div class="text-right shrink-0">
+                <div
+                  class="border rounded-xl px-4 py-2.5 text-center shrink-0"
+                  [class.bg-green-50]="event.price === 'Free'"
+                  [class.border-green-100]="event.price === 'Free'"
+                  [class.dark:bg-green-500/10]="event.price === 'Free'"
+                  [class.dark:border-green-500/20]="event.price === 'Free'"
+                  [class.border-slate-200]="event.price !== 'Free'"
+                  [class.dark:border-gray-700]="event.price !== 'Free'"
+                >
                   <p class="text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Price</p>
                   <span
-                    class="inline-block px-3 py-1.5 rounded-lg text-sm font-extrabold"
-                    [class.bg-green-50]="event.price === 'Free'"
+                    class="text-sm font-extrabold"
                     [class.text-green-700]="event.price === 'Free'"
-                    [class.dark:bg-green-500/10]="event.price === 'Free'"
                     [class.dark:text-green-400]="event.price === 'Free'"
-                    [class.bg-slate-100]="event.price !== 'Free'"
-                    [class.text-green-600]="event.price !== 'Free'"
-                    [class.dark:bg-gray-700]="event.price !== 'Free'"
-                    [class.dark:text-green-400]="event.price !== 'Free'"
+                    [class.text-eventText-deep]="event.price !== 'Free'"
+                    [class.dark:text-white]="event.price !== 'Free'"
                   >
                     {{ event.price }}
                   </span>
@@ -81,18 +104,18 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
 
             <!-- Host -->
             <div class="flex items-center gap-3 border border-slate-200 dark:border-gray-700 rounded-2xl p-4">
-              <span class="w-9 h-9 rounded-full bg-primary-50 dark:bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold shrink-0">
+              <span class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold shrink-0">
                 {{ initials(event.hostName) }}
               </span>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-extrabold text-eventText-deep dark:text-white flex items-center gap-1.5">
                   {{ event.hostName }}
-                  <span class="inline-flex items-center gap-0.5 text-[9.5px] font-extrabold text-primary bg-primary-50 dark:bg-primary/10 rounded-full px-1.5 py-0.5">
+                  <span *ngIf="hostVerified" class="inline-flex items-center gap-0.5 text-[9.5px] font-extrabold text-primary bg-primary-50 dark:bg-primary/10 rounded-full px-1.5 py-0.5">
                     <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14.9 4.6 18.8 4.2 19.6 8 23 9.8 21 13.2 22 17 18.3 17.9 16.9 21.5 13 20.5 9.1 21.5 7.7 17.9 4 17 5 13.2 3 9.8 6.4 8 7.2 4.2 11.1 4.6 12 2Z" opacity=".18"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                     Verified
                   </span>
                 </p>
-                <p class="text-[11px] font-semibold text-eventText-soft mt-0.5">Hosted by {{ firstName(event.hostName) }} · {{ event.hostRole }}</p>
+                <p class="text-[11px] font-semibold text-eventText-soft mt-0.5">Hosted by {{ firstName(event.hostName) }}{{ event.hostRole ? ' · ' + event.hostRole : '' }}</p>
               </div>
               <button
                 type="button"
@@ -163,7 +186,7 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
                     [href]="directionsUrl(event.locationName)"
                     target="_blank"
                     rel="noopener"
-                    class="h-9 px-4 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-eventText-mid dark:text-gray-300 hover:border-slate-300 transition-colors shrink-0"
+                    class="h-9 px-4 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-eventText-mid dark:text-gray-300 hover:border-slate-300 transition-colors shrink-0 flex items-center justify-center text-center"
                   >
                     Directions
                   </a>
@@ -195,7 +218,7 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
                 <span class="text-xs font-bold text-eventText-mid dark:text-gray-300">
                   {{ event.travelersGoing }} traveler{{ event.travelersGoing === 1 ? '' : 's' }} going{{ event.joined ? ' · including you' : '' }}
                 </span>
-                <button type="button" (click)="seeWho()" class="text-xs font-bold text-primary hover:underline shrink-0">See all</button>
+                <button type="button" (click)="showAttendees = true" class="text-xs font-bold text-primary hover:underline shrink-0">See all</button>
               </div>
             </div>
 
@@ -218,20 +241,66 @@ import { CommunityEventCard, CommunityMockEventsService } from '../services/comm
         {{ toastMessage }}
       </div>
     }
+
+    @if (showAttendees) {
+      <app-attendees-modal
+        [attendees]="attendees"
+        [destination]="destination"
+        (close)="showAttendees = false"
+        (selectTraveler)="onSelectTraveler($event)"
+      ></app-attendees-modal>
+    }
   `
 })
 export class CommunityEventDetailViewComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly eventsService = inject(CommunityMockEventsService);
+  private readonly eventsService = inject(CommunityEventsService);
+  private readonly profileService = inject(CommunityProfileService);
 
   event: CommunityEventCard | null = null;
+  loading = true;
+  loadError = false;
+  showAttendees = false;
+  attendees: EventAttendee[] = [];
+  destination = '';
+  hostVerified = false;
+
+  /** The organizer's customer id — needed to call the follow API but not part of the view model. */
+  private hostId: string | null = null;
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
-    this.event = this.eventsService.events().find((e) => e.id === id) ?? null;
+    if (!id) {
+      this.loading = false;
+      return;
+    }
+
+    this.eventsService.getEvent(id).subscribe({
+      next: (ev) => {
+        this.event = toEventCard(ev);
+        this.hostId = ev.organizer.id;
+        this.attendees = attendeesFor(this.event);
+        this.destination = eventDestination(this.event);
+        this.loading = false;
+
+        // Seed the real "already following the host" state (defaults to false until this resolves).
+        this.profileService.getUserProfile(this.hostId).subscribe({
+          next: (profile) => {
+            if (!this.event) return;
+            this.event.followed = profile.is_following;
+            this.hostVerified = !!profile.is_verified;
+          },
+          error: () => {}
+        });
+      },
+      error: () => {
+        this.loading = false;
+        this.loadError = true;
+      }
+    });
   }
 
   initials(name: string): string {
@@ -262,16 +331,20 @@ export class CommunityEventDetailViewComponent {
 
   toggleFollow(): void {
     const ev = this.event;
-    if (!ev) return;
-    ev.followed = !ev.followed;
-    this.showToast(ev.followed ? `Following ${ev.hostName}` : `Unfollowed ${ev.hostName}`);
+    if (!ev || !this.hostId) return;
+    this.profileService.toggleFollow(this.hostId).subscribe({
+      next: (res) => {
+        ev.followed = res.is_following;
+        this.showToast(ev.followed ? `Following ${ev.hostName}` : `Unfollowed ${ev.hostName}`);
+      },
+      error: (err) => {
+        this.showToast(err?.status === 401 ? 'Log in to follow hosts' : "Couldn't update — try again");
+      }
+    });
   }
 
-  seeWho(): void {
-    const ev = this.event;
-    if (!ev) return;
-    const label = ev.travelersGoing === 1 ? 'traveler' : 'travelers';
-    this.showToast(`Attendee list · ${ev.travelersGoing} ${label} going`);
+  onSelectTraveler(traveler: EventAttendee): void {
+    this.showToast(`Viewing ${traveler.name}'s profile · coming soon`);
   }
 
   private showToast(message: string): void {

@@ -1,4 +1,11 @@
-<div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 font-manrope">
+<div class="events-outer font-manrope">
+  <div class="events-shell">
+    <aside class="events-sidebar">
+      <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
+      <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
+    </aside>
+
+    <div class="events-page">
   <!-- Breadcrumb -->
   <nav class="flex items-center gap-2 mb-4 text-[12.5px] font-bold text-eventText-soft">
     <a
@@ -33,12 +40,23 @@
 
   <!-- Trip-aware filter banner -->
   <div class="mb-6 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04)] p-4 flex items-center gap-3">
-    <span class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary/10 text-primary flex items-center justify-center shrink-0">
-      <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <path d="M16 2v4M8 2v4M3 10h18" />
-      </svg>
-    </span>
+    <span class="w-14 h-14 rounded-xl bg-[#EEF3FF] flex items-center justify-center shrink-0">
+  <svg
+  class="w-8 h-8 text-[#1D63ED]"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M7 2v4"/>
+  <path d="M17 2v4"/>
+  <path d="M3 9h18"/>
+  <rect x="3" y="4" width="18" height="18" rx="2"/>
+  <path d="M15 18l2 2 4-4"/>
+</svg>
+</span>
     <div class="flex-1 min-w-0">
       <p class="text-[13px] font-extrabold text-eventText-deep dark:text-white">Your trip: {{ myTrip.destination }}, {{ myTrip.dateRangeLabel }}</p>
       <p class="text-[11.5px] font-semibold text-eventText-soft">Tap to see only events during your trip</p>
@@ -61,8 +79,33 @@
     </button>
   </div>
 
+  <!-- Loading -->
+  <div *ngIf="loading" class="py-16 flex flex-col items-center gap-2.5">
+    <span class="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin shrink-0"></span>
+    <p class="text-xs font-semibold text-eventText-soft">Loading events…</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!loading && loadError" class="py-16 flex flex-col items-center gap-3 text-center">
+    <p class="text-sm font-extrabold text-eventText-deep dark:text-white">Couldn't load events</p>
+    <p class="text-xs font-semibold text-eventText-soft">Check your connection and try again.</p>
+    <button
+      type="button"
+      (click)="loadEvents()"
+      class="h-9 px-4 rounded-lg text-xs font-bold bg-primary hover:bg-primary-hover text-white transition-colors"
+    >
+      Retry
+    </button>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading && !loadError && visibleEvents.length === 0" class="py-16 text-center">
+    <p class="text-sm font-extrabold text-eventText-deep dark:text-white">No events yet</p>
+    <p class="text-xs font-semibold text-eventText-soft mt-1">Be the first to host one for travelers here.</p>
+  </div>
+
   <!-- Events grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+  <div *ngIf="!loading && !loadError && visibleEvents.length" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
     <article
       *ngFor="let ev of visibleEvents"
       class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col group"
@@ -76,8 +119,8 @@
         "
       >
         <div class="flex items-start justify-between">
-          <div class="w-12 h-12 rounded-lg bg-white shadow flex flex-col items-center justify-center leading-none shrink-0">
-            <span class="text-[9px] font-extrabold uppercase text-blue-500">{{ ev.month }}</span>
+          <div class="w-12 h-12 rounded-xl bg-[#EEF3FF] shadow flex flex-col items-center justify-center leading-none shrink-0">
+            <span class="text-[9px] font-extrabold uppercase text-[#1D63ED]">{{ ev.month }}</span>
             <span class="text-2xl font-black text-eventText-deep">{{ ev.day }}</span>
           </div>
 
@@ -98,8 +141,8 @@
         </div>
       </a>
 
-      <!-- Reason chip -->
-      <div class="px-4 pt-3.5">
+      <!-- Reason chip (personalization line — not backed by the API, shown only when present) -->
+      <div class="px-4 pt-3.5" *ngIf="ev.reason">
         <span class="inline-flex items-center gap-1.5 rounded-lg bg-primary-50 dark:bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
           <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2l1.8 5.9L20 9.5l-6.2 1.6L12 17l-1.8-5.9L4 9.5l6.2-1.6L12 2Z" />
@@ -144,6 +187,8 @@
   >
     {{ toastMessage }}
   </div>
+    </div>
+  </div>
 </div>
 
 <app-add-to-trip-modal
@@ -152,3 +197,9 @@
   (close)="closeTripModal()"
   (confirm)="confirmTripModal($event)"
 ></app-add-to-trip-modal>
+
+<app-community-composer-modal
+  *ngIf="showComposerModal()"
+  (postCreated)="showComposerModal.set(false)"
+  (close)="showComposerModal.set(false)"
+></app-community-composer-modal>
