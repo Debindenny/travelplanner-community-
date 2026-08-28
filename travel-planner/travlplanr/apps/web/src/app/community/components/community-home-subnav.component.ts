@@ -4,7 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';
 import { CommunityEventsService } from '../services/community-events.service';
-import { CommunityCollectionService } from '../services/community-collection.service';
+import { DiscoverSavedStore } from '../discover-saved/discover-saved.store';
 
 interface SubnavItem {
   label: string;
@@ -56,10 +56,9 @@ export class CommunityHomeSubnavComponent implements OnInit {
 
   private readonly auth = inject(AuthService);
   private readonly eventsService = inject(CommunityEventsService);
-  private readonly collectionService = inject(CommunityCollectionService);
+  private readonly store = inject(DiscoverSavedStore);
 
   private readonly eventsCount = signal<number | null>(null);
-  private readonly savedCount = signal<number | null>(null);
 
   readonly items: SubnavItem[] = [
     { label: 'COMMUNITY.HOME_SUBNAV.HOME', route: '/community', exact: true, icon: ['M15 21v-8H9v8', 'M3 10.2V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8.8a2 2 0 0 0-.7-1.5l-7-6a2 2 0 0 0-2.6 0l-7 6a2 2 0 0 0-.7 1.5Z'] },
@@ -68,7 +67,7 @@ export class CommunityHomeSubnavComponent implements OnInit {
     { label: 'COMMUNITY.HOME_SUBNAV.TRIPS', route: '/community/trips', exact: false, icon: ['M6.5 6.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M17.5 22.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M6.5 6.5h7a4 4 0 0 1 0 8h-4a4 4 0 0 0 0 8h8'] },
     { label: 'COMMUNITY.HOME_SUBNAV.TRAVEL_CIRCLES', route: '/community/travel-circles', exact: false, icon: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'] },
     { label: 'COMMUNITY.HOME_SUBNAV.EVENTS', route: '/community/events', exact: false, icon: ['M8 2v4', 'M16 2v4', 'M3 10h18', 'M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7', 'm16 20 2 2 4-4'], count: () => this.eventsCount() },
-    { label: 'COMMUNITY.HOME_SUBNAV.SAVED', route: '/community/saved', exact: false, icon: ['m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'], count: () => this.savedCount() },
+    { label: 'COMMUNITY.HOME_SUBNAV.SAVED', route: '/community/saved', exact: false, icon: ['m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'], count: () => this.store.savedItemCount() || null },
   ];
 
   ngOnInit(): void {
@@ -79,9 +78,6 @@ export class CommunityHomeSubnavComponent implements OnInit {
       next: (res) => this.eventsCount.set(res.meetups?.length || null),
       error: () => {},
     });
-    this.collectionService.getCollections().subscribe({
-      next: (collections) => this.savedCount.set(collections?.length || null),
-      error: () => {},
-    });
+    this.store.loadSaved();
   }
 }

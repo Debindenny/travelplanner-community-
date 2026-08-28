@@ -1,11 +1,13 @@
-<div class="ds-shell">
-  <aside class="ds-sidebar">
-    <app-ds-community-subnav (sharePost)="showComposerModal.set(true)" />
-    <app-ds-community-journey-stats />
-  </aside>
+<div class="ds-outer">
+  <div class="ds-shell">
+    <aside class="ds-sidebar">
+      <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
+      <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
+    </aside>
 
-  <div class="ds-page">
-    <app-ds-saved-tab />
+    <div class="ds-page">
+      <app-ds-saved-tab />
+    </div>
   </div>
 </div>
 

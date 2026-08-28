@@ -27,13 +27,36 @@
   color: var(--ds-text-primary);
 }
 
+/* Mirrors Community Home's two-layer structure exactly: an outer padded, centering
+   layer (`main.pt-2 sm:pt-4 lg:pt-8 px-3 sm:px-4` + flex justify-center) wrapping an
+   inner unpadded max-width box. Combining padding + centering into a single element
+   (the old .ds-shell) shifted everything ~16px right of where Home renders it. */
+.ds-outer {
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px 48px;
+}
+
+@media (min-width: 640px) {
+  .ds-outer {
+    padding-top: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ds-outer {
+    padding-top: 32px;
+  }
+}
+
 .ds-shell {
+  width: 100%;
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 28px;
+  gap: 24px;
   align-items: start;
 }
 
@@ -45,13 +68,21 @@
   top: 88px;
 }
 
-@media (min-width: 900px) {
+/* Mirrors Community Home's 12-col grid (sidebar = col-span-2, content = col-span-10)
+   so the sidebar — and the "Share with travelers" button inside it — render at the
+   same width as Home instead of a fixed px column. */
+@media (min-width: 1024px) {
   .ds-shell {
-    grid-template-columns: 268px minmax(0, 1fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
   .ds-sidebar {
     display: flex;
+    grid-column: span 2 / span 2;
+  }
+
+  .ds-page {
+    grid-column: span 10 / span 10;
   }
 }
 
