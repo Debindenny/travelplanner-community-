@@ -20,14 +20,19 @@
   animation: travl-fade 0.14s ease;
 }
 
+.modal-backdrop--light {
+  background: rgba(241, 244, 249, 0.72);
+  backdrop-filter: blur(4px);
+}
+
 .modal-shell {
   margin: auto;
   max-width: 100%;
-  /* Backdrop already contributes 24px top+bottom padding; capping here keeps the
-     card (header + scrollable body together) from growing past the viewport at
-     short window heights or reduced browser zoom. Also capped at 640px so the
-     card doesn't stretch tall and thin on generously sized windows. */
-  max-height: min(640px, calc(100vh - 48px));
+  /* max-height is set inline (see modal-shell.component.ts `maxHeight` input):
+     backdrop already contributes 24px top+bottom padding, so this keeps the
+     card (header + scrollable body together) from growing past the viewport
+     at short window heights or reduced browser zoom, while letting callers
+     with taller content raise the cap above the 640px default. */
   display: flex;
   flex-direction: column;
   background: var(--surface);

@@ -2,13 +2,10 @@ import { ChangeDetectionStrategy, Component, inject, output, signal } from '@ang
 
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
-import { TravelerRailItem } from '../../../core/models/community.models';
 import { unsplashUrl } from '../../../shared/utils/unsplash';
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
 import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
-
-export type CirclesTab = 'Groups' | 'Travelers';
 
 const ACCENT_PALETTE: Array<[string, string]> = [
   ['#0060ea', '#2aa98b'],
@@ -53,10 +50,6 @@ export class CommunityTravelCirclesComponent {
 
   readonly goHome = output<void>();
 
-  readonly tabs: CirclesTab[] = ['Groups', 'Travelers'];
-  readonly activeTab = signal<CirclesTab>('Groups');
-  readonly travelersRail = this.store.travelersRail;
-
   private readonly _cards = signal<TravelCircleCard[]>(TRAVEL_CIRCLE_CARDS);
   readonly cards = this._cards.asReadonly();
 
@@ -68,18 +61,6 @@ export class CommunityTravelCirclesComponent {
   );
 
   readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
-
-  selectTab(tab: CirclesTab): void {
-    this.activeTab.set(tab);
-  }
-
-  isFollowed(id: string): boolean {
-    return this.store.followedIds().has(id);
-  }
-
-  onToggleFollow(traveler: TravelerRailItem): void {
-    this.store.toggleFollow(traveler.id, traveler.name);
-  }
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);

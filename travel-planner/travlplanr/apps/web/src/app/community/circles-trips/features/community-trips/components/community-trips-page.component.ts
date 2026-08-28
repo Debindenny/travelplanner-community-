@@ -40,6 +40,8 @@ export class CommunityTripsComponent {
 
   readonly cloningTrip = signal<CommunityTrip | null>(null);
 
+  private readonly _savedTripIds = signal<ReadonlySet<string>>(new Set());
+
   readonly filteredTrips = computed(() => {
     const filter = this.filter();
     if (filter === 'Budget' || filter === 'Luxury') {
@@ -51,16 +53,28 @@ export class CommunityTripsComponent {
     return COMMUNITY_TRIPS;
   });
 
-  isSaved(id: string): boolean {
-    return this.store.savedIds().has(id);
-  }
-
   onShareTrip(): void {
     this.store.openComposerMenu();
   }
 
   onViewItinerary(trip: CommunityTrip): void {
     this.store.showToast(`Opening "${trip.title}"`);
+  }
+
+  isSaved(trip: CommunityTrip): boolean {
+    return this._savedTripIds().has(trip.id);
+  }
+
+  onToggleSave(trip: CommunityTrip): void {
+    const next = new Set(this._savedTripIds());
+    if (next.has(trip.id)) {
+      next.delete(trip.id);
+      this.store.showToast(`Removed "${trip.title}" from saved`);
+    } else {
+      next.add(trip.id);
+      this.store.showToast(`Saved "${trip.title}"`);
+    }
+    this._savedTripIds.set(next);
   }
 
   onClone(trip: CommunityTrip): void {

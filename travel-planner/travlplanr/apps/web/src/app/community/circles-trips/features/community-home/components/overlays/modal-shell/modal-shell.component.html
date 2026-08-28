@@ -1,8 +1,9 @@
-<div class="modal-backdrop" (click)="close.emit()">
+<div class="modal-backdrop" [class.modal-backdrop--light]="backdrop() === 'light'" (click)="close.emit()">
   <div
     class="modal-shell"
     [class.modal-shell--violet]="variant() === 'violet'"
     [style.width]="width()"
+    [style.max-height]="'min(' + maxHeight() + ', calc(100vh - 48px))'"
     (click)="$event.stopPropagation()"
     role="dialog"
     aria-modal="true"

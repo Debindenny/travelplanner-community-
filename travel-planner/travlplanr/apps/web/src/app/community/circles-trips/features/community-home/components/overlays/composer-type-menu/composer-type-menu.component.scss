@@ -4,9 +4,13 @@
 }
 
 .composer-type-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .composer-type-menu__item {
@@ -57,9 +61,4 @@
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-faint);
-}
-
-.composer-type-menu__chevron {
-  font-size: 14px;
-  color: var(--border-hover);
 }
