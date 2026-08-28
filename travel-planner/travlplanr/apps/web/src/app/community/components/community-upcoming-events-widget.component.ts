@@ -30,8 +30,8 @@ import { ToastService } from '../../shared/utils/toast.service';
         <div class="flex flex-col gap-3">
           @for (event of events(); track event.id) {
             <div class="flex items-center gap-2.5">
-              <span class="w-11 h-11 rounded-xl bg-primary-50 flex flex-col items-center justify-center leading-none shrink-0">
-                <span class="text-[9.5px] font-extrabold text-text-faint uppercase">{{ monthOf(event.starts_at) }}</span>
+              <span class="w-11 h-11 rounded-xl bg-[#EEF3FF] flex flex-col items-center justify-center leading-none shrink-0">
+                <span class="text-[9.5px] font-extrabold text-[#1D63ED] uppercase">{{ monthOf(event.starts_at) }}</span>
                 <span class="text-sm font-extrabold text-text-primary">{{ dayOf(event.starts_at) }}</span>
               </span>
               <div class="flex-1 min-w-0 flex flex-col">

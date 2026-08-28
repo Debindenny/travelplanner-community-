@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+/* Mirrors Community Home's two-layer structure: an outer padded, centering layer
+   wrapping an inner unpadded max-width box — see discover-page.component.scss. */
+.events-outer {
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px 48px;
+}
+
+@media (min-width: 640px) {
+  .events-outer {
+    padding-top: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .events-outer {
+    padding-top: 32px;
+  }
+}
+
+.events-shell {
+  width: 100%;
+  max-width: 1280px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.events-sidebar {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 88px;
+}
+
+/* Mirrors Community Home's 12-col grid (sidebar = col-span-2, content = col-span-10)
+   so the sidebar renders at the same width as Home instead of a fixed px column. */
+@media (min-width: 1024px) {
+  .events-shell {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .events-sidebar {
+    display: flex;
+    grid-column: span 2 / span 2;
+  }
+
+  .events-page {
+    grid-column: span 10 / span 10;
+  }
+}
+
+.events-page {
+  min-width: 0;
+}

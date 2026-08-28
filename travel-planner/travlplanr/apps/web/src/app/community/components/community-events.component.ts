@@ -1,8 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { CommunityEventCard, CommunityMockEventsService, TripDayOption, TripOption } from '../services/community-mock-events.service';
-import { AddToTripModalComponent } from './add-to-trip-modal.component';
+import { CommunityEventsService } from '../services/community-events.service';
+import { CommunityEventCard, toEventCard } from '../services/community-event-view.model';
+import { AddToTripModalComponent, TripDayOption, TripOption } from './add-to-trip-modal.component';
+import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
+import { CommunityProfileSummaryComponent } from './community-profile-summary.component';
+import { CommunityComposerModalComponent } from './community-composer-modal.component';
+import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
+import { AuthService } from '../../auth/auth.service';
 
 const MONTH_ORDER = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -12,18 +18,61 @@ function dayKey(month: string, day: string | number): number {
 
 @Component({
   selector: 'app-community-events',
-  imports: [CommonModule, RouterLink, AddToTripModalComponent],
-  templateUrl: './community-events.component.html'
+  imports: [
+    CommonModule,
+    RouterLink,
+    AddToTripModalComponent,
+    CommunityHomeSubnavComponent,
+    CommunityProfileSummaryComponent,
+    CommunityComposerModalComponent
+  ],
+  templateUrl: './community-events.component.html',
+  styleUrl: './community-events.component.scss'
 })
 export class CommunityEventsComponent {
-  private readonly eventsService = inject(CommunityMockEventsService);
+  private readonly eventsService = inject(CommunityEventsService);
+  private readonly auth = inject(AuthService);
+  private readonly profileService = inject(CommunityProfileService);
+
+  readonly user = this.auth.user;
+  readonly myProfile = signal<MyCommunityProfile | null>(null);
+  readonly showComposerModal = signal(false);
+
+  events: CommunityEventCard[] = [];
+  loading = true;
+  loadError = false;
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
-    const pending = this.eventsService.consumePendingToast();
+    // Router state set by the host wizard right before it navigates back here.
+    const pending = (history.state as { toast?: string } | null)?.toast;
     if (pending) this.showToast(pending);
+
+    this.loadEvents();
+
+    if (this.auth.user()) {
+      this.profileService.getMyProfile().subscribe({
+        next: (p) => this.myProfile.set(p),
+        error: () => {}
+      });
+    }
+  }
+
+  loadEvents(): void {
+    this.loading = true;
+    this.loadError = false;
+    this.eventsService.getEvents(50, 0).subscribe({
+      next: (res) => {
+        this.events = res.meetups.map(toEventCard);
+        this.loading = false;
+      },
+      error: () => {
+        this.loadError = true;
+        this.loading = false;
+      }
+    });
   }
 
   /** The traveler's next upcoming trip — drives the "during your trip" filter toggle. */
@@ -38,10 +87,6 @@ export class CommunityEventsComponent {
 
   toggleTripFilter(): void {
     this.tripFilterOn = !this.tripFilterOn;
-  }
-
-  get events(): CommunityEventCard[] {
-    return this.eventsService.events();
   }
 
   get visibleEvents(): CommunityEventCard[] {
@@ -70,16 +115,29 @@ export class CommunityEventsComponent {
   confirmTripModal(payload: { trip: TripOption; day: TripDayOption }): void {
     const ev = this.tripModalEvent;
     if (!ev) return;
-    ev.joined = true;
-    ev.travelersGoing += 1;
     this.tripModalEvent = null;
-    this.showToast(`You're going · added to ${payload.trip.name} · ${payload.day.label}, ${payload.day.dateLabel}`);
+    this.eventsService.setRsvp(ev.id, 'going').subscribe({
+      next: () => {
+        ev.joined = true;
+        ev.travelersGoing += 1;
+        this.showToast(`You're going · added to ${payload.trip.name} · ${payload.day.label}, ${payload.day.dateLabel}`);
+      },
+      error: (err) => {
+        this.showToast(err?.status === 401 ? 'Log in to join this event' : "Couldn't join — try again");
+      }
+    });
   }
 
   private leave(ev: CommunityEventCard): void {
-    ev.joined = false;
-    ev.travelersGoing -= 1;
-    this.showToast(`Spot released · ${ev.title}`);
+    // Backend semantics: posting the same RSVP status you already have removes it.
+    this.eventsService.setRsvp(ev.id, 'going').subscribe({
+      next: () => {
+        ev.joined = false;
+        ev.travelersGoing -= 1;
+        this.showToast(`Spot released · ${ev.title}`);
+      },
+      error: () => this.showToast("Couldn't update your RSVP — try again")
+    });
   }
 
   private showToast(message: string): void {
