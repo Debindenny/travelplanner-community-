@@ -8,6 +8,7 @@ import {
   AddToTripPayload,
   DiscoverFilters,
   DiscoverItem,
+  DiscoverPlaceOption,
   ModalState,
   SavedCollectionCard,
   SavedCollectionTab,
@@ -19,6 +20,16 @@ const EMPTY_FILTERS: DiscoverFilters = {
   places: [{ label: 'All places', count: 0 }],
   sorts: ['Most used'],
 };
+
+/** Keeps "All places" pinned first, then ranks the rest by count so the most-used
+ * place (e.g. Paris) shows at the top of the dropdown instead of insertion order. */
+function sortPlacesByCount(places: DiscoverPlaceOption[]): DiscoverPlaceOption[] {
+  const allPlaces = places.find((p) => p.label === 'All places');
+  const rest = places
+    .filter((p) => p.label !== 'All places')
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  return allPlaces ? [allPlaces, ...rest] : rest;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DiscoverSavedStore {
@@ -148,7 +159,10 @@ export class DiscoverSavedStore {
   /** Call once when the Discover page mounts — loads filter options + the first result page. */
   loadDiscover(): void {
     this.http.get<DiscoverFilters>(apiUrl('/community/discover/filters')).subscribe({
-      next: (filters) => this._discoverFilters.set(filters),
+      next: (filters) => this._discoverFilters.set({
+        ...filters,
+        places: sortPlacesByCount(filters.places),
+      }),
       error: () => this.toast.info('Could not load Discover filters'),
     });
     this.fetchDiscoverList();
