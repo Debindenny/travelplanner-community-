@@ -18,7 +18,9 @@ export class ModalShellComponent {
   readonly subtitle = input<string>('');
   readonly showHeader = input(true);
   readonly width = input('560px');
+  readonly maxHeight = input('640px');
   readonly variant = input<'default' | 'violet'>('default');
+  readonly backdrop = input<'dark' | 'light'>('dark');
 
   readonly close = output<void>();
 }

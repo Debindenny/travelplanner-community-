@@ -49,13 +49,13 @@ export const AI_PROMPTS: AiPrompt[] = [
 export const FOOTER_LINKS: string[] = ['About', 'Accessibility', 'Help Center', 'Privacy & Terms', 'Safety', 'Guidelines'];
 
 export const POST_TYPE_OPTIONS: PostTypeOption[] = [
-  { formType: 'Travel Tip', icon: 'sparkles', label: 'Travel Tip', hint: 'One specific thing that saved you time, money or a queue.' },
-  { formType: 'Photo / Video', icon: 'play', label: 'Photo / Video', hint: 'Tag the place so travelers can add it to a trip.' },
-  { formType: 'Share Trip', icon: 'map-pin', label: 'Share Trip', hint: 'Attach a route others can clone and reshape.' },
-  { formType: 'Ask Question', icon: 'message-circle', label: 'Ask Question', hint: 'Travelers who went recently answer first.' },
-  { formType: 'Start a Poll', icon: 'bar-chart', label: 'Start a Poll', hint: 'Two or three choices — travelers vote in one tap.' },
-  { formType: 'Host a Meetup', icon: 'calendar-check', label: 'Host a Meetup', hint: 'A scheduled gathering — travelers can join and add it to a trip.' },
-  { formType: 'Find Travel Buddy', icon: 'user-plus', label: 'Find Travel Buddy', hint: 'Only travelers with overlapping dates are matched.' },
+  { formType: 'Travel Tip', icon: 'sparkles', label: 'Travel Tip', hint: 'One thing that saved you time' },
+  { formType: 'Photo / Video', icon: 'play', label: 'Photo / Video', hint: 'Tag the place you shot it' },
+  { formType: 'Share Trip', icon: 'map-pin', label: 'Share Trip', hint: 'A route others can clone' },
+  { formType: 'Ask Question', icon: 'message-circle', label: 'Ask Question', hint: 'Recent travelers answer first' },
+  { formType: 'Start a Poll', icon: 'bar-chart', label: 'Start a Poll', hint: 'Travelers vote in one tap' },
+  { formType: 'Host a Meetup', icon: 'calendar-check', label: 'Host a Meetup', hint: 'A date, a place and a plan' },
+  { formType: 'Find Travel Buddy', icon: 'user-plus', label: 'Find Travel Buddy', hint: 'Matched on overlapping dates' },
 ];
 
 export const COMPOSER_FORMS: Record<string, ComposerFormDef> = {

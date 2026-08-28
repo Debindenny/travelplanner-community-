@@ -1,0 +1,73 @@
+@if (store.composerForm(); as form) {
+  <div class="cf__body">
+    <div class="cf__type">
+      <span class="cf__type-icon">
+        <app-icon [name]="form.icon" [size]="15" />
+      </span>
+      <span class="cf__type-copy">
+        <span class="cf__type-label">{{ form.formType }}</span>
+        <span class="cf__type-hint">{{ form.hint }}</span>
+      </span>
+      <button type="button" class="cf__change" (click)="onChangeType()">Change</button>
+    </div>
+
+    @for (field of form.fields; track field.key) {
+      <label class="cf__field">
+        <span class="cf__label">{{ field.label }}</span>
+        @if (field.multiline) {
+          <textarea
+            class="cf__textarea"
+            [placeholder]="field.placeholder"
+            [value]="fieldValue(form.formType, field.key)"
+            (input)="onFieldInput(form.formType, field.key, $event)"
+          ></textarea>
+        } @else {
+          <input
+            class="cf__input"
+            type="text"
+            [placeholder]="field.placeholder"
+            [value]="fieldValue(form.formType, field.key)"
+            (input)="onFieldInput(form.formType, field.key, $event)"
+          />
+        }
+      </label>
+    }
+
+    <div class="cf__field">
+      <span class="cf__label">{{ form.chipsLabel }}</span>
+      <div class="cf__pills">
+        @for (chip of form.chips; track chip) {
+          <button type="button" class="cf__pill" [class.is-active]="store.formChips().has(chip)" (click)="store.toggleFormChip(chip)">
+            {{ chip }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="cf__field">
+      <span class="cf__label">Who can see this</span>
+      <div class="cf__pills">
+        @for (option of audienceOptions; track option.value) {
+          <button
+            type="button"
+            class="cf__pill"
+            [class.is-active]="store.audience() === option.value"
+            (click)="store.setAudience(option.value)"
+          >
+            {{ option.value }}
+          </button>
+        }
+      </div>
+      <p class="cf__caption">{{ activeAudienceCaption() }}</p>
+    </div>
+  </div>
+
+  <div class="cf__footer">
+    <span class="cf__footer-hint">{{ store.composerFormReady() ? '' : 'Fill the fields above to post' }}</span>
+    <span class="cf__spacer"></span>
+    <button type="button" class="cf__cancel" (click)="onCancel()">Cancel</button>
+    <button type="button" class="cf__submit" [disabled]="!store.composerFormReady()" (click)="onSubmit()">
+      {{ form.submitLabel }}
+    </button>
+  </div>
+}

@@ -37,7 +37,19 @@
     @for (trip of filteredTrips(); track trip.id) {
       <article class="trip-card">
         <div class="trip-card__image" [style.background-image]="'url(' + trip.image + ')'">
-          <span class="trip-card__saves">{{ trip.saves }}</span>
+          <div class="trip-card__image-top">
+            <span class="trip-card__saves">{{ trip.saves }}</span>
+            <button
+              type="button"
+              class="trip-card__save-toggle"
+              [class.is-active]="isSaved(trip)"
+              (click)="onToggleSave(trip)"
+              [attr.aria-label]="isSaved(trip) ? 'Remove from saved' : 'Save this trip'"
+              [attr.aria-pressed]="isSaved(trip)"
+            >
+              <app-icon name="bookmark" [size]="14" />
+            </button>
+          </div>
           <div class="trip-card__image-overlay">
             <h3 class="trip-card__title">{{ trip.title }}</h3>
             <p class="trip-card__subtitle">{{ trip.subtitle }}</p>
@@ -71,10 +83,6 @@
 
           <div class="trip-card__actions">
             <button type="button" class="trip-card__ghost" (click)="onViewItinerary(trip)">View itinerary</button>
-            <button type="button" class="trip-card__ghost" [class.is-active]="isSaved(trip.id)" (click)="store.toggleSave(trip.id)">
-              {{ isSaved(trip.id) ? 'Saved' : 'Save' }}
-            </button>
-            <span class="trip-card__spacer"></span>
             <button type="button" class="trip-card__clone" (click)="onClone(trip)">
               <app-icon name="sparkles" [size]="14" />
               Clone
@@ -87,7 +95,7 @@
 }
 
 @if (cloningTrip(); as trip) {
-  <app-modal-shell heading="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" (close)="onCancelClone()">
+  <app-modal-shell heading="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" backdrop="light" (close)="onCancelClone()">
     <app-clone-trip-modal [trip]="trip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
   </app-modal-shell>
 }

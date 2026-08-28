@@ -22,11 +22,51 @@
   </label>
 
   <div class="ccm__field">
+    <span class="ccm__label">Who is it for</span>
+    <div class="ccm__option-grid">
+      @for (option of audienceOptions; track option.value) {
+        <button
+          type="button"
+          class="ccm__option-card"
+          [class.is-active]="audience() === option.value"
+          (click)="audience.set(option.value)"
+        >
+          <span class="ccm__option-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
+            <app-icon [name]="option.icon" [size]="16" />
+            @if (audience() === option.value) {
+              <span class="ccm__option-check">
+                <app-icon name="check" [size]="10" />
+              </span>
+            }
+          </span>
+          <span class="ccm__option-title">{{ option.label }}</span>
+          <span class="ccm__option-desc">{{ option.description }}</span>
+        </button>
+      }
+    </div>
+    <p class="ccm__hint">Gendered circles exist for safety, not exclusion. Members must have a verified profile to join one.</p>
+  </div>
+
+  <div class="ccm__field">
     <span class="ccm__label">Who can join</span>
-    <div class="ccm__pills">
-      @for (option of visibilityOptions; track option) {
-        <button type="button" class="ccm__pill" [class.is-active]="visibility() === option" (click)="visibility.set(option)">
-          {{ option }}
+    <div class="ccm__option-grid">
+      @for (option of visibilityOptions; track option.value) {
+        <button
+          type="button"
+          class="ccm__option-card"
+          [class.is-active]="visibility() === option.value"
+          (click)="visibility.set(option.value)"
+        >
+          <span class="ccm__option-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
+            <app-icon [name]="option.icon" [size]="16" />
+            @if (visibility() === option.value) {
+              <span class="ccm__option-check">
+                <app-icon name="check" [size]="10" />
+              </span>
+            }
+          </span>
+          <span class="ccm__option-title">{{ option.label }}</span>
+          <span class="ccm__option-desc">{{ option.description }}</span>
         </button>
       }
     </div>
@@ -34,29 +74,17 @@
   </div>
 
   <div class="ccm__field">
-    <span class="ccm__label">Who is it for</span>
-    <div class="ccm__audience-list">
-      @for (option of audienceOptions; track option.value) {
-        <button
-          type="button"
-          class="ccm__audience-card"
-          [class.is-active]="audience() === option.value"
-          (click)="audience.set(option.value)"
-        >
-          <span class="ccm__audience-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
-            <app-icon [name]="option.icon" [size]="16" />
-          </span>
-          <span class="ccm__audience-copy">
-            <span class="ccm__audience-title">{{ option.label }}</span>
-            <span class="ccm__audience-desc">{{ option.description }}</span>
-          </span>
-          @if (audience() === option.value) {
-            <app-icon name="check" [size]="16" class="ccm__audience-check" />
-          }
-        </button>
-      }
+    <span class="ccm__label">Group size</span>
+    <div class="ccm__stepper">
+      <button type="button" class="ccm__stepper-btn" [disabled]="!canDecrementGroupSize()" (click)="decrementGroupSize()" aria-label="Decrease group size">
+        <app-icon name="minus" [size]="14" />
+      </button>
+      <span class="ccm__stepper-value">{{ groupSize() }} travelers</span>
+      <button type="button" class="ccm__stepper-btn" [disabled]="!canIncrementGroupSize()" (click)="incrementGroupSize()" aria-label="Increase group size">
+        <app-icon name="plus" [size]="14" />
+      </button>
     </div>
-    <p class="ccm__hint">Gendered circles exist for safety, not exclusion. Members must have a verified profile to join one.</p>
+    <p class="ccm__hint">{{ groupSize() }} people only — you approve who fills the spots.</p>
   </div>
 </div>
 

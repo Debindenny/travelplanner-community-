@@ -68,10 +68,15 @@ export class AppComponent implements OnInit {
   private lastFocusedPath = '';
 
   // The floating "Describe your trip" chat widget doesn't belong on the
-  // Discover/Saved pages — they have their own focused UI.
-  private static readonly HIDE_FLOATING_CHAT_ON = ['/community/discover', '/community/saved', '/community/events'];
-  // The main community feed has its own composer — exact match only, so
-  // subpages like /community/trips still get the floating widget.
+  // Discover/Saved/Trips/Travel Circles pages — they have their own focused UI.
+  private static readonly HIDE_FLOATING_CHAT_ON = [
+    '/community/discover',
+    '/community/saved',
+    '/community/events',
+    '/community/trips',
+    '/community/travel-circles',
+  ];
+  // The main community feed has its own composer — exact match only.
   private static readonly HIDE_FLOATING_CHAT_EXACT = ['/community'];
   readonly hideFloatingChat = signal(false);
 
