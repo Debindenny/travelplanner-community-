@@ -62,6 +62,20 @@ export interface CrewChatMock {
   messages: CrewMessage[];
 }
 
+/** Per-circle chat context used for the joined-circle dropdown selector in the
+ * crew chat header. Lets the chat and People tab switch data (members, counts,
+ * messages) when the current user belongs to more than one circle. */
+export interface ChatCircleContext {
+  id: string;
+  title: string;
+  dateRange: string;
+  memberCount: number;
+  onlineCount: number;
+  endsInDays: number;
+  members: CircleMember[];
+  messages: CrewMessage[];
+}
+
 export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
   groupName: 'Paris Crew',
   dateRange: '03–09 Jun',

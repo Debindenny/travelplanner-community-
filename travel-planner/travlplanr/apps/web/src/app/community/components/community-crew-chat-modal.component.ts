@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { A11yModule } from '@angular/cdk/a11y';
 import {
   CrewMessage,
+  ChatCircleContext,
   PARIS_CREW_CHAT_MOCK,
 } from './community-crew-chat.mock';
 import {
@@ -14,6 +15,7 @@ import {
   circleCtaLabel,
 } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 import { ToastService } from '../../shared/utils/toast.service';
+import { ProfileService } from '../../profile/profile.service';
 
 /**
  * Crew group-chat preview. UI-only: every interaction below (poll votes, RSVPs,
@@ -119,14 +121,50 @@ import { ToastService } from '../../shared/utils/toast.service';
           </svg>
           <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
         </span>
-        <div class="flex-1 min-w-0">
-          <p class="text-[13.5px] font-bold text-text-primary truncate">{{ groupName() }} · {{ chat.dateRange }}</p>
-          <p class="text-[11.5px] font-semibold text-emerald-600">{{ chat.onlineCount }} online now</p>
+        <div class="relative flex-1 min-w-0">
+          <button
+            type="button"
+            (click)="toggleCircleMenu()"
+            [class.cursor-default]="!hasCircleMenu()"
+            class="max-w-full flex items-center gap-1 text-left focus:outline-none"
+          >
+            <span class="text-[13.5px] font-bold text-text-primary truncate">{{ activeCircle().title }} · {{ activeCircle().dateRange }}</span>
+            @if (hasCircleMenu()) {
+              <svg
+                class="shrink-0 w-3.5 h-3.5 text-text-faint transition-transform duration-200"
+                [class.rotate-180]="circleMenuOpen()"
+                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            }
+          </button>
+          <p class="text-[11.5px] font-semibold text-emerald-600">{{ activeCircle().onlineCount }} online now</p>
+
+          @if (hasCircleMenu() && circleMenuOpen()) {
+            <div class="absolute left-0 top-full mt-2 z-10 w-56 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 animate-fade-in-up">
+              <p class="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-wide text-text-faint">Your circles</p>
+              @for (circle of joinedCircles(); track circle.id) {
+                <button
+                  type="button"
+                  (click)="selectCircle(circle)"
+                  class="w-full flex items-center justify-between px-3 py-2 text-[12.5px] font-semibold text-text-primary hover:bg-slate-50 transition-colors focus:outline-none"
+                >
+                  <span class="truncate">{{ circle.title }}</span>
+                  @if (circle.id === activeCircle().id) {
+                    <svg class="shrink-0 w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          }
         </div>
         <button
           type="button"
           (click)="onExitGroup()"
-          class="shrink-0 h-8 px-3 rounded-full border border-slate-200 text-[11.5px] font-bold text-text-secondary flex items-center gap-1.5 hover:border-slate-300 transition-colors focus:outline-none"
+          class="shrink-0 h-8 px-3 rounded-lg border border-slate-200 text-[11.5px] font-bold text-text-secondary flex items-center gap-1.5 hover:border-red-500 hover:text-red-500 hover:bg-red-50 active:scale-[0.98] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:border-red-500"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 5v1a3 3 0 01-3 3H6a3 3 0 01-3-3V6a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -147,9 +185,9 @@ import { ToastService } from '../../shared/utils/toast.service';
 
       <!-- Member count / expiry -->
       <div class="flex items-center justify-between px-4 py-2 border-b border-slate-100">
-        <p class="text-[11.5px] font-semibold text-text-faint">{{ chat.memberCount }} members · {{ chat.onlineCount }} online now</p>
+        <p class="text-[11.5px] font-semibold text-text-faint">{{ activeCircle().memberCount }} members · {{ activeCircle().onlineCount }} online now</p>
         <span class="text-[10.5px] font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">
-          Ends in {{ chat.endsInDays }}d
+          Ends in {{ activeCircle().endsInDays }}d
         </span>
       </div>
 
@@ -180,7 +218,7 @@ import { ToastService } from '../../shared/utils/toast.service';
       @if (activeTab() === 'chat') {
       <!-- Scrollable message feed -->
       <div class="flex-1 overflow-y-auto chat-scroll px-4 py-4 flex flex-col gap-4">
-        @for (msg of messages(); track msg.id) {
+        @for (msg of activeMessages(); track msg.id) {
           <div class="flex flex-col items-start gap-1.5">
             <a class="text-[11.5px] font-bold text-text-faint hover:text-primary hover:underline" [routerLink]="['/community/users', msg.customer_id]">{{ msg.author }}</a>
 
@@ -305,19 +343,23 @@ import { ToastService } from '../../shared/utils/toast.service';
       } @else {
       <!-- People / members list -->
       <div class="flex-1 overflow-y-auto chat-scroll px-4">
-        @for (member of members(); track member.name) {
+        @for (member of activeMembers(); track member.name) {
           <div class="flex items-center justify-between py-2.5">
             <div class="min-w-0 pr-3">
               <a class="text-[13px] font-bold text-text-primary truncate leading-snug hover:text-primary hover:underline" [routerLink]="['/community/users', member.customer_id]">{{ member.name }}</a>
               <p class="text-[11.5px] font-medium text-text-faint truncate mt-0.5">{{ memberSub(member) }}</p>
             </div>
-            <button
-              type="button"
-              (click)="toggleFollow(member.name)"
-              class="shrink-0 w-[88px] h-9 rounded-[12px] border border-[#D7DDE8] bg-white text-sm font-semibold text-[#4A5A70] flex items-center justify-center hover:border-[#c5cede] hover:bg-slate-50 active:scale-[0.98] transition-colors focus:outline-none"
-            >
-              {{ followingIds().has(member.name) ? 'Unfollow' : 'Follow' }}
-            </button>
+            @if (isCurrentUser(member.name)) {
+              <span class="shrink-0 w-[88px] h-9 rounded-[12px] bg-slate-100 text-text-faint text-sm font-semibold flex items-center justify-center">You</span>
+            } @else {
+              <button
+                type="button"
+                (click)="toggleFollow(member.name)"
+                class="shrink-0 w-[88px] h-9 rounded-[12px] border border-[#D7DDE8] bg-white text-sm font-semibold text-[#4A5A70] flex items-center justify-center hover:border-[#c5cede] hover:bg-slate-50 active:scale-[0.98] transition-colors focus:outline-none"
+              >
+                {{ activeFollowingIds().has(member.name) ? 'Unfollow' : 'Follow' }}
+              </button>
+            }
           </div>
         }
       </div>
@@ -410,7 +452,9 @@ import { ToastService } from '../../shared/utils/toast.service';
 })
 export class CommunityCrewChatModalComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() exitedGroup = new EventEmitter<void>();
+  /** Emitted when the current user exits the active circle/group, carrying the
+   * exited circle's id (empty for the standalone crew chat). */
+  @Output() exitedGroup = new EventEmitter<string>();
   /** Emitted when the user clicks a circle's Join / Request to join button in
    * the Travel Circles discovery view (rendered only when `circles` is set). */
   @Output() circleAction = new EventEmitter<TravelCircleCard>();
@@ -426,6 +470,15 @@ export class CommunityCrewChatModalComponent {
   readonly messages = signal<CrewMessage[]>(this.chat.messages);
 
   readonly members = input<CircleMember[]>([]);
+  readonly currentUserName = input<string>('');
+
+  /** Joined circles the current user belongs to, used to power the header's
+   * circle dropdown selector. When empty the modal falls back to the single
+   * `groupName` / `members` chat. Each entry carries its own members, counts
+   * and messages so selecting a circle swaps the Chat and People tab data. */
+  readonly joinedCircles = input<ChatCircleContext[]>([]);
+  /** Circle id to preselect on open, when `joinedCircles` is provided. */
+  readonly initialCircleId = input<string>('');
 
   /** Travel Circles discovery mode: when a non-empty circle list is provided
    * the modal lists those circles instead of rendering a crew chat. The
@@ -440,12 +493,60 @@ export class CommunityCrewChatModalComponent {
   readonly activeTab = signal<'chat' | 'people'>('chat');
   readonly followingIds = signal<Set<string>>(new Set());
 
+  /** Selected circle id + dropdown open state for the circle selector. */
+  readonly selectedCircleId = signal<string>('');
+  readonly circleMenuOpen = signal(false);
+
+  /** Per-circle messages so sending a message only mutates the active circle's
+   * feed (falling back to each context's seeded messages). */
+  readonly messagesByCircle = signal<Record<string, CrewMessage[]>>({});
+  /** Per-circle People "following" state, so it never leaks across circles. */
+  readonly followingByCircle = signal<Record<string, Set<string>>>({});
+
   draft = '';
 
   readonly pollVotes = signal<Record<string, string>>({});
   readonly meetupRsvp = signal<Record<string, 'in' | 'out'>>({});
   readonly settledExpenses = signal<Set<string>>(new Set());
   readonly addedPlaces = signal<Set<string>>(new Set());
+
+  /** The chat context currently displayed. When `joinedCircles` is provided
+   * this is the selected circle; otherwise it's the single-circle fallback
+   * built from the `groupName` / `members` inputs + shared wireframe mock. */
+  readonly activeCircle = computed<ChatCircleContext>(() => {
+    const list = this.joinedCircles();
+    if (list.length > 0) {
+      const selected = list.find(c => c.id === this.selectedCircleId());
+      return selected ?? list[0];
+    }
+    return {
+      id: '__default__',
+      title: this.groupName(),
+      dateRange: this.chat.dateRange,
+      memberCount: this.chat.memberCount,
+      onlineCount: this.chat.onlineCount,
+      endsInDays: this.chat.endsInDays,
+      members: this.members(),
+      messages: this.messages(),
+    };
+  });
+
+  /** Active circle's members for the People tab. */
+  readonly activeMembers = computed<CircleMember[]>(() => this.activeCircle().members);
+
+  /** Active circle's message feed, honouring locally-sent messages. */
+  readonly activeMessages = computed<CrewMessage[]>(() =>
+    this.messagesByCircle()[this.activeCircle().id] ?? this.activeCircle().messages,
+  );
+
+  /** Active circle's People "following" set. */
+  readonly activeFollowingIds = computed<Set<string>>(
+    () => this.followingByCircle()[this.activeCircle().id] ?? new Set<string>(),
+  );
+
+  /** Whether the circle dropdown selector should render (only when the user
+   * belongs to more than one circle). */
+  readonly hasCircleMenu = computed<boolean>(() => this.joinedCircles().length > 1);
 
   constructor() {
     /* This modal is only ever opened from the Crew widget, which sits inside
@@ -461,6 +562,23 @@ export class CommunityCrewChatModalComponent {
       const host = this.hostRef.nativeElement;
       if (host.parentElement !== this.document.body) {
         this.document.body.appendChild(host);
+      }
+    });
+    /* Preselect the requested (or first) joined circle once circles are known,
+     * and keep the selection alive while the popup stays open. */
+    effect(() => {
+      const list = this.joinedCircles();
+      if (list.length === 0) {
+        this.selectedCircleId.set('');
+        return;
+      }
+      const current = this.selectedCircleId();
+      const stillExists = current && list.some(c => c.id === current);
+      if (!stillExists) {
+        const requested = this.initialCircleId();
+        this.selectedCircleId.set(
+          list.some(c => c.id === requested) ? requested : list[0].id,
+        );
       }
     });
   }
@@ -514,8 +632,14 @@ export class CommunityCrewChatModalComponent {
     return member.dates ? `${route} · ${member.dates}` : route;
   }
 
+  isCurrentUser(name: string): boolean {
+    return name === this.currentUserName();
+  }
+
   toggleFollow(name: string): void {
-    const next = new Set(this.followingIds());
+    const circleId = this.activeCircle().id;
+    const current = this.followingByCircle()[circleId] ?? new Set<string>();
+    const next = new Set(current);
     if (next.has(name)) {
       next.delete(name);
     } else {
@@ -528,7 +652,7 @@ export class CommunityCrewChatModalComponent {
   
 
   onExitGroup(): void {
-    this.exitedGroup.emit();
+    this.exitedGroup.emit(this.activeCircle().id);
     this.close.emit();
   }
 
