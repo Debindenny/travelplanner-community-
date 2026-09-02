@@ -7,7 +7,11 @@ import {
   CrewMessage,
   PARIS_CREW_CHAT_MOCK,
 } from './community-crew-chat.mock';
-import { CircleMember } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
+import {
+  CircleMember,
+  TravelCircleCard,
+  circleCtaLabel,
+} from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 import { ToastService } from '../../shared/utils/toast.service';
 
 /**
@@ -41,6 +45,71 @@ import { ToastService } from '../../shared/utils/toast.service';
         cdkTrapFocusAutoCapture
         (click)="$event.stopPropagation()"
       >
+      @if (discoveryMode()) {
+      <!-- Travel Circles discovery — shown by the Travel Circles page's
+           floating chatbot when the user hasn't joined a group yet, so the
+           default "crew chat" never appears for a circle they aren't in.
+           The joined-chat UI below is used when the circles list is empty
+           (the Community Home crew widget and any circle's own chat). -->
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
+        <span class="relative w-9 h-9 rounded-full bg-primary-50 text-primary flex items-center justify-center shrink-0">
+          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13.5px] font-bold text-text-primary truncate">Travel Circles</p>
+          <p class="text-[11.5px] font-semibold text-text-faint truncate">Join a circle to start planning together</p>
+        </div>
+        <button
+          type="button"
+          (click)="close.emit()"
+          class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
+          aria-label="Close"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Circle list (one per card, reusing the shared TRAVEL_CIRCLE_CARDS
+           source so this view and the Travel Circles page can't drift). -->
+      <div class="flex-1 overflow-y-auto chat-scroll px-4 py-4 flex flex-col gap-3">
+        @for (card of circles(); track card.id) {
+          <div class="rounded-2xl border border-slate-200 p-3.5 flex flex-col gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <p class="text-[13.5px] font-bold text-text-primary truncate">{{ card.title }}</p>
+              <span
+                class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                [class.bg-emerald-50]="card.visibility === 'Public'"
+                [class.text-emerald-700]="card.visibility === 'Public'"
+                [class.bg-violet-50]="card.visibility === 'Invite only'"
+                [class.text-violet-700]="card.visibility === 'Invite only'"
+              >{{ card.visibility }}</span>
+            </div>
+            <p class="text-[11.5px] font-semibold text-text-faint">{{ card.meta }}</p>
+            <p class="text-[12.5px] text-text-secondary leading-relaxed">{{ card.description }}</p>
+            <button
+              type="button"
+              (click)="onCircleAction(card)"
+              class="self-start h-8 px-4 rounded-full text-[11.5px] font-bold transition-colors focus:outline-none"
+              [class.bg-primary]="!isCircleMember(card) && !isCircleOwner(card)"
+              [class.text-white]="!isCircleMember(card) && !isCircleOwner(card)"
+              [class.bg-primary-50]="isCircleMember(card)"
+              [class.text-primary]="isCircleMember(card)"
+              [class.bg-slate-100]="isCircleOwner(card)"
+              [class.text-text-faint]="isCircleOwner(card)"
+            >{{ circleActionLabel(card) }}</button>
+          </div>
+        } @empty {
+          <p class="text-center text-[12.5px] text-text-faint py-10 px-4 leading-relaxed">No travel circles available yet.<br />Create one from the Travel Circles page to get started.</p>
+        }
+      </div>
+      } @else {
       <!-- Header -->
       <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
         <span class="relative w-9 h-9 rounded-full bg-primary-50 text-primary flex items-center justify-center shrink-0">
@@ -326,6 +395,7 @@ import { ToastService } from '../../shared/utils/toast.service';
         </div>
       </div>
       }
+      }
       </div>
     </div>
   `,
@@ -340,6 +410,9 @@ import { ToastService } from '../../shared/utils/toast.service';
 export class CommunityCrewChatModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() exitedGroup = new EventEmitter<void>();
+  /** Emitted when the user clicks a circle's Join / Request to join button in
+   * the Travel Circles discovery view (rendered only when `circles` is set). */
+  @Output() circleAction = new EventEmitter<TravelCircleCard>();
 
   @ViewChild('draftInput') draftInputRef?: ElementRef<HTMLInputElement>;
 
@@ -352,6 +425,17 @@ export class CommunityCrewChatModalComponent {
   readonly messages = signal<CrewMessage[]>(this.chat.messages);
 
   readonly members = input<CircleMember[]>([]);
+
+  /** Travel Circles discovery mode: when a non-empty circle list is provided
+   * the modal lists those circles instead of rendering a crew chat. The
+   * Travel Circles page uses this from its floating chatbot until the user
+   * has joined a group, so the default "Paris Crew" chat is never shown to a
+   * non-member. The Community Home crew widget omits this input, keeping the
+   * chat-only behaviour unchanged. */
+  readonly circles = input<TravelCircleCard[]>([]);
+  /** Circle ids the current user belongs to, so discovery buttons can show
+   * the Joined / Requested / You created it states live. */
+  readonly memberIds = input<ReadonlySet<string>>(new Set());
   readonly activeTab = signal<'chat' | 'people'>('chat');
   readonly followingIds = signal<Set<string>>(new Set());
 
@@ -439,8 +523,44 @@ export class CommunityCrewChatModalComponent {
     this.toast.success(next.has(name) ? `Following ${name}` : `Unfollowed ${name}`);
   }
 
+  memberSub(member: CircleMember): string {
+    const route = member.route ?? member.location;
+    return member.dates ? `${route} · ${member.dates}` : route;
+  }
+
+  toggleFollow(name: string): void {
+    const next = new Set(this.followingIds());
+    if (next.has(name)) {
+      next.delete(name);
+    } else {
+      next.add(name);
+    }
+    this.followingIds.set(next);
+    this.toast.success(next.has(name) ? `Following ${name}` : `Unfollowed ${name}`);
+  }
+
   onExitGroup(): void {
     this.exitedGroup.emit();
     this.close.emit();
+  }
+
+  discoveryMode(): boolean {
+    return this.circles().length > 0;
+  }
+
+  isCircleMember(card: TravelCircleCard): boolean {
+    return this.memberIds().has(card.id);
+  }
+
+  isCircleOwner(card: TravelCircleCard): boolean {
+    return card.initialStatus === 'owner';
+  }
+
+  circleActionLabel(card: TravelCircleCard): string {
+    return circleCtaLabel(card, this.isCircleMember(card));
+  }
+
+  onCircleAction(card: TravelCircleCard): void {
+    this.circleAction.emit(card);
   }
 }

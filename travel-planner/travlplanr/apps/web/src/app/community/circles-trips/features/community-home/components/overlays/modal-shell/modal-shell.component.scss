@@ -26,6 +26,7 @@
 }
 
 .modal-shell {
+  margin: auto;
   max-width: 100%;
   /* max-height is set inline (see modal-shell.component.ts `maxHeight` input):
      backdrop already contributes 24px top+bottom padding, so this keeps the
