@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { CircleMember, TravelCircleCard } from '../../data/travel-circle-cards.data';
 
 @Component({
   selector: 'app-circle-detail-modal',
-  imports: [IconComponent],
+  imports: [IconComponent, RouterLink],
   templateUrl: './circle-detail-modal.component.html',
   styleUrl: './circle-detail-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

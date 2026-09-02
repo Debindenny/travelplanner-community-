@@ -1,4 +1,5 @@
 import { CommunityEvent } from './community-events.service';
+import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
 
 /**
  * View model consumed by the Community Events templates (list, detail, host
@@ -185,6 +186,7 @@ export function eventDestination(ev: CommunityEventCard): string {
 
 export interface EventAttendee {
   name: string;
+  customer_id: string;
   country: string;
   dateRangeLabel: string;
   following: boolean;
@@ -242,6 +244,7 @@ export function attendeesFor(ev: CommunityEventCard): EventAttendee[] {
     const endDay = startDay + duration;
     return {
       name: person.name,
+      customer_id: mockCustomerId(person.name),
       country: person.country,
       dateRangeLabel: `${monthName} ${startDay} – ${endDay}`,
       following: true

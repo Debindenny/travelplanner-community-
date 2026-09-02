@@ -100,11 +100,7 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
-              ],
-              "prerender": {
-                "discoverRoutes": false,
-                "routesFile": "prerender-routes.txt"
-              }
+              ]
             },
             "development": {
               "optimization": false,

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
@@ -25,7 +26,7 @@ function recencyRank(trip: CommunityTrip): number {
 
 @Component({
   selector: 'app-community-trips',
-  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent],
+  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, RouterLink],
   templateUrl: './community-trips-page.component.html',
   styleUrl: './community-trips-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

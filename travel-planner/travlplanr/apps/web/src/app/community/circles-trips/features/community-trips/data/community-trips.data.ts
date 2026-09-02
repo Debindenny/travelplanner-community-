@@ -1,4 +1,5 @@
 import { unsplashUrl } from '../../../shared/utils/unsplash';
+import { mockCustomerId } from '../../../core/data/community-mock-users';
 
 export type TripTier = 'Budget' | 'Mid-range' | 'Luxury';
 
@@ -10,6 +11,7 @@ export interface CommunityTrip {
   saves: string;
   image: string;
   author: string;
+  customer_id: string;
   updated: string;
   days: number;
   cities: number;
@@ -26,6 +28,7 @@ export const COMMUNITY_TRIPS: CommunityTrip[] = [
     saves: '2.4K saves',
     image: unsplashUrl('1493976040374-85c8e12f0c0e', 900),
     author: 'Rhea Sharma',
+    customer_id: mockCustomerId('Rhea Sharma'),
     updated: 'Updated 2d ago',
     days: 7,
     cities: 3,
@@ -40,6 +43,7 @@ export const COMMUNITY_TRIPS: CommunityTrip[] = [
     saves: '1.8K saves',
     image: unsplashUrl('1503756234508-e32d1769ee16', 900),
     author: 'Iker Solano',
+    customer_id: mockCustomerId('Iker Solano'),
     updated: 'Updated 5d ago',
     days: 5,
     cities: 2,
@@ -54,6 +58,7 @@ export const COMMUNITY_TRIPS: CommunityTrip[] = [
     saves: '1.2K saves',
     image: unsplashUrl('1467269204594-9661b134dd2b', 900),
     author: 'Marco Villa',
+    customer_id: mockCustomerId('Marco Villa'),
     updated: 'Updated 1w ago',
     days: 14,
     cities: 6,
@@ -68,6 +73,7 @@ export const COMMUNITY_TRIPS: CommunityTrip[] = [
     saves: '940 saves',
     image: unsplashUrl('1502602898657-3e91760cbb34', 900),
     author: 'Emma Ross',
+    customer_id: mockCustomerId('Emma Ross'),
     updated: 'Updated 3d ago',
     days: 4,
     cities: 1,

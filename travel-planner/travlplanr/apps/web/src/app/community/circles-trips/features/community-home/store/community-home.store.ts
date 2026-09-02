@@ -39,6 +39,7 @@ import {
 } from '../../../core/models/community.models';
 
 const CURRENT_USER = {
+  customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
   name: 'Ava Reyes',
   initials: 'AV',
   avatarGradient: 'linear-gradient(140deg,#0060EA,#4B2A63)',
@@ -537,7 +538,7 @@ export class CommunityHomeStore {
   toggleFollow(id: string, name: string): void {
     const wasFollowing = this._followedIds().has(id);
     this._followedIds.set(this.toggledSet(this._followedIds(), id));
-    this.showToast(wasFollowing ? `Unfollowed ${name}` : `Following ${name}`);
+    this.showToast(wasFollowing ? `Unfollowed ${name}` : `Followed ${name}`);
   }
 
   toggleSave(id: string): void {

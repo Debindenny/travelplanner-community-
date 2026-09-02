@@ -1,7 +1,7 @@
 import { Component, ElementRef, Injector, afterNextRender, effect, inject, signal } from '@angular/core';
 
 import { DOCUMENT } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
 import { ModalShellComponent } from '../circles-trips/features/community-home/components/overlays/modal-shell/modal-shell.component';
@@ -10,7 +10,7 @@ import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.com
 
 @Component({
   selector: 'app-community-crew-widget',
-  imports: [TranslatePipe, ModalShellComponent, CreateCircleModalComponent, CommunityCrewChatModalComponent],
+  imports: [TranslatePipe, ModalShellComponent, CreateCircleModalComponent, CommunityCrewChatModalComponent, RouterLink],
   template: `
     @if (!joined()) {
       <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] overflow-hidden">
@@ -29,7 +29,7 @@ import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.com
             <div class="flex items-center gap-2.5 p-3 rounded-xl border border-primary-subtle/50 bg-primary-50/40">
               <img src="/assets/images/default-avatar.svg" class="w-9 h-9 rounded-full shrink-0 bg-slate-100" alt="" />
               <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                <span class="text-[12.5px] font-semibold text-text-primary">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_INVITED_BY' | translate: { name: inviterName } }}</span>
+                <a class="text-[12.5px] font-semibold text-text-primary hover:text-primary hover:underline" [routerLink]="['/community/users', inviterCustomerId]">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_INVITED_BY' | translate: { name: inviterName } }}</a>
                 <span class="text-[11px] font-semibold text-text-faint">{{ 'COMMUNITY.HOME_SIDEBAR.CREW_INVITE_NOTE' | translate }}</span>
               </div>
             </div>
@@ -127,6 +127,7 @@ export class CommunityCrewWidgetComponent {
   private readonly injector = inject(Injector);
 
   readonly inviterName = 'Maya Kondo';
+  readonly inviterCustomerId = '80da4269-efef-482e-bf18-b5291ce03abf';
   readonly faces = [
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80',
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',

@@ -127,33 +127,7 @@ export class CommunityTravelCirclesComponent {
     }
   }
 
-  onCloseCircleChat(): void {
-    this.openChatCircle.set(null);
-  }
-
-  onExitCircleChat(): void {
-    const circle = this.openChatCircle();
-    if (circle) {
-      const next = new Set(this._memberIds());
-      next.delete(circle.id);
-      this._memberIds.set(next);
-    }
-    this.lastJoinedCircle.set(null);
-    this.openChatCircle.set(null);
-    this.store.showToast(`You left ${circle?.title}.`);
-  }
-
-  onFloatingChatClick(): void {
-    // Reopen the last circle the user joined, otherwise open the chatbot's
-    // Travel Circles discovery view. The crew chat itself is only reachable
-    // once the user is actually a member (via `openChatCircle`).
-    const joined = this.lastJoinedCircle();
-    if (joined) {
-      this.openChatCircle.set(joined);
-    } else {
-      this.showCrewChat.set(true);
-    }
-  }
+  
 
   closeCrewChat(): void {
     this.showCrewChat.set(false);
@@ -197,7 +171,7 @@ export class CommunityTravelCirclesComponent {
     if (joined) {
       this.openChatCircle.set(joined);
     } else {
-      this.openLogin();
+      this.showCrewChat.set(true);
     }
   }
 
@@ -223,7 +197,7 @@ export class CommunityTravelCirclesComponent {
       accent,
       accent2,
       image: NEW_CIRCLE_IMAGE,
-      members: [{ name: this.store.currentUser.name, location: 'You', role: 'Host' }],
+      members: [{ name: this.store.currentUser.name, customer_id: this.store.currentUser.customer_id, location: 'You', role: 'Host' }],
       audience: payload.audience,
       initialStatus: 'owner',
     };

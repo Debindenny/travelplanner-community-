@@ -15,12 +15,37 @@ export interface UserProfile {
   is_verified?: boolean;
   countries_visited?: number;
   local_in?: string;
+  cover?: string | null;
+  about?: string | null;
+  interests?: string[];
+  member_since?: string | null;
+  trips_count?: number;
+  photos_count?: number;
+  helpful_count?: number;
+  mutual_connections_count?: number;
+  mutual_connections?: { id: string; name: string; avatar: string | null }[];
+  overlapping_dates?: number;
+  shared_circles?: number;
+  shared_destinations?: string[];
+  post_visibility?: string;
+}
+
+export interface MutualConnection {
+  id: string;
+  name: string;
+  avatar: string | null;
 }
 
 export interface User {
   id: string;
   name: string;
   avatar: string | null;
+  is_following: boolean;
+}
+
+export interface FollowToggleResult {
+  status: string;
+  action: string;
   is_following: boolean;
 }
 
@@ -84,8 +109,8 @@ export class CommunityProfileService {
     return this.http.get<any[]>(apiUrl(`/community/users/${customerId}/posts?limit=${limit}&offset=${offset}`));
   }
 
-  toggleFollow(customerId: string): Observable<{ status: string; action: string; is_following: boolean }> {
-    return this.http.post<{ status: string; action: string; is_following: boolean }>(apiUrl(`/community/users/${customerId}/follow`), {});
+  toggleFollow(customerId: string): Observable<FollowToggleResult> {
+    return this.http.post<FollowToggleResult>(apiUrl(`/community/users/${customerId}/follow`), {});
   }
 
   getFollowers(customerId: string, limit: number = 20, offset: number = 0): Observable<User[]> {
@@ -114,7 +139,7 @@ export class CommunityProfileService {
     return this.http.get<CommunityNews[]>(apiUrl('/community/news'));
   }
 
-  updateProfile(data: { name?: string; bio?: string; avatar?: string; local_in?: string }): Observable<UserProfile> {
+  updateProfile(data: { name?: string; bio?: string; avatar?: string; local_in?: string; cover?: string; about?: string; interests?: string[]; countries_visited?: number; post_visibility?: string }): Observable<UserProfile> {
     return this.http.put<UserProfile>(apiUrl('/community/profile/me'), data);
   }
 

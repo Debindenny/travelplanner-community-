@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject, afterNextRender, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +26,7 @@ import { ToastService } from '../../shared/utils/toast.service';
  */
 @Component({
   selector: 'app-community-crew-chat-modal',
-  imports: [FormsModule, A11yModule],
+  imports: [FormsModule, A11yModule, RouterLink],
   template: `
     <!-- Transparent click-catcher: closes the panel on an outside click without
          dimming the page behind it, since the panel docks beside the feed
@@ -181,7 +182,7 @@ import { ToastService } from '../../shared/utils/toast.service';
       <div class="flex-1 overflow-y-auto chat-scroll px-4 py-4 flex flex-col gap-4">
         @for (msg of messages(); track msg.id) {
           <div class="flex flex-col items-start gap-1.5">
-            <p class="text-[11.5px] font-bold text-text-faint">{{ msg.author }}</p>
+            <a class="text-[11.5px] font-bold text-text-faint hover:text-primary hover:underline" [routerLink]="['/community/users', msg.customer_id]">{{ msg.author }}</a>
 
             @switch (msg.kind) {
               @case ('text') {
@@ -307,7 +308,7 @@ import { ToastService } from '../../shared/utils/toast.service';
         @for (member of members(); track member.name) {
           <div class="flex items-center justify-between py-2.5">
             <div class="min-w-0 pr-3">
-              <p class="text-[13px] font-bold text-text-primary truncate leading-snug">{{ member.name }}</p>
+              <a class="text-[13px] font-bold text-text-primary truncate leading-snug hover:text-primary hover:underline" [routerLink]="['/community/users', member.customer_id]">{{ member.name }}</a>
               <p class="text-[11.5px] font-medium text-text-faint truncate mt-0.5">{{ memberSub(member) }}</p>
             </div>
             <button
@@ -499,6 +500,7 @@ export class CommunityCrewChatModalComponent {
       {
         id: `local-${Date.now()}`,
         author: 'You',
+        customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         kind: 'text',
         text,
@@ -520,24 +522,10 @@ export class CommunityCrewChatModalComponent {
       next.add(name);
     }
     this.followingIds.set(next);
-    this.toast.success(next.has(name) ? `Following ${name}` : `Unfollowed ${name}`);
+    this.toast.success(next.has(name) ? `Followed ${name}` : `Unfollowed ${name}`);
   }
 
-  memberSub(member: CircleMember): string {
-    const route = member.route ?? member.location;
-    return member.dates ? `${route} · ${member.dates}` : route;
-  }
-
-  toggleFollow(name: string): void {
-    const next = new Set(this.followingIds());
-    if (next.has(name)) {
-      next.delete(name);
-    } else {
-      next.add(name);
-    }
-    this.followingIds.set(next);
-    this.toast.success(next.has(name) ? `Following ${name}` : `Unfollowed ${name}`);
-  }
+  
 
   onExitGroup(): void {
     this.exitedGroup.emit();

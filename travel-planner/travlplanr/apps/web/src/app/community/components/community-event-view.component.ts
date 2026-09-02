@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommunityEventsService } from '../services/community-events.service';
 import { attendeesFor, eventDestination, toEventCard, CommunityEventCard, EventAttendee } from '../services/community-event-view.model';
 import { CommunityProfileService } from '../services/community-profile.service';
@@ -254,6 +254,7 @@ import { AttendeesModalComponent } from './attendees-modal.component';
 })
 export class CommunityEventDetailViewComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly eventsService = inject(CommunityEventsService);
   private readonly profileService = inject(CommunityProfileService);
 
@@ -335,7 +336,7 @@ export class CommunityEventDetailViewComponent {
     this.profileService.toggleFollow(this.hostId).subscribe({
       next: (res) => {
         ev.followed = res.is_following;
-        this.showToast(ev.followed ? `Following ${ev.hostName}` : `Unfollowed ${ev.hostName}`);
+        this.showToast(ev.followed ? `Followed ${ev.hostName}` : `Unfollowed ${ev.hostName}`);
       },
       error: (err) => {
         this.showToast(err?.status === 401 ? 'Log in to follow hosts' : "Couldn't update — try again");
@@ -344,6 +345,10 @@ export class CommunityEventDetailViewComponent {
   }
 
   onSelectTraveler(traveler: EventAttendee): void {
+    if (traveler.customer_id) {
+      void this.router.navigate(['/community/users', traveler.customer_id]);
+      return;
+    }
     this.showToast(`Viewing ${traveler.name}'s profile · coming soon`);
   }
 

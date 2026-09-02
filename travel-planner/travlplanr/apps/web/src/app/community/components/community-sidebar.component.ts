@@ -5,8 +5,10 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
-import { CommunityNews, CommunityAd, TrendingHashtag } from '../services/community-profile.service';
+import { CommunityNews, CommunityAd, TrendingHashtag, CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 import { CommunityMessagesService } from '../services/community-messages.service';
+import { CommunityProfileSummaryComponent } from './community-profile-summary.component';
+import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../shared/utils/toast.service';
 import { apiUrl } from '../../shared/utils/api-url';
 
@@ -21,8 +23,13 @@ interface EnrichedMatch {
 
 @Component({
     selector: 'app-community-sidebar',
-    imports: [CommonModule, RouterModule, TranslatePipe],
+    imports: [CommonModule, RouterModule, TranslatePipe, CommunityProfileSummaryComponent],
     template: `
+    <!-- Signed-in user profile summary -->
+    @if (user()) {
+      <app-community-profile-summary class="mb-4" [profile]="myProfile()" [userId]="user()?.id ?? null" />
+    }
+
     <!-- Traveler News -->
     <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-slate-100/80 dark:border-gray-700/80 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] mb-4 hover:shadow-md transition-all duration-300">
       <div class="flex justify-between items-center mb-4 px-1">
@@ -149,13 +156,15 @@ interface EnrichedMatch {
         <div class="flex flex-col gap-3">
           @for (buddy of matches(); track buddy.customerId) {
             <div class="flex items-center gap-2.5">
-              <img [src]="buddy.avatar || '/assets/images/default-avatar.svg'" class="w-9 h-9 rounded-full object-cover bg-slate-100 shrink-0" loading="lazy" decoding="async" />
+              <a [routerLink]="['/community/users', buddy.customerId]" class="shrink-0" [attr.aria-label]="'COMMUNITY.HOME_SIDEBAR.SIMILAR_PROFILE' | translate">
+                <img [src]="buddy.avatar || '/assets/images/default-avatar.svg'" class="w-9 h-9 rounded-full object-cover bg-slate-100 shrink-0 hover:opacity-80 transition-opacity" loading="lazy" decoding="async" />
+              </a>
               <div class="flex-1 min-w-0 flex flex-col">
-                <span class="text-[13px] font-bold text-text-primary truncate flex items-center gap-1.5">
+                <a [routerLink]="['/community/users', buddy.customerId]" class="text-[13px] font-bold text-text-primary truncate flex items-center gap-1.5 hover:text-primary hover:underline transition-colors">
                   {{ buddy.name || ('COMMUNITY.SIDEBAR.DEFAULT_TRAVELER_NAME' | translate) }}
                   <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded shrink-0">{{ buddy.matchScore }}%</span>
-                </span>
-                <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ (buddy.preferredDestinations || []).slice(0, 2).join(', ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</span>
+                </a>
+                <a [routerLink]="['/community/users', buddy.customerId]" class="text-[11.5px] font-semibold text-text-faint truncate hover:text-primary transition-colors">{{ (buddy.preferredDestinations || []).slice(0, 2).join(', ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</a>
               </div>
               <button
                 (click)="openBuddyMessage(buddy)"
@@ -253,7 +262,12 @@ export class CommunitySidebarComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly messagesService = inject(CommunityMessagesService);
   private readonly translate = inject(TranslateService);
+  private readonly profileService = inject(CommunityProfileService);
+  private readonly auth = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
+
+  readonly user = this.auth.user;
+  readonly myProfile = signal<MyCommunityProfile | null>(null);
 
   @Input() set newsList(val: CommunityNews[]) {
     this.news = val || [];
@@ -281,6 +295,14 @@ export class CommunitySidebarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadTrendingTags();
     this.loadMatches();
+    if (this.auth.user()) {
+      this.profileService.getMyProfile().pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: p => this.myProfile.set(p),
+        error: () => {}
+      });
+    }
   }
 
   ngOnDestroy() {

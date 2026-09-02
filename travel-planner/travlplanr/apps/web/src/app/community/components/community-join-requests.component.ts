@@ -1,23 +1,26 @@
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
+import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
 
 interface JoinRequest {
   id: string;
   name: string;
   line: string;
   note: string;
+  customer_id: string;
 }
 
 const MOCK_REQUESTS: JoinRequest[] = [
-  { id: 'r1', name: 'Priya Nair', line: 'Paris · Jun 3–8', note: 'Solo traveler, loves food markets and slow mornings.' },
-  { id: 'r2', name: 'Iker Zubia', line: 'Paris · Jun 4–11', note: 'Second time in Paris, happy to guide the group around Montmartre.' },
+  { id: 'r1', name: 'Priya Nair', line: 'Paris · Jun 3–8', note: 'Solo traveler, loves food markets and slow mornings.', customer_id: mockCustomerId('Priya Nair') },
+  { id: 'r2', name: 'Iker Zubia', line: 'Paris · Jun 4–11', note: 'Second time in Paris, happy to guide the group around Montmartre.', customer_id: mockCustomerId('Iker Zubia') },
 ];
 
 @Component({
   selector: 'app-community-join-requests',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, RouterLink],
   template: `
     @if (requests().length > 0) {
       <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] p-4">
@@ -31,9 +34,9 @@ const MOCK_REQUESTS: JoinRequest[] = [
           @for (request of requests(); track request.id) {
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2.5">
-                <img src="/assets/images/default-avatar.svg" class="w-9 h-9 rounded-full shrink-0 bg-slate-100" alt="" />
+                <a class="shrink-0" [routerLink]="['/community/users', request.customer_id]"><img src="/assets/images/default-avatar.svg" class="w-9 h-9 rounded-full shrink-0 bg-slate-100" alt="" /></a>
                 <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                  <span class="text-[14px] font-semibold text-text-primary truncate">{{ request.name }}</span>
+                  <a class="text-[14px] font-semibold text-text-primary truncate hover:text-primary hover:underline" [routerLink]="['/community/users', request.customer_id]">{{ request.name }}</a>
                   <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ request.line }}</span>
                 </div>
               </div>

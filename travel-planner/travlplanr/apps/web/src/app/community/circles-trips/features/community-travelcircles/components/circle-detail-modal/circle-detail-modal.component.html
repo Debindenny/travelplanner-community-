@@ -21,7 +21,7 @@
     @for (member of circle().members; track member.name) {
       <div class="circle-detail__member">
         <span class="circle-detail__member-copy">
-          <span class="circle-detail__member-name">{{ member.name }}</span>
+          <a class="circle-detail__member-name" [routerLink]="['/community/users', member.customer_id]">{{ member.name }}</a>
           <span class="circle-detail__member-sub">{{ memberSubtext(member) }}</span>
         </span>
         @if (member.role === 'Host') {

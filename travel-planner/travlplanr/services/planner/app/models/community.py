@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, Column, UniqueConstraint, Index, Float, text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from shared.database import Base
@@ -142,6 +142,10 @@ class CommunityProfile(Base):
     local_in: Mapped[str | None] = mapped_column(String(255), nullable=True)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    cover_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    about: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    interests: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    post_visibility: Mapped[str] = mapped_column(String(20), nullable=False, default="everyone")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class CommunityShortcut(Base):

@@ -1,7 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
+import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
 
 interface RailTraveler {
   id: string;
@@ -9,26 +11,27 @@ interface RailTraveler {
   line: string;
   initial: string;
   gradient: string;
+  customer_id: string;
 }
 
 const MOCK_TRAVELERS: RailTraveler[] = [
-  { id: 't1', name: 'Priya Nair', line: 'Paris · Jun 3–8 · 88% match', initial: 'P', gradient: 'linear-gradient(140deg,#0060EA,#4B2A63)' },
-  { id: 't2', name: 'Marco Villa', line: 'Paris · Jun 1–6 · 74% match', initial: 'M', gradient: 'linear-gradient(140deg,#0F9D58,#2AA98B)' },
-  { id: 't3', name: 'Emma Ross', line: 'Paris · Jun 4–11 · 69% match', initial: 'E', gradient: 'linear-gradient(140deg,#F2B872,#D2604B)' },
+  { id: 't1', name: 'Priya Nair', line: 'Paris · Jun 3–8 · 88% match', initial: 'P', gradient: 'linear-gradient(140deg,#0060EA,#4B2A63)', customer_id: mockCustomerId('Priya Nair') },
+  { id: 't2', name: 'Marco Villa', line: 'Paris · Jun 1–6 · 74% match', initial: 'M', gradient: 'linear-gradient(140deg,#0F9D58,#2AA98B)', customer_id: mockCustomerId('Marco Villa') },
+  { id: 't3', name: 'Emma Ross', line: 'Paris · Jun 4–11 · 69% match', initial: 'E', gradient: 'linear-gradient(140deg,#F2B872,#D2604B)', customer_id: mockCustomerId('Emma Ross') },
 ];
 
 @Component({
   selector: 'app-community-travelers-rail',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, RouterLink],
   template: `
     <div class="bg-white dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_24px_rgba(11,18,32,0.05)] p-4">
       <span class="block text-[10.5px] font-semibold tracking-[0.1em] text-text-faint uppercase mb-3">{{ 'COMMUNITY.HOME_SIDEBAR.TRAVELERS_RAIL_TITLE' | translate }}</span>
       <div class="flex flex-col gap-3">
         @for (traveler of travelers(); track traveler.id) {
           <div class="flex items-center gap-2.5">
-            <span class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-semibold" [style.background]="traveler.gradient">{{ traveler.initial }}</span>
+            <a class="shrink-0" [routerLink]="['/community/users', traveler.customer_id]"><span class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-semibold" [style.background]="traveler.gradient">{{ traveler.initial }}</span></a>
             <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-[13px] font-bold text-text-primary truncate">{{ traveler.name }}</span>
+              <a class="text-[13px] font-bold text-text-primary truncate hover:text-primary hover:underline" [routerLink]="['/community/users', traveler.customer_id]">{{ traveler.name }}</a>
               <span class="text-[11.5px] font-semibold text-text-faint truncate">{{ traveler.line }}</span>
             </div>
             <button

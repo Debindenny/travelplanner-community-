@@ -4,11 +4,14 @@
  * crew-chat WebSocket + REST history endpoint) is wired up — nothing outside
  * this file should define crew chat content.
  */
+import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
+
 export type CrewMessageKind = 'text' | 'poll' | 'meetup' | 'expense' | 'place';
 
 interface CrewMessageBase {
   id: string;
   author: string;
+  customer_id: string;
   time: string;
 }
 
@@ -69,6 +72,7 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
     {
       id: 'm1',
       author: 'Priya Nair',
+      customer_id: mockCustomerId('Priya Nair'),
       time: '09:14',
       kind: 'text',
       text: 'Landing Tuesday morning — anyone up for the Montmartre walk before the crowds?',
@@ -76,6 +80,7 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
     {
       id: 'm2',
       author: 'Marco Villa',
+      customer_id: mockCustomerId('Marco Villa'),
       time: '09:31',
       kind: 'place',
       image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80',
@@ -86,6 +91,7 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
     {
       id: 'm3',
       author: 'Emma Ross',
+      customer_id: mockCustomerId('Emma Ross'),
       time: '10:02',
       kind: 'poll',
       question: 'Dinner Thursday — where?',
@@ -94,6 +100,7 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
     {
       id: 'm4',
       author: 'Aarav Menon',
+      customer_id: mockCustomerId('Aarav Menon'),
       time: '10:20',
       kind: 'meetup',
       title: 'Coffee at Saint-Jean',
@@ -102,6 +109,7 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
     {
       id: 'm5',
       author: 'Priya Nair',
+      customer_id: mockCustomerId('Priya Nair'),
       time: '10:44',
       kind: 'expense',
       title: 'Museum pass · €78 total',

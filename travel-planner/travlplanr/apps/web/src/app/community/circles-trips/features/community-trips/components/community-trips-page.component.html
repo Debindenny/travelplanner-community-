@@ -58,7 +58,7 @@
 
         <div class="trip-card__body">
           <div class="trip-card__meta-row">
-            <span class="trip-card__author">{{ trip.author }}</span>
+            <a class="trip-card__author" [routerLink]="['/community/users', trip.customer_id]">{{ trip.author }}</a>
             <span class="trip-card__updated">{{ trip.updated }}</span>
           </div>
 

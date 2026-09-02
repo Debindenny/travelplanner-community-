@@ -254,7 +254,7 @@ export class DiscoverSavedStore {
     // stays a local, decorative toggle (no backend "follow a tip author" endpoint).
     const wasFollowing = this._followedIds().has(id);
     this._followedIds.set(this.toggledSet(this._followedIds(), id));
-    this.toast.info(wasFollowing ? `Unfollowed ${name}` : `Following ${name}`);
+    this.toast.info(wasFollowing ? `Unfollowed ${name}` : `Followed ${name}`);
   }
 
   toggleSave(id: string): void {

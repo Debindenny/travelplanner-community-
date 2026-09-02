@@ -1,11 +1,12 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy import select, desc, func, text, or_, and_
+from sqlalchemy import select, desc, func, or_, and_
 from pydantic import BaseModel
 
 from shared.auth_dependencies import optional_customer, require_customer
 from shared.rate_limit import rate_limiter
 from app.models.community import CommunityProfile, CommunityPost, UserFollow, Notification, PostHashtag, Block
+from app.models.trips import Trip
 
 from .community_shared import _serialize_posts, should_notify, ws_manager
 from app.services.gamification import award_xp
@@ -17,6 +18,11 @@ class UpdateCommunityProfileRequest(BaseModel):
     bio: str | None = None
     avatar: str | None = None
     local_in: str | None = None
+    cover: str | None = None
+    about: str | None = None
+    interests: list[str] | None = None
+    countries_visited: int | None = None
+    post_visibility: str | None = None
 
 @router.get("/profile/me")
 async def get_my_community_profile(request: Request, auth: dict = Depends(require_customer)):
@@ -57,16 +63,26 @@ async def update_my_community_profile(data: UpdateCommunityProfileRequest, reque
         if data.bio is not None: prof.bio = data.bio
         if data.avatar is not None: prof.avatar_url = data.avatar
         if data.local_in is not None: prof.local_in = data.local_in
+        if data.cover is not None: prof.cover_url = data.cover
+        if data.about is not None: prof.about = data.about
+        if data.interests is not None: prof.interests = data.interests
+        if data.countries_visited is not None: prof.countries_visited = data.countries_visited
+        if data.post_visibility is not None: prof.post_visibility = data.post_visibility
         await session.commit()
         followers = (await session.execute(select(func.count(UserFollow.id)).where(UserFollow.following_id == customer_id))).scalar_one()
         following = (await session.execute(select(func.count(UserFollow.id)).where(UserFollow.follower_id == customer_id))).scalar_one()
         posts_count = (await session.execute(select(func.count(CommunityPost.id)).where(CommunityPost.customer_id == customer_id))).scalar_one()
+        helpful = (await session.execute(select(func.coalesce(func.sum(CommunityPost.likes_count), 0)).where(CommunityPost.customer_id == customer_id))).scalar_one()
+        trips_count = (await session.execute(select(func.count(Trip.id)).where(Trip.customer_id == customer_id))).scalar_one()
         return {
             "customer_id": str(prof.customer_id), "name": prof.name or "", "bio": prof.bio,
             "profile_views": prof.profile_views, "followers_count": followers or 0,
             "following_count": following or 0, "posts_count": posts_count or 0,
             "is_verified": prof.is_verified, "countries_visited": prof.countries_visited,
-            "local_in": prof.local_in, "avatar": prof.avatar_url
+            "local_in": prof.local_in, "avatar": prof.avatar_url, "cover": prof.cover_url,
+            "about": prof.about, "interests": prof.interests or [], "member_since": prof.created_at,
+            "helpful_count": helpful or 0, "trips_count": trips_count or 0,
+            "photos_count": posts_count or 0, "post_visibility": prof.post_visibility
         }
 
 @router.get("/profile/{user_id}")
@@ -82,7 +98,8 @@ async def get_community_profile_by_id(user_id: UUID, request: Request, auth: dic
         return {
             "customer_id": str(profile.customer_id), "name": profile.name, "avatar": profile.avatar_url,
             "bio": profile.bio, "profile_views": profile.profile_views, "followers_count": followers_count or 0,
-            "is_verified": profile.is_verified, "countries_visited": profile.countries_visited, "local_in": profile.local_in
+            "is_verified": profile.is_verified, "countries_visited": profile.countries_visited, "local_in": profile.local_in,
+            "about": profile.about, "interests": profile.interests or [], "post_visibility": profile.post_visibility
         }
 
 @router.get("/users/search")
@@ -139,13 +156,12 @@ async def get_user_profile(customer_id: UUID, request: Request, auth: dict | Non
     viewer_id = UUID(auth["customer_id"]) if auth and "customer_id" in auth else None
     async with request.app.state.session_factory() as session:
         prof = (await session.execute(select(CommunityProfile).where(CommunityProfile.customer_id == customer_id))).scalar_one_or_none()
-        
-        identity = (await session.execute(
-            text("SELECT name, avatar_url FROM customer_profiles WHERE id = :cid"),
-            {"cid": customer_id}
-        )).fetchone()
-        real_name = identity[0] if identity and identity[0] else "Traveler"
-        real_avatar = identity[1] if identity else None
+
+        # NOTE: we intentionally use the planner-owned `community_profiles` table
+        # only. The identity-owned `customer_profiles` table lives in a different
+        # database (identity_db) and is not readable from the planner connection.
+        real_name = prof.name if prof and prof.name else "Traveler"
+        real_avatar = prof.avatar_url if prof else None
 
         if prof:
             name = prof.name or real_name
@@ -159,14 +175,89 @@ async def get_user_profile(customer_id: UUID, request: Request, auth: dict | Non
         posts_count = (await session.execute(select(func.count()).select_from(CommunityPost).where(CommunityPost.customer_id == customer_id))).scalar() or 0
         followers_count = (await session.execute(select(func.count()).select_from(UserFollow).where(UserFollow.following_id == customer_id))).scalar() or 0
         following_count = (await session.execute(select(func.count()).select_from(UserFollow).where(UserFollow.follower_id == customer_id))).scalar() or 0
+        helpful_count = (await session.execute(select(func.coalesce(func.sum(CommunityPost.likes_count), 0)).where(CommunityPost.customer_id == customer_id))).scalar() or 0
+        trips_count = (await session.execute(select(func.count()).select_from(Trip).where(Trip.customer_id == customer_id))).scalar() or 0
+        photos_count = (await session.execute(select(func.count()).select_from(CommunityPost).where(CommunityPost.customer_id == customer_id, CommunityPost.images.isnot(None)))).scalar() or 0
         is_following = False
-        if viewer_id:
+
+        # --- In Common (mutual connections / overlapping dates / shared circles) ---
+        mutual_connections_count = 0
+        mutual_connections = []
+        overlapping_dates = 0
+        shared_circles = 0
+        shared_destinations = []
+        if viewer_id and viewer_id != customer_id:
             if (await session.execute(select(UserFollow).where(UserFollow.follower_id == viewer_id, UserFollow.following_id == customer_id))).scalar_one_or_none():
                 is_following = True
+            viewer_following = set((await session.execute(
+                select(UserFollow.following_id).where(UserFollow.follower_id == viewer_id)
+            )).scalars().all())
+            customer_following = set((await session.execute(
+                select(UserFollow.following_id).where(UserFollow.follower_id == customer_id)
+            )).scalars().all())
+            common = (viewer_following & customer_following) - {customer_id}
+            mutual_connections_count = len(common)
+            if common:
+                muts = (await session.execute(
+                    select(CommunityProfile, UserFollow.created_at)
+                    .join(UserFollow, UserFollow.following_id == CommunityProfile.customer_id)
+                    .where(CommunityProfile.customer_id.in_(list(common)))
+                    .order_by(UserFollow.created_at.desc())
+                    .limit(6)
+                )).all()
+                mutual_connections = [
+                    {"id": str(m.customer_id), "name": m.name or "Traveler", "avatar": m.avatar_url}
+                    for m, _ in muts
+                ]
+            # Overlapping trips (date ranges intersect)
+            viewer_trips = (await session.execute(select(Trip.start_date, Trip.end_date).where(Trip.customer_id == viewer_id))).all()
+            customer_trips = (await session.execute(select(Trip.start_date, Trip.end_date, Trip.destination).where(Trip.customer_id == customer_id))).all()
+            def _overlaps(a_start, a_end, b_start, b_end):
+                try:
+                    from datetime import date as _d
+                    from datetime import datetime as _dt
+                    f = lambda s: _dt.strptime(s.strip()[:10], "%Y-%m-%d").date() if s else None
+                    as_, ae = f(a_start), f(a_end)
+                    bs, be = f(b_start), f(b_end)
+                    if not (as_ and ae and bs and be):
+                        return False
+                    return as_ <= be and bs <= ae
+                except Exception:
+                    return False
+            for vt in viewer_trips:
+                for ct in customer_trips:
+                    if _overlaps(vt[0], vt[1], ct[0], ct[1]):
+                        overlapping_dates += 1
+            viewer_dests = set((await session.execute(
+                select(Trip.destination).where(Trip.customer_id == viewer_id)
+            )).scalars().all())
+            normalized = lambda d: d.strip().lower() if d and d.strip() else None
+            customer_dests = {normalized(ct[2]) for ct in customer_trips}
+            viewer_dests_norm = {normalized(d) for d in viewer_dests}
+            shared = (customer_dests & viewer_dests_norm) - {None}
+            shared_circles = len(shared)
+            # Keep original-cased destination names for display
+            seen = set()
+            for ct in customer_trips:
+                norm = normalized(ct[2])
+                if norm in shared and ct[2] not in seen:
+                    shared_destinations.append(ct[2].strip())
+                    seen.add(ct[2])
         return {
             "customer_id": str(customer_id), "name": name, "avatar": avatar, "bio": bio, "is_verified": is_verified,
             "countries_visited": countries_visited, "local_in": local_in, "posts_count": posts_count,
-            "followers_count": followers_count, "following_count": following_count, "is_following": is_following
+            "followers_count": followers_count, "following_count": following_count, "is_following": is_following,
+            "cover": prof.cover_url if prof else None,
+            "about": prof.about if prof else None,
+            "interests": (prof.interests or []) if prof else [],
+            "member_since": prof.created_at if prof else None,
+            "helpful_count": helpful_count, "trips_count": trips_count, "photos_count": photos_count,
+            "mutual_connections_count": mutual_connections_count,
+            "mutual_connections": mutual_connections,
+            "overlapping_dates": overlapping_dates,
+            "shared_circles": shared_circles,
+            "shared_destinations": shared_destinations,
+            "post_visibility": prof.post_visibility if prof else "everyone",
         }
 
 @router.post("/users/{customer_id}/view", dependencies=[Depends(rate_limiter("profile-view", 60, 60))])

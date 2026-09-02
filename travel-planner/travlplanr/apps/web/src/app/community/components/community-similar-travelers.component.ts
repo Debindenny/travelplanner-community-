@@ -33,13 +33,15 @@ interface SimilarTraveler {
         <div class="flex flex-col">
           @for (traveler of travelers(); track traveler.customerId) {
             <div class="flex items-center gap-3.5 py-3.5 border-t border-slate-100 dark:border-gray-700 first:border-t-0">
-              <img [src]="traveler.avatar || '/assets/images/default-avatar.svg'" class="w-11 h-11 rounded-full object-cover shrink-0 bg-slate-100" loading="lazy" decoding="async" />
+              <a [routerLink]="['/community/users', traveler.customerId]" class="shrink-0" [attr.aria-label]="'COMMUNITY.HOME_SIDEBAR.SIMILAR_PROFILE' | translate">
+                <img [src]="traveler.avatar || '/assets/images/default-avatar.svg'" class="w-11 h-11 rounded-full object-cover shrink-0 bg-slate-100 hover:opacity-80 transition-opacity" loading="lazy" decoding="async" />
+              </a>
               <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                <div class="flex items-center gap-2 flex-wrap">
+                <a [routerLink]="['/community/users', traveler.customerId]" class="flex items-center gap-2 flex-wrap hover:text-primary hover:underline transition-colors">
                   <span class="text-sm font-extrabold text-text-primary tracking-tight truncate">{{ traveler.name }}</span>
                   <span class="text-[10.5px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full whitespace-nowrap">{{ traveler.matchScore }}% match</span>
-                </div>
-                <span class="text-xs font-semibold text-text-faint truncate">{{ traveler.preferredDestinations.slice(0, 2).join(' · ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</span>
+                </a>
+                <a [routerLink]="['/community/users', traveler.customerId]" class="text-xs font-semibold text-text-faint truncate hover:text-primary transition-colors">{{ traveler.preferredDestinations.slice(0, 2).join(' · ') || ('COMMUNITY.SIDEBAR.EXPLORING_EVERYWHERE' | translate) }}</a>
               </div>
               <div class="flex gap-2 shrink-0">
                 <a [routerLink]="['/community/users', traveler.customerId]" class="h-8 px-3 rounded-lg border border-slate-200 dark:border-gray-700 text-[11.5px] font-extrabold text-text-secondary hover:border-slate-300 transition-colors flex items-center">
