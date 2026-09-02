@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject, afterNextRender, input } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, computed, effect, inject, afterNextRender, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { DOCUMENT } from '@angular/common';
@@ -36,7 +36,7 @@ import { ProfileService } from '../../profile/profile.service';
     <div
       class="font-manrope fixed inset-0 z-[89]"
       (click)="close.emit()"
-      (window:keydown.escape)="close.emit()"
+      (window:keydown.escape)="onEscapeKey()"
     >
       <!-- resize (native CSS resize:both, drag handle bottom-right of the box) grows
            the panel toward the bottom-left: since it's anchored by top+right (not
@@ -218,7 +218,128 @@ import { ProfileService } from '../../profile/profile.service';
       @if (activeTab() === 'chat') {
       <!-- Scrollable message feed -->
       <div class="flex-1 overflow-y-auto chat-scroll px-4 py-4 flex flex-col gap-4">
-        @for (msg of activeMessages(); track msg.id) {
+        @for (msg of activeMessages(); track msg.id; let i = $index) {
+          @if (isSelfMessage(msg)) {
+          <div class="flex flex-col items-end gap-1.5">
+            @switch (msg.kind) {
+              @case ('text') {
+                <div class="bg-primary text-white rounded-2xl px-4 py-2.5 max-w-[85%]">
+                  <p class="text-[13px] leading-relaxed">{{ msg.text }}</p>
+                </div>
+              }
+              @case ('expense') {
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 w-72 flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
+                    </svg>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-[13px] font-bold text-text-primary truncate">{{ msg.title }} \u00b7 \u20ac{{ msg.totalAmount }}</p>
+                    <p class="text-[11.5px] font-semibold text-text-faint truncate">{{ msg.meta }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="settleExpense(msg.id)"
+                    class="shrink-0 h-8 px-3 rounded-lg text-[12px] font-semibold transition-colors focus:outline-none"
+                    [class.bg-emerald-500]="!settledExpenses().has(msg.id)"
+                    [class.text-white]="!settledExpenses().has(msg.id)"
+                    [class.bg-emerald-100]="settledExpenses().has(msg.id)"
+                    [class.text-emerald-700]="settledExpenses().has(msg.id)"
+                  >
+                    {{ settledExpenses().has(msg.id) ? 'Settled' : 'Settle' }}
+                  </button>
+                </div>
+              }
+              @case ('place') {
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden w-72">
+                  <div class="w-full h-32 bg-slate-100">
+                    <img [src]="msg.image" class="w-full h-full object-cover" alt="" (error)="onImageError($event)" />
+                  </div>
+                  <div class="p-3.5 flex flex-col gap-2">
+                    <div>
+                      <p class="text-[13px] font-bold text-text-primary">{{ msg.title }}</p>
+                      <p class="text-[11.5px] font-semibold text-text-faint mt-0.5">{{ msg.meta }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="addPlaceToTrip(msg.id)"
+                      class="w-full h-9 rounded-lg text-[12px] font-semibold transition-colors focus:outline-none"
+                      [class.bg-primary-50]="!addedPlaces().has(msg.id)"
+                      [class.text-primary]="!addedPlaces().has(msg.id)"
+                      [class.bg-slate-100]="addedPlaces().has(msg.id)"
+                      [class.text-text-faint]="addedPlaces().has(msg.id)"
+                    >
+                      {{ addedPlaces().has(msg.id) ? 'Added' : msg.ctaLabel }}
+                    </button>
+                  </div>
+                </div>
+              }
+              @case ('poll') {
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 w-72 flex flex-col gap-2">
+                  <p class="text-[13px] font-bold text-text-primary">{{ msg.question }}</p>
+                  @for (opt of msg.options; track opt) {
+                    <button
+                      type="button"
+                      (click)="votePoll(msg.id, opt)"
+                      class="w-full text-left px-3.5 py-2.5 rounded-xl border text-[12.5px] font-semibold transition-colors focus:outline-none"
+                      [class.border-primary]="pollVotes()[msg.id] === opt"
+                      [class.bg-primary-50]="pollVotes()[msg.id] === opt"
+                      [class.text-primary]="pollVotes()[msg.id] === opt"
+                      [class.border-slate-200]="pollVotes()[msg.id] !== opt"
+                      [class.text-text-secondary]="pollVotes()[msg.id] !== opt"
+                    >
+                      {{ opt }}
+                    </button>
+                  }
+                </div>
+              }
+              @case ('meetup') {
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 w-72 flex flex-col gap-3">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-lg bg-primary-50 text-primary flex items-center justify-center shrink-0">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
+                      </svg>
+                    </span>
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-bold text-text-primary truncate">{{ msg.title }}</p>
+                      <p class="text-[11.5px] font-semibold text-text-faint truncate">{{ msg.meta }}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      (click)="rsvpMeetup(msg.id, 'in')"
+                      class="flex-1 h-9 rounded-lg text-[12px] font-semibold transition-colors focus:outline-none"
+                      [class.bg-primary]="meetupRsvp()[msg.id] !== 'out'"
+                      [class.text-white]="meetupRsvp()[msg.id] !== 'out'"
+                      [class.bg-slate-100]="meetupRsvp()[msg.id] === 'out'"
+                      [class.text-text-secondary]="meetupRsvp()[msg.id] === 'out'"
+                    >
+                      I'm in
+                    </button>
+                    <button
+                      type="button"
+                      (click)="rsvpMeetup(msg.id, 'out')"
+                      class="flex-1 h-9 rounded-lg border text-[12px] font-semibold transition-colors focus:outline-none"
+                      [class.border-primary]="meetupRsvp()[msg.id] === 'out'"
+                      [class.text-primary]="meetupRsvp()[msg.id] === 'out'"
+                      [class.border-slate-200]="meetupRsvp()[msg.id] !== 'out'"
+                      [class.text-text-secondary]="meetupRsvp()[msg.id] !== 'out'"
+                    >
+                      Can't make it
+                    </button>
+                  </div>
+                </div>
+              }
+              @default {}
+            }
+            @if (showTime(activeMessages(), i)) {
+              <p class="text-[10.5px] font-semibold text-text-faint">{{ msg.time }}</p>
+            }
+          </div>
+          } @else {
           <div class="flex flex-col items-start gap-1.5">
             <a class="text-[11.5px] font-bold text-text-faint hover:text-primary hover:underline" [routerLink]="['/community/users', msg.customer_id]">{{ msg.author }}</a>
 
@@ -288,23 +409,24 @@ import { ProfileService } from '../../profile/profile.service';
               }
               @case ('expense') {
                 <div class="bg-white border border-slate-200 rounded-2xl p-3.5 w-72 flex items-center gap-2.5">
-                  <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <span class="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
                     </svg>
                   </span>
                   <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-bold text-text-primary truncate">{{ msg.title }}</p>
+                    <p class="text-[13px] font-bold text-text-primary truncate">{{ msg.title }} \u00b7 \u20ac{{ msg.totalAmount }}</p>
                     <p class="text-[11.5px] font-semibold text-text-faint truncate">{{ msg.meta }}</p>
                   </div>
                   <button
                     type="button"
                     (click)="settleExpense(msg.id)"
                     class="shrink-0 h-8 px-3 rounded-lg border text-[12px] font-semibold transition-colors focus:outline-none"
-                    [class.border-primary]="!settledExpenses().has(msg.id)"
-                    [class.text-primary]="!settledExpenses().has(msg.id)"
-                    [class.border-slate-200]="settledExpenses().has(msg.id)"
-                    [class.text-text-faint]="settledExpenses().has(msg.id)"
+                    [class.border-emerald-500]="!settledExpenses().has(msg.id)"
+                    [class.text-emerald-600]="!settledExpenses().has(msg.id)"
+                    [class.bg-emerald-100]="settledExpenses().has(msg.id)"
+                    [class.text-emerald-700]="settledExpenses().has(msg.id)"
+                    [class.border-emerald-200]="settledExpenses().has(msg.id)"
                   >
                     {{ settledExpenses().has(msg.id) ? 'Settled' : 'Settle' }}
                   </button>
@@ -335,9 +457,11 @@ import { ProfileService } from '../../profile/profile.service';
                 </div>
               }
             }
-
-            <p class="text-[10.5px] font-semibold text-text-faint">{{ msg.time }}</p>
+            @if (showTime(activeMessages(), i)) {
+              <p class="text-[10.5px] font-semibold text-text-faint">{{ msg.time }}</p>
+            }
           </div>
+          }
         }
       </div>
       } @else {
@@ -371,7 +495,7 @@ import { ProfileService } from '../../profile/profile.service';
         <div class="flex items-stretch gap-3">
           <button
             type="button"
-            (click)="quickCompose('📍')"
+            (click)="sendPlace()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Share a place"
           >
@@ -382,7 +506,7 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="quickCompose('📊')"
+            (click)="sendPoll()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Start a poll"
           >
@@ -392,7 +516,7 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="quickCompose('📅')"
+            (click)="sendMeetup()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Plan a meetup"
           >
@@ -402,7 +526,7 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="quickCompose('🧾')"
+            (click)="sendExpense()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Split an expense"
           >
@@ -440,6 +564,113 @@ import { ProfileService } from '../../profile/profile.service';
       }
       }
       </div>
+
+      <!-- Split Expense Modal Overlay -->
+      @if (showExpenseModal()) {
+        <div
+          class="fixed inset-0 z-[91] bg-black/30 flex items-center justify-center p-4"
+          (click)="closeExpenseModal(); $event.stopPropagation()"
+        >
+          <div
+            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden animate-fade-in-up"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h3 class="text-[15px] font-bold text-text-primary">Split Expense</h3>
+              <button
+                type="button"
+                (click)="closeExpenseModal()"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
+                aria-label="Close"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="px-5 py-4 flex flex-col gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Expense Title</label>
+                <input
+                  type="text"
+                  [value]="expenseTitle()"
+                  (input)="expenseTitle.set($any($event.target).value)"
+                  placeholder="e.g. Taxi from CDG"
+                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Total Amount</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-text-faint">€</span>
+                  <input
+                    type="text"
+                    [value]="expenseAmount()"
+                    (input)="expenseAmount.set($any($event.target).value)"
+                    placeholder="0.00"
+                    class="h-10 w-full rounded-xl border border-slate-200 pl-7 pr-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Participants</label>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="button"
+                    (click)="decrementPeople()"
+                    class="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none text-lg font-bold"
+                  >−</button>
+                  <span class="text-[15px] font-bold text-text-primary w-8 text-center">{{ expensePeople() }}</span>
+                  <button
+                    type="button"
+                    (click)="incrementPeople()"
+                    class="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none text-lg font-bold"
+                  >+</button>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Split Type</label>
+                <div class="h-10 rounded-xl border border-slate-200 px-3 flex items-center text-[13px] font-semibold text-text-secondary bg-slate-50">
+                  Equal split
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Notes <span class="font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  [value]="expenseNotes()"
+                  (input)="expenseNotes.set($any($event.target).value)"
+                  placeholder="Any additional details..."
+                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+            </div>
+
+            <div class="px-5 py-4 border-t border-slate-100 flex gap-3">
+              <button
+                type="button"
+                (click)="closeExpenseModal()"
+                class="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
+              >Cancel</button>
+              <button
+                type="button"
+                (click)="createExpense()"
+                [disabled]="!expenseTitle().trim() || !expenseAmount().trim()"
+                class="flex-1 h-10 rounded-xl text-[13px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
+                [class.bg-emerald-500]="expenseTitle().trim() && expenseAmount().trim()"
+                [class.hover:bg-emerald-600]="expenseTitle().trim() && expenseAmount().trim()"
+                [class.bg-slate-200]="!expenseTitle().trim() || !expenseAmount().trim()"
+                [class.text-text-faint]="!expenseTitle().trim() || !expenseAmount().trim()"
+              >Create Expense</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -509,6 +740,12 @@ export class CommunityCrewChatModalComponent {
   readonly meetupRsvp = signal<Record<string, 'in' | 'out'>>({});
   readonly settledExpenses = signal<Set<string>>(new Set());
   readonly addedPlaces = signal<Set<string>>(new Set());
+
+  readonly showExpenseModal = signal(false);
+  readonly expenseTitle = signal('');
+  readonly expenseAmount = signal('');
+  readonly expensePeople = signal(2);
+  readonly expenseNotes = signal('');
 
   /** The chat context currently displayed. When `joinedCircles` is provided
    * this is the selected circle; otherwise it's the single-circle fallback
@@ -613,18 +850,29 @@ export class CommunityCrewChatModalComponent {
   sendMessage(): void {
     const text = this.draft.trim();
     if (!text) return;
-    this.messages.update(list => [
-      ...list,
-      {
-        id: `local-${Date.now()}`,
-        author: 'You',
-        customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        kind: 'text',
-        text,
-      },
-    ]);
+    this.pushMessage({
+      id: `local-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'text',
+      text,
+    });
     this.draft = '';
+  }
+
+  memberSub(member: CircleMember): string {
+    const route = member.route ?? member.location;
+    return member.dates ? `${route} · ${member.dates}` : route;
+  }
+
+  toggleCircleMenu(): void {
+    this.circleMenuOpen.update(v => !v);
+  }
+
+  selectCircle(circle: ChatCircleContext): void {
+    this.selectedCircleId.set(circle.id);
+    this.circleMenuOpen.set(false);
   }
 
   memberSub(member: CircleMember): string {
@@ -654,6 +902,14 @@ export class CommunityCrewChatModalComponent {
   onExitGroup(): void {
     this.exitedGroup.emit(this.activeCircle().id);
     this.close.emit();
+  }
+
+  onEscapeKey(): void {
+    if (this.showExpenseModal()) {
+      this.closeExpenseModal();
+    } else {
+      this.close.emit();
+    }
   }
 
   discoveryMode(): boolean {

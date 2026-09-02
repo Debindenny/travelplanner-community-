@@ -84,7 +84,7 @@
 }
 
 @if (openChatCircle(); as circle) {
-  <app-community-crew-chat-modal [groupName]="circle.title" [members]="circle.members" [joinedCircles]="joinedCircleContexts()" [initialCircleId]="circle.id" [currentUserName]="store.currentUser.name" (close)="onCloseCircleChat()" (exitedGroup)="onExitCircleChat($event)" />
+  <app-community-crew-chat-modal [groupName]="circle.title" [members]="circle.members" [joinedCircles]="joinedCircleContexts()" [initialCircleId]="circle.id" [currentUserName]="store.currentUser.name" (close)="onCloseCircleChat()" (exitedGroup)="onExitCircleChat()" />
 }
 
 @if (showCrewChat()) {

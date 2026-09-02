@@ -5,6 +5,7 @@
  * this file should define crew chat content.
  */
 import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
+import { CircleMember } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 
 export type CrewMessageKind = 'text' | 'poll' | 'meetup' | 'expense' | 'place';
 
@@ -36,6 +37,9 @@ export interface CrewExpenseMessage extends CrewMessageBase {
   kind: 'expense';
   title: string;
   meta: string;
+  totalAmount: number;
+  participantCount: number;
+  splitType: 'equal';
 }
 
 export interface CrewPlaceMessage extends CrewMessageBase {
@@ -126,8 +130,11 @@ export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
       customer_id: mockCustomerId('Priya Nair'),
       time: '10:44',
       kind: 'expense',
-      title: 'Museum pass · €78 total',
+      title: 'Museum pass',
       meta: '€19.50 each · 4 people',
+      totalAmount: 78,
+      participantCount: 4,
+      splitType: 'equal',
     },
   ],
 };
