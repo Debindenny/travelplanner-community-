@@ -138,7 +138,7 @@ export const routes: Routes = [
       {
         path: 'community/discover',
         loadComponent: () =>
-          import('./community/discover-saved/discover/discover-page.component').then((m) => m.DiscoverPageComponent),
+          import('./community/discover-saved/discover-page.component').then((m) => m.DiscoverPageComponent),
       },
       {
         path: 'community/destinations',
@@ -148,7 +148,7 @@ export const routes: Routes = [
       {
         path: 'community/saved',
         loadComponent: () =>
-          import('./community/discover-saved/saved/saved-page.component').then((m) => m.SavedPageComponent),
+          import('./community/discover-saved/saved-page.component').then((m) => m.SavedPageComponent),
       },
       {
         path: 'community/collections',
