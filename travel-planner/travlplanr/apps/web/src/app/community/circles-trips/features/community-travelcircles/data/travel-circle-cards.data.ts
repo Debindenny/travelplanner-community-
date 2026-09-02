@@ -5,6 +5,8 @@ export interface CircleMember {
   location: string;
   role?: 'Host';
   joinedLabel?: string;
+  route?: string;
+  dates?: string;
 }
 
 export interface TravelCircleCard {
@@ -24,10 +26,10 @@ export interface TravelCircleCard {
 }
 
 const STANDARD_MEMBERS: CircleMember[] = [
-  { name: 'Priya Nair', location: 'India', role: 'Host' },
-  { name: 'Marco Villa', location: 'Italy', joinedLabel: 'joined 3d ago' },
-  { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago' },
-  { name: 'Aarav Menon', location: 'India', joinedLabel: 'joined 1w ago' },
+  { name: 'Ava Reyes', location: 'Paris', route: 'Paris', dates: 'Jun 3 - 6' },
+  { name: 'Priya Nair', location: 'India', role: 'Host', route: 'India → Paris', dates: 'Jun 3 - 8' },
+  { name: 'Marco Villa', location: 'Italy', joinedLabel: 'joined 3d ago', route: 'Italy → Paris', dates: 'Jun 1 - 6' },
+  { name: 'Emma Ross', location: 'UK', joinedLabel: 'joined 1w ago', route: 'UK → Paris', dates: 'Jun 4 - 11' },
 ];
 
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [

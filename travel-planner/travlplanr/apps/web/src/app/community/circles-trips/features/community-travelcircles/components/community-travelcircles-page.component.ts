@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
@@ -6,6 +7,7 @@ import { unsplashUrl } from '../../../shared/utils/unsplash';
 import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
 import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
+import { CommunityCrewChatModalComponent } from '../../../../components/community-crew-chat-modal.component';
 
 const ACCENT_PALETTE: Array<[string, string]> = [
   ['#0060ea', '#2aa98b'],
@@ -40,13 +42,14 @@ function minutesSinceActivity(activity: string): number {
 
 @Component({
   selector: 'app-community-travelcircles',
-  imports: [ModalShellComponent, CreateCircleModalComponent, CircleDetailModalComponent],
+  imports: [ModalShellComponent, CreateCircleModalComponent, CircleDetailModalComponent, CommunityCrewChatModalComponent],
   templateUrl: './community-travelcircles-page.component.html',
   styleUrl: './community-travelcircles-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunityTravelCirclesComponent {
   readonly store = inject(CommunityHomeStore);
+  private readonly router = inject(Router);
 
   readonly goHome = output<void>();
 
@@ -55,12 +58,19 @@ export class CommunityTravelCirclesComponent {
 
   readonly showCreateModal = signal(false);
   readonly viewedCircleId = signal<string | null>(null);
+  readonly openChatCircle = signal<TravelCircleCard | null>(null);
+  readonly lastJoinedCircle = signal<TravelCircleCard | null>(null);
 
   private readonly _memberIds = signal<ReadonlySet<string>>(
     new Set(TRAVEL_CIRCLE_CARDS.filter((card) => card.initialStatus === 'joined').map((card) => card.id)),
   );
 
   readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
+
+  openLogin(): void {
+    // Remember where the user came from so login returns to Travel Circles.
+    void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+  }
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
@@ -89,6 +99,22 @@ export class CommunityTravelCirclesComponent {
       this.store.showToast('You created this circle — requests appear on your home feed');
       return;
     }
+    if (!this.isMember(card.id) && card.cta === 'Join') {
+      this.joinCircle(card);
+      return;
+    }
+    this.toggleMembership(card);
+  }
+
+  private joinCircle(card: TravelCircleCard): void {
+    const next = new Set(this._memberIds());
+    next.add(card.id);
+    this._memberIds.set(next);
+    this.lastJoinedCircle.set(card);
+    this.openChatCircle.set(card);
+  }
+
+  private toggleMembership(card: TravelCircleCard): void {
     const wasMember = this.isMember(card.id);
     const next = new Set(this._memberIds());
     if (wasMember) {
@@ -102,6 +128,31 @@ export class CommunityTravelCirclesComponent {
       this.store.showToast(wasMember ? `Left ${card.title}` : `Joined ${card.title}`);
     } else {
       this.store.showToast(wasMember ? 'Request withdrawn' : 'Request sent · the creator will review it');
+    }
+  }
+
+  onCloseCircleChat(): void {
+    this.openChatCircle.set(null);
+  }
+
+  onExitCircleChat(): void {
+    const circle = this.openChatCircle();
+    if (circle) {
+      const next = new Set(this._memberIds());
+      next.delete(circle.id);
+      this._memberIds.set(next);
+    }
+    this.lastJoinedCircle.set(null);
+    this.openChatCircle.set(null);
+    this.store.showToast(`You left ${circle?.title}.`);
+  }
+
+  onFloatingChatClick(): void {
+    const joined = this.lastJoinedCircle();
+    if (joined) {
+      this.openChatCircle.set(joined);
+    } else {
+      this.openLogin();
     }
   }
 

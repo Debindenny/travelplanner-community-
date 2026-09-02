@@ -340,3 +340,51 @@
     }
   }
 }
+
+/* ---------- Floating chat widget ---------- */
+
+.chat-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chat-widget__btn {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(10, 102, 255, 0.35);
+  transition: transform 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    background: var(--accent-deep);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@keyframes tc-popup-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

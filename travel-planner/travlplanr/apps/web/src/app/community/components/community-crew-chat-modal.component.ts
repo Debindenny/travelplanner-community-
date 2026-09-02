@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject, afterNextRender } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, inject, afterNextRender, input } from '@angular/core';
 
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import {
   CrewMessage,
   PARIS_CREW_CHAT_MOCK,
 } from './community-crew-chat.mock';
+import { CircleMember } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 import { ToastService } from '../../shared/utils/toast.service';
 
 /**
@@ -45,7 +46,7 @@ import { ToastService } from '../../shared/utils/toast.service';
           <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
         </span>
         <div class="flex-1 min-w-0">
-          <p class="text-[13.5px] font-bold text-text-primary truncate">{{ chat.groupName }} · {{ chat.dateRange }}</p>
+          <p class="text-[13.5px] font-bold text-text-primary truncate">{{ groupName() }} · {{ chat.dateRange }}</p>
           <p class="text-[11.5px] font-semibold text-emerald-600">{{ chat.onlineCount }} online now</p>
         </div>
         <button
@@ -78,6 +79,31 @@ import { ToastService } from '../../shared/utils/toast.service';
         </span>
       </div>
 
+      <!-- Chat / People tabs -->
+      <div class="flex items-center gap-1 px-4 py-2 border-b border-slate-100">
+        <button
+          type="button"
+          (click)="activeTab.set('chat')"
+          class="flex-1 h-9 rounded-lg text-[12.5px] font-bold transition-colors focus:outline-none"
+          [class.bg-primary-50]="activeTab() === 'chat'"
+          [class.text-primary]="activeTab() === 'chat'"
+          [class.text-text-faint]="activeTab() !== 'chat'"
+        >
+          Chat
+        </button>
+        <button
+          type="button"
+          (click)="activeTab.set('people')"
+          class="flex-1 h-9 rounded-lg text-[12.5px] font-bold transition-colors focus:outline-none"
+          [class.bg-primary-50]="activeTab() === 'people'"
+          [class.text-primary]="activeTab() === 'people'"
+          [class.text-text-faint]="activeTab() !== 'people'"
+        >
+          People
+        </button>
+      </div>
+
+      @if (activeTab() === 'chat') {
       <!-- Scrollable message feed -->
       <div class="flex-1 overflow-y-auto chat-scroll px-4 py-4 flex flex-col gap-4">
         @for (msg of messages(); track msg.id) {
@@ -202,17 +228,38 @@ import { ToastService } from '../../shared/utils/toast.service';
           </div>
         }
       </div>
+      } @else {
+      <!-- People / members list -->
+      <div class="flex-1 overflow-y-auto chat-scroll px-4">
+        @for (member of members(); track member.name) {
+          <div class="flex items-center justify-between py-2.5">
+            <div class="min-w-0 pr-3">
+              <p class="text-[13px] font-bold text-text-primary truncate leading-snug">{{ member.name }}</p>
+              <p class="text-[11.5px] font-medium text-text-faint truncate mt-0.5">{{ memberSub(member) }}</p>
+            </div>
+            <button
+              type="button"
+              (click)="toggleFollow(member.name)"
+              class="shrink-0 w-[88px] h-9 rounded-[12px] border border-[#D7DDE8] bg-white text-sm font-semibold text-[#4A5A70] flex items-center justify-center hover:border-[#c5cede] hover:bg-slate-50 active:scale-[0.98] transition-colors focus:outline-none"
+            >
+              {{ followingIds().has(member.name) ? 'Unfollow' : 'Follow' }}
+            </button>
+          </div>
+        }
+      </div>
+      }
 
+      @if (activeTab() === 'chat') {
       <!-- Quick-compose shortcuts + message input -->
       <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-3">
-        <div class="flex items-center gap-2">
+        <div class="flex items-stretch gap-3">
           <button
             type="button"
             (click)="quickCompose('📍')"
-            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 transition-colors focus:outline-none"
+            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Share a place"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0Z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5Z" />
             </svg>
@@ -220,30 +267,30 @@ import { ToastService } from '../../shared/utils/toast.service';
           <button
             type="button"
             (click)="quickCompose('📊')"
-            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 transition-colors focus:outline-none"
+            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Start a poll"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 20V10m4 10V4m4 16v-7" />
             </svg>
           </button>
           <button
             type="button"
             (click)="quickCompose('📅')"
-            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 transition-colors focus:outline-none"
+            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Plan a meetup"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
             </svg>
           </button>
           <button
             type="button"
             (click)="quickCompose('🧾')"
-            class="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 transition-colors focus:outline-none"
+            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Split an expense"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
             </svg>
           </button>
@@ -274,6 +321,7 @@ import { ToastService } from '../../shared/utils/toast.service';
           </button>
         </div>
       </div>
+      }
       </div>
     </div>
   `,
@@ -296,7 +344,12 @@ export class CommunityCrewChatModalComponent {
   private readonly document = inject(DOCUMENT);
 
   readonly chat = PARIS_CREW_CHAT_MOCK;
+  readonly groupName = input<string>(this.chat.groupName);
   readonly messages = signal<CrewMessage[]>(this.chat.messages);
+
+  readonly members = input<CircleMember[]>([]);
+  readonly activeTab = signal<'chat' | 'people'>('chat');
+  readonly followingIds = signal<Set<string>>(new Set());
 
   draft = '';
 
@@ -366,9 +419,24 @@ export class CommunityCrewChatModalComponent {
     this.draft = '';
   }
 
+  memberSub(member: CircleMember): string {
+    const route = member.route ?? member.location;
+    return member.dates ? `${route} · ${member.dates}` : route;
+  }
+
+  toggleFollow(name: string): void {
+    const next = new Set(this.followingIds());
+    if (next.has(name)) {
+      next.delete(name);
+    } else {
+      next.add(name);
+    }
+    this.followingIds.set(next);
+    this.toast.success(next.has(name) ? `Following ${name}` : `Unfollowed ${name}`);
+  }
+
   onExitGroup(): void {
     this.exitedGroup.emit();
-    this.toast.success('You left Paris Crew.');
     this.close.emit();
   }
 }
