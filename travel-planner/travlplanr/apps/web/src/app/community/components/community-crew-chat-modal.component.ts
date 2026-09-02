@@ -509,7 +509,7 @@ export class CommunityCrewChatModalComponent {
     this.draft = '';
   }
 
-  memberSub(member: CircleMember): string {
+  member(member: CircleMember): string {
     const route = member.route ?? member.location;
     return member.dates ? `${route} · ${member.dates}` : route;
   }

@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
-import { CommunityProfileSummaryComponent } from './community-profile-summary.component';
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { CommunityDestinationCardComponent } from './community-destination-card.component';
 import { CommunityDestinationDetailModalComponent } from './community-destination-detail-modal.component';
@@ -43,7 +42,6 @@ function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestin
     RouterLink,
     TranslatePipe,
     CommunityHomeSubnavComponent,
-    CommunityProfileSummaryComponent,
     CommunityComposerModalComponent,
     CommunityDestinationCardComponent,
     CommunityDestinationDetailModalComponent,
@@ -56,7 +54,7 @@ function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestin
           <!-- LEFT COLUMN: same subnav + profile summary as Community Home -->
           <div class="flex flex-col h-[calc(100vh-120px)] lg:col-span-2 sticky top-[92px] gap-3 sm:gap-5">
             <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
-            <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
+          
           </div>
 
           <!-- MAIN CONTENT -->

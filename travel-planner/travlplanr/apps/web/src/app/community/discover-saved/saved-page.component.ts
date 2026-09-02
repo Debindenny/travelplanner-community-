@@ -7,7 +7,6 @@ import { DsSavedDetailModalComponent } from './overlays/saved-detail-modal/saved
 import { DsAddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-trip-modal.component';
 import { CommunityComposerModalComponent } from '../components/community-composer-modal.component';
 import { CommunityHomeSubnavComponent } from '../components/community-home-subnav.component';
-import { CommunityProfileSummaryComponent } from '../components/community-profile-summary.component';
 import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 import { AuthService } from '../../auth/auth.service';
 
@@ -19,7 +18,6 @@ import { AuthService } from '../../auth/auth.service';
     DsSavedDetailModalComponent,
     DsAddToTripModalComponent,
     CommunityHomeSubnavComponent,
-    CommunityProfileSummaryComponent,
     CommunityComposerModalComponent,
   ],
   templateUrl: './saved-page.component.html',

@@ -7,7 +7,6 @@ import { DsDiscoverDetailModalComponent } from './overlays/discover-detail-modal
 import { DsAddToTripModalComponent } from './overlays/add-to-trip-modal/add-to-trip-modal.component';
 import { CommunityComposerModalComponent } from '../components/community-composer-modal.component';
 import { CommunityHomeSubnavComponent } from '../components/community-home-subnav.component';
-import { CommunityProfileSummaryComponent } from '../components/community-profile-summary.component';
 import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 import { AuthService } from '../../auth/auth.service';
 
@@ -19,7 +18,6 @@ import { AuthService } from '../../auth/auth.service';
     DsDiscoverDetailModalComponent,
     DsAddToTripModalComponent,
     CommunityHomeSubnavComponent,
-    CommunityProfileSummaryComponent,
     CommunityComposerModalComponent,
   ],
   templateUrl: './discover-page.component.html',

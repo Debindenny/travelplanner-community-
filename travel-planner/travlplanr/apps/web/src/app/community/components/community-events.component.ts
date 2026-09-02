@@ -5,7 +5,6 @@ import { CommunityEventsService } from '../services/community-events.service';
 import { CommunityEventCard, toEventCard } from '../services/community-event-view.model';
 import { AddToTripModalComponent, TripDayOption, TripOption } from './add-to-trip-modal.component';
 import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
-import { CommunityProfileSummaryComponent } from './community-profile-summary.component';
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 import { AuthService } from '../../auth/auth.service';
@@ -23,7 +22,6 @@ function dayKey(month: string, day: string | number): number {
     RouterLink,
     AddToTripModalComponent,
     CommunityHomeSubnavComponent,
-    CommunityProfileSummaryComponent,
     CommunityComposerModalComponent
   ],
   templateUrl: './community-events.component.html',

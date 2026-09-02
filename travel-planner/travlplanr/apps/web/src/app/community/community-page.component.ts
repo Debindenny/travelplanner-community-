@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, DestroyRef, EventEmitter, Output,computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -10,9 +10,7 @@ import { CommunityPostService, CommunityPost as CommunityPostType } from './serv
 import { CommunityPostCardComponent } from './components/community-post-card.component';
 import { CommunitySaveModalComponent } from './components/community-save-modal.component';
 import { CommunityMapComponent } from './components/community-map.component';
-import { CommunityHeroComponent } from './components/community-hero.component';
 import { apiErrorMessage } from '../shared/utils/api-error.util';
-import { CommunityMobileNavComponent } from './components/community-mobile-nav.component';
 import { CommunityAnalyticsService } from './services/community-analytics.service';
 import { AuthService } from '../auth/auth.service';
 import { CommunityProfileService, MyCommunityProfile } from './services/community-profile.service';
@@ -27,8 +25,22 @@ import { CommunityUpcomingEventsWidgetComponent } from './components/community-u
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
 import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
+import { HttpClient } from '@angular/common/http';
+import { SavedTrip, TripService } from '../trip/trip.service';
+import { CommunityCollectionService } from './services/community-collection.service';
+import { apiUrl } from '../shared/utils/api-url';
+import { catchError,of } from 'rxjs';
+
+
+
+
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
+
+interface HeroDestination {
+  name: string;
+  image: string;
+}
 
 @Component({
     selector: 'app-community-page',
@@ -39,14 +51,12 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityPostCardComponent,
       CommunitySaveModalComponent,
       CommunityMapComponent,
-      CommunityHeroComponent,
-      CommunityMobileNavComponent,
       TranslatePipe,
       CommunityFeedSkeletonComponent,
       CommunityPostCommentsComponent,
       CommunityQaThreadComponent,
       CommunityHomeSubnavComponent,
-     
+      // AuthService,     
       CommunityCrewWidgetComponent,
       CommunityTravelersRailComponent,
       CommunityDestinationTrendingComponent,
@@ -62,7 +72,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
          which this project only has at 400/900) and is the same face the sibling
          Travel Circles/Trips island already uses for this lighter, tighter look. -->
     <div class="font-manrope min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex flex-col pb-0 md:pb-0">
-      <app-community-mobile-nav (onPost)="showComposerModal.set(true)" />
+    
       <main class="flex-1 flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 px-3 sm:px-4">
         <div class="w-full max-w-[1280px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
 
@@ -80,9 +90,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
           <div class="flex flex-col h-[calc(100vh-120px)] row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
           <!--  <app-community-home-subnav (sharePost)="showComposerModal.set(true)" /> -->
 
-            <app-community-home-subnav [profile]="myProfile()" [userId]="user()?.id ?? null"/>
-
-            
+            <app-community-home-subnav [profile]="myProfile()" [userId]="user()?.id ?? null"/>            
 
           <!--  <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" /> -->
  
@@ -92,11 +100,111 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
           <!-- TOP ROW: Hero + Stories, paired with the left nav at every width -->
           <div class="lg:col-span-10 space-y-3 sm:space-y-5">
             <!-- Hero band -->
-            <app-community-hero
+           <!-- <app-community-hero
               (onPost)="showComposerModal.set(true)"
               (onMap)="setViewMode('map')"
-            />
+            /> -->
+            <!---------------------- Hero ----------------->
+            
+    @if (nextTrip(); as trip) {
+      <!-- Personalized next-trip card, shown when the signed-in user has a real upcoming trip -->
+      <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
+        <div
+          class="absolute inset-0 bg-cover bg-center"
+          [style.backgroundImage]="trip.image ? 'url(' + trip.image + ')' : null"
+        ></div>
+        <div class="absolute inset-0 community-hero-overlay"></div>
+        <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
+          <div class="flex items-center gap-[9px] mb-3">
+            <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
+            <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">
+              {{ 'COMMUNITY.HERO.NEXT_TRIP_BADGE' | translate }} · {{ 'COMMUNITY.HERO.DAYS_AWAY' | translate: { count: daysAway(trip) } }}
+            </p>
+          </div>
+          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-2.5 max-w-lg">{{ trip.destination }}</h2>
+          <p class="text-[13px] font-semibold text-white/75 mb-[22px]">
+            {{ formatDateRange(trip) }} <span class="opacity-45">·</span> {{ (nightsCount(trip) === 1 ? 'COMMUNITY.HERO.NIGHT_COUNT' : 'COMMUNITY.HERO.NIGHTS_COUNT') | translate: { count: nightsCount(trip) } }}
+            @if (savedSpots() !== null) {
+              <span class="opacity-45">·</span> {{ (savedSpots() === 1 ? 'COMMUNITY.HERO.SAVED_SPOT_COUNT' : 'COMMUNITY.HERO.SAVED_SPOTS_COUNT') | translate: { count: savedSpots() } }}
+            }
+          </p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <a
+              routerLink="/explore"
+              [queryParams]="{ q: cityName(trip) }"
+              class="h-10 inline-flex items-center px-[18px] bg-white text-[13px] font-semibold rounded-[11px] transition-colors whitespace-nowrap community-hero-btn-solid"
+            >
+              {{ 'COMMUNITY.HERO.EXPLORE_DESTINATION' | translate: { name: cityName(trip) } }}
+            </a>
+            <a
+              routerLink="/community/matching"
+              class="h-10 inline-flex items-center px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-semibold rounded-[11px] transition-colors whitespace-nowrap"
+            >
+              {{ 'COMMUNITY.HERO.FIND_TRAVELERS' | translate }}
+            </a>
+            <a [routerLink]="['/itinerary', trip.id]" class="h-10 inline-flex items-center px-3.5 text-white/80 hover:text-white text-[13px] font-semibold transition-colors whitespace-nowrap">
+              {{ 'COMMUNITY.HERO.OPEN_TRIP' | translate }} →
+            </a>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Hero for signed-out users / users without an upcoming trip. Shows a rotating
+           photo carousel once real destinations load from the API; the card, heading
+           and buttons below always render regardless — only the photo layer and the
+           place-name badge are conditional on real data being available, so there is
+           no fake photo/name shown while loading or if that API call fails. -->
+      <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
+        @if (destinations().length > 0) {
+          <div
+            class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+            [style.backgroundImage]="'url(' + destinations()[currentIndex()].image + ')'"
+            [class.opacity-100]="!transitioning()"
+            [class.opacity-0]="transitioning()"
+          ></div>
+        }
+        <div class="absolute inset-0 community-hero-overlay"></div>
+        @if (destinations().length > 0) {
+          <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
+            @for (d of destinations(); track d.name; let i = $index) {
+              <button
+                (click)="goTo(i)"
+                class="w-1.5 h-1.5 rounded-full transition-all focus:outline-none bg-white"
+                [class.opacity-40]="i !== currentIndex()"
+              ></button>
+            }
+          </div>
+        }
+        <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
 
+          @if (destinations().length > 0) {
+            <div class="flex items-center gap-[9px] mb-3">
+              <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
+              <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
+            </div>
+          }
+
+          <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg"> <br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button
+              (click)="onMap.emit()"
+              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-white/[0.16] hover:bg-white/[0.28] text-white text-[13px] font-semibold rounded-[11px] transition-colors"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+              {{ 'COMMUNITY.HERO.EXPLORE_MAP' | translate }}
+            </button>
+            <a
+              routerLink="/community/matching"
+              class="h-10 inline-flex items-center gap-1.5 px-[18px] bg-primary hover:bg-primary-hover text-white text-[13px] font-semibold rounded-[11px] transition-colors"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              {{ 'COMMUNITY.HERO.FIND_TRAVELERS' | translate }}
+            </a>
+          </div>
+        </div>
+      </div>
+    }
+  
             <!-- Stories (edge-to-edge, no card wrapper) -->
             <app-community-stories-bar />
           </div>
@@ -232,10 +340,10 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                     <!-- Comments Section -->
                     @if (expandedComments.has(post.id)) {
                       @if (post.type === 'qa') {
-                        <app-community-qa-thread 
+                        app-community-qa-thread 
                           [postId]="post.id"
                           [isPostAuthor]="post.author?.id === auth.user()?.id"
-                        />
+                        /> 
                       } @else {
                         <app-community-post-comments 
                           [postId]="post.id" 
@@ -323,6 +431,9 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
   `]
 })
 export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy {
+ @Output() onPost = new EventEmitter<void>();
+  @Output() onMap = new EventEmitter<void>(); 
+ 
   myProfile = signal<MyCommunityProfile | null>(null);
   profileService = inject(CommunityProfileService);
   notificationsService = inject(CommunityNotificationsService);
@@ -338,8 +449,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   expandedComments = new Set<string>();
   newPostsCount = signal<number>(0);
 
-  readonly auth = inject(AuthService);
-  readonly user = this.auth.user;
 
   feedMode = signal<string>('following');
   followedTags = signal<string[]>([]);
@@ -360,6 +469,11 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private observer: IntersectionObserver | null = null;
   nextCursor?: string;
   hasMorePosts = true;
+  private http = inject(HttpClient);
+  private tripService = inject(TripService);
+  private collectionService = inject(CommunityCollectionService);
+  private auth = inject(AuthService);
+  readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -368,7 +482,25 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   /** Avoid re-navigating when applying state from the URL (back/forward). */
   private syncingFromUrl = false;
 
+  readonly savedSpots = signal<number | null>(null); 
+  
+  /** The soonest real upcoming trip, if the signed-in user has one. */
+  readonly nextTrip = computed(() => {
+    const now = Date.now();
+    const upcoming = this.tripService.trips()
+      .filter(t => t.status !== 'cancelled' && !!t.startDate && new Date(t.startDate).getTime() >= now)
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    return upcoming[0] ?? null;
+  });
+
+
+
   private readonly translate = inject(TranslateService);
+
+   destinations = signal<HeroDestination[]>([]);
+  currentIndex = signal(0);
+  transitioning = signal(false);
+  private rotateInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     private postService: CommunityPostService,
@@ -376,7 +508,15 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   ) {}
 
   ngOnInit() {
-    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+     this.loadDestinations();
+    this.startRotation();
+    if (this.auth.user()) {
+      this.collectionService.getCollections().subscribe({
+        next: (collections) => this.savedSpots.set(collections.reduce((sum, c) => sum + (c.item_count || 0), 0)),
+        error: () => {}
+      });
+    }
+      this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (!this.syncingFromUrl) {
         this.applyStateFromQueryParams(params);
       }
@@ -413,6 +553,62 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     if (this.wsSub) {
       this.wsSub.unsubscribe();
     }
+     if (this.rotateInterval) clearInterval(this.rotateInterval);
+  }
+
+  private loadDestinations() {
+    this.http.get<any[]>(apiUrl('/destinations?limit=6&has_image=true')).pipe(
+      catchError(() => of(null))
+    ).subscribe(data => {
+      if (data?.length) {
+        const mapped = data
+          .filter((d: any) => d.image || d.images?.[0])
+          .slice(0, 5)
+          .map((d: any) => ({ name: d.name, image: d.image || d.images[0] }));
+        if (mapped.length >= 2) {
+          this.destinations.set(mapped);
+        }
+      }
+    });
+  }
+
+  private startRotation() {
+    this.rotateInterval = setInterval(() => {
+      if (this.destinations().length < 2) return;
+      this.transitioning.set(true);
+      setTimeout(() => {
+        this.currentIndex.update(i => (i + 1) % this.destinations().length);
+        this.transitioning.set(false);
+      }, 500);
+    }, 5000);
+  }
+
+  goTo(i: number) {
+    if (i === this.currentIndex()) return;
+    this.transitioning.set(true);
+    setTimeout(() => {
+      this.currentIndex.set(i);
+      this.transitioning.set(false);
+    }, 300);
+  }
+
+  daysAway(trip: SavedTrip): number {
+    return Math.max(0, Math.ceil((new Date(trip.startDate).getTime() - Date.now()) / 86400000));
+  }
+
+  nightsCount(trip: SavedTrip): number {
+    return Math.max(1, Math.round((new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) / 86400000));
+  }
+
+  cityName(trip: SavedTrip): string {
+    return (trip.destination || '').split(',')[0].trim();
+  }
+
+  formatDateRange(trip: SavedTrip): string {
+    const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const start = new Date(trip.startDate).toLocaleDateString('en-US', opts);
+    const end = new Date(trip.endDate).toLocaleDateString('en-US', opts);
+    return `${start} – ${end}`;
   }
 
   setupIntersectionObserver() {
