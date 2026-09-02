@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { unsplashUrl } from '../../../shared/utils/unsplash';
-import { TRAVEL_CIRCLE_CARDS, TravelCircleCard } from '../data/travel-circle-cards.data';
+import { TRAVEL_CIRCLE_CARDS, TravelCircleCard, circleCtaLabel } from '../data/travel-circle-cards.data';
 import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
 import { CommunityCrewChatModalComponent } from '../../../../components/community-crew-chat-modal.component';
@@ -49,7 +48,6 @@ function minutesSinceActivity(activity: string): number {
 })
 export class CommunityTravelCirclesComponent {
   readonly store = inject(CommunityHomeStore);
-  private readonly router = inject(Router);
 
   readonly goHome = output<void>();
 
@@ -60,17 +58,15 @@ export class CommunityTravelCirclesComponent {
   readonly viewedCircleId = signal<string | null>(null);
   readonly openChatCircle = signal<TravelCircleCard | null>(null);
   readonly lastJoinedCircle = signal<TravelCircleCard | null>(null);
+  readonly showCrewChat = signal(false);
 
   private readonly _memberIds = signal<ReadonlySet<string>>(
     new Set(TRAVEL_CIRCLE_CARDS.filter((card) => card.initialStatus === 'joined').map((card) => card.id)),
   );
 
-  readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
+  readonly memberIds = this._memberIds.asReadonly();
 
-  openLogin(): void {
-    // Remember where the user came from so login returns to Travel Circles.
-    void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-  }
+  readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
@@ -85,13 +81,7 @@ export class CommunityTravelCirclesComponent {
   }
 
   buttonLabel(card: TravelCircleCard): string {
-    if (this.isOwner(card)) {
-      return 'You created it';
-    }
-    if (this.isMember(card.id)) {
-      return card.cta === 'Join' ? 'Joined' : 'Requested';
-    }
-    return card.cta === 'Join' ? 'Join' : 'Request to join';
+    return circleCtaLabel(card, this.isMember(card.id));
   }
 
   onToggleMembership(card: TravelCircleCard): void {
@@ -148,12 +138,36 @@ export class CommunityTravelCirclesComponent {
   }
 
   onFloatingChatClick(): void {
+    // Reopen the last circle the user joined, otherwise open the chatbot's
+    // Travel Circles discovery view. The crew chat itself is only reachable
+    // once the user is actually a member (via `openChatCircle`).
     const joined = this.lastJoinedCircle();
     if (joined) {
       this.openChatCircle.set(joined);
     } else {
-      this.openLogin();
+      this.showCrewChat.set(true);
     }
+  }
+
+  closeCrewChat(): void {
+    this.showCrewChat.set(false);
+  }
+
+  /** CTA clicked inside the chatbot's discovery view — reuse the existing
+   * membership flow. Joining a public circle hands off to that circle's
+   * group chat; requesting access to an invite-only circle (or an owned
+   * circle) stays on the discovery view. */
+  onDiscoveryCircleAction(card: TravelCircleCard): void {
+    if (this.isOwner(card)) {
+      this.store.showToast('You created this circle — requests appear on your home feed');
+      return;
+    }
+    if (!this.isMember(card.id) && card.cta === 'Join') {
+      this.joinCircle(card);
+      this.showCrewChat.set(false);
+      return;
+    }
+    this.toggleMembership(card);
   }
 
   onCreateCircle(): void {

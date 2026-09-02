@@ -87,3 +87,15 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     members: STANDARD_MEMBERS,
   },
 ];
+
+/** Shared CTA label for a travel circle, so the Travel Circles page, its
+ * detail modal and the chatbot's discovery view never drift apart. */
+export function circleCtaLabel(card: TravelCircleCard, isMember: boolean): string {
+  if (card.initialStatus === 'owner') {
+    return 'You created it';
+  }
+  if (isMember) {
+    return card.cta === 'Join' ? 'Joined' : 'Requested';
+  }
+  return card.cta === 'Join' ? 'Join' : 'Request to join';
+}
