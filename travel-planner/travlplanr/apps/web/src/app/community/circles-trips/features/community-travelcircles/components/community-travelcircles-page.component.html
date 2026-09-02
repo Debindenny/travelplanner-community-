@@ -82,3 +82,28 @@
     />
   </app-modal-shell>
 }
+
+@if (openChatCircle(); as circle) {
+  <app-community-crew-chat-modal [groupName]="circle.title" [members]="circle.members" (close)="onCloseCircleChat()" (exitedGroup)="onExitCircleChat()" />
+}
+
+@if (lastJoinedCircle(); as joined) {
+  @if (!openChatCircle()) {
+    <div class="chat-widget">
+      <button type="button" class="chat-widget__btn" (click)="onFloatingChatClick()" aria-label="Open chat">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+        </svg>
+      </button>
+    </div>
+  }
+}

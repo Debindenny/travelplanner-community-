@@ -1,0 +1,52 @@
+:host {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: block;
+}
+
+.floating-chat-button {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #0060ea;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(10, 102, 255, 0.3);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.floating-chat-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 16px 40px rgba(10, 102, 255, 0.4);
+}
+
+.floating-chat-button:active {
+  transform: scale(0.98);
+}
+
+.floating-chat-button:focus-visible {
+  outline: 3px solid rgba(10, 102, 255, 0.4);
+  outline-offset: 3px;
+}
+
+.chat-icon {
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  :host {
+    right: 18px;
+    bottom: 18px;
+  }
+}
