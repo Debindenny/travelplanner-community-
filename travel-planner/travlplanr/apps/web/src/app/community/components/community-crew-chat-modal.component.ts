@@ -31,8 +31,12 @@ import { ToastService } from '../../shared/utils/toast.service';
       (click)="close.emit()"
       (window:keydown.escape)="close.emit()"
     >
+      <!-- resize (native CSS resize:both, drag handle bottom-right of the box) grows
+           the panel toward the bottom-left: since it's anchored by top+right (not
+           left/bottom), the browser only ever changes width/height, so the top-right
+           corner — the panel's actual on-screen position — never moves. -->
       <div
-        class="fixed top-24 right-6 z-[90] w-full max-w-[420px] h-[min(700px,calc(100vh-7rem))] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in-up"
+        class="resize fixed top-24 right-6 z-[90] w-[420px] min-w-[320px] max-w-[min(760px,calc(100vw-3rem))] h-[min(700px,calc(100vh-7rem))] min-h-[360px] max-h-[calc(100vh-7rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in-up"
         cdkTrapFocus
         cdkTrapFocusAutoCapture
         (click)="$event.stopPropagation()"

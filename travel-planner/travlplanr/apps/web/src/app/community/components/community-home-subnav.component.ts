@@ -5,6 +5,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';
 import { CommunityEventsService } from '../services/community-events.service';
 import { DiscoverSavedStore } from '../discover-saved/discover-saved.store';
+import { MyCommunityProfile } from '../services/community-profile.service';
+import { Input } from '@angular/core';
 
 interface SubnavItem {
   label: string;
@@ -18,15 +20,15 @@ interface SubnavItem {
   selector: 'app-community-home-subnav',
   imports: [RouterLink, RouterLinkActive, TranslatePipe],
   template: `
-    <div class="font-[inherit]">
-      <button
+    <div class="font-[inherit] flex flex-col min-h-screen ">
+   <!--   <button
         type="button"
         (click)="sharePost.emit()"
         class="w-full flex items-center justify-center gap-2 min-h-11 py-2.5 px-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-white text-[13px] font-extrabold shadow-[0_8px_20px_rgba(0,96,234,0.22)] transition-colors focus:outline-none"
       >
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         {{ 'COMMUNITY.HOME_SUBNAV.SHARE' | translate }}
-      </button>
+      </button>   -->
 
       <nav class="mt-5 flex flex-col gap-[3px]">
         @for (item of items; track item.label) {
@@ -47,11 +49,36 @@ interface SubnavItem {
             }
           </a>
         }
-      </nav>
+      </nav>   
+
+@if (profile) {
+  <a
+    [routerLink]="userId ? ['/community/users', userId] : ['/community']"
+    class="mt-40 flex items-center gap-3 px-3 py-3 ..."
+  >
+    <img
+      [src]="profile.avatar || '/assets/images/default-avatar.svg'"
+      class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-100"
+      alt=""
+    />
+
+    <div>
+    <p class="text-[13.5px] font-bold text-text-primary truncate">
+      <p>{{ profile.name }}</p>
+
+      @if (profile.bio) {
+      <p class="text-[11.5px] font-semibold text-eventText-mid truncate">
+        <p>{{ profile.bio }}</p>
+      }
+    </div>
+  </a>
+}
     </div>
   `,
 })
 export class CommunityHomeSubnavComponent implements OnInit {
+  @Input() profile: MyCommunityProfile | null = null;
+  @Input() userId: string | null = null;
   @Output() sharePost = new EventEmitter<void>();
 
   private readonly auth = inject(AuthService);

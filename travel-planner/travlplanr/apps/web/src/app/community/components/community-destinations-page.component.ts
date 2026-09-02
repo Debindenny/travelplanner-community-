@@ -4,7 +4,8 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
-import { CommunityJourneyStatsComponent } from './community-journey-stats.component';
+import { CommunityProfileSummaryComponent } from './community-profile-summary.component';
+import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { CommunityDestinationCardComponent } from './community-destination-card.component';
 import { CommunityDestinationDetailModalComponent } from './community-destination-detail-modal.component';
 import { CommunityDestination } from '../circles-trips/core/models/community.models';
@@ -12,6 +13,8 @@ import {
   CommunityDestinationService,
   CommunityDestinationSummary,
 } from '../services/community-destination.service';
+import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
+import { AuthService } from '../../auth/auth.service';
 
 type DestinationFilter = 'popular' | 'nearMe';
 
@@ -40,7 +43,8 @@ function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestin
     RouterLink,
     TranslatePipe,
     CommunityHomeSubnavComponent,
-    CommunityJourneyStatsComponent,
+    CommunityProfileSummaryComponent,
+    CommunityComposerModalComponent,
     CommunityDestinationCardComponent,
     CommunityDestinationDetailModalComponent,
   ],
@@ -49,10 +53,10 @@ function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestin
       <main class="flex justify-center pt-2 sm:pt-4 lg:pt-8 pb-10 px-3 sm:px-4">
         <div class="w-full max-w-[1280px] grid grid-cols-[minmax(170px,32%)_minmax(0,1fr)] lg:grid-cols-12 gap-3 sm:gap-6 items-start">
 
-          <!-- LEFT COLUMN: same subnav + journey widget as Community Home -->
-          <div class="flex flex-col lg:col-span-2 sticky top-[92px] gap-6 sm:gap-5">
-            <app-community-home-subnav />
-            <app-community-journey-stats />
+          <!-- LEFT COLUMN: same subnav + profile summary as Community Home -->
+          <div class="flex flex-col h-[calc(100vh-120px)] lg:col-span-2 sticky top-[92px] gap-3 sm:gap-5">
+            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
+            <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
           </div>
 
           <!-- MAIN CONTENT -->
@@ -124,17 +128,30 @@ function toCommunityDestination(d: CommunityDestinationSummary): CommunityDestin
           (joinToggled)="toggleJoin(destination)"
         />
       }
+
+      @if (showComposerModal()) {
+        <app-community-composer-modal
+          (postCreated)="showComposerModal.set(false)"
+          (close)="showComposerModal.set(false)"
+        />
+      }
     </div>
   `,
 })
 export class CommunityDestinationsPageComponent implements OnInit {
   private readonly destinationService = inject(CommunityDestinationService);
+  private readonly auth = inject(AuthService);
+  private readonly profileService = inject(CommunityProfileService);
 
   readonly filter = signal<DestinationFilter>('popular');
   readonly destinations = signal<CommunityDestination[]>([]);
 
   readonly joinedIds = signal<ReadonlySet<string>>(new Set());
   readonly selectedDestination = signal<CommunityDestination | null>(null);
+
+  readonly showComposerModal = signal(false);
+  readonly user = this.auth.user;
+  readonly myProfile = signal<MyCommunityProfile | null>(null);
 
   ngOnInit(): void {
     this.destinationService.getDestinations().subscribe({
@@ -146,6 +163,13 @@ export class CommunityDestinationsPageComponent implements OnInit {
       next: (ids) => this.joinedIds.set(new Set(ids)),
       error: () => {},
     });
+
+    if (this.auth.user()) {
+      this.profileService.getMyProfile().subscribe({
+        next: (p) => this.myProfile.set(p),
+        error: () => {},
+      });
+    }
   }
 
   openDetails(destination: CommunityDestination): void {

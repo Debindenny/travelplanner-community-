@@ -20,14 +20,13 @@ import { CommunityNotificationsService } from './services/community-notification
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
 import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
-import { CommunityProfileSummaryComponent } from './components/community-profile-summary.component';
 import { CommunityCrewWidgetComponent } from './components/community-crew-widget.component';
-import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
 import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
 import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
+import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
 
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
@@ -47,14 +46,14 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
       CommunityPostCommentsComponent,
       CommunityQaThreadComponent,
       CommunityHomeSubnavComponent,
-      CommunityProfileSummaryComponent,
+     
       CommunityCrewWidgetComponent,
-      CommunityJoinRequestsComponent,
       CommunityTravelersRailComponent,
       CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
       CommunitySimilarTravelersComponent,
       CommunityComposerModalComponent,
+      CommunityJoinRequestsComponent,
     ],
     template: `
     <!-- font-manrope: the app-wide default (Poppins) is a rounded geometric face that
@@ -77,9 +76,17 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
                card pinned to its bottom via mt-auto stays visible alongside the nav
                links instead of only appearing once you scroll to the very end of the
                page. -->
+
           <div class="flex flex-col h-[calc(100vh-120px)] row-span-3 lg:col-span-2 lg:row-span-2 sticky top-[92px] gap-3 sm:gap-5">
-            <app-community-home-subnav (sharePost)="showComposerModal.set(true)" />
-            <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" />
+          <!--  <app-community-home-subnav (sharePost)="showComposerModal.set(true)" /> -->
+
+            <app-community-home-subnav [profile]="myProfile()" [userId]="user()?.id ?? null"/>
+
+            
+
+          <!--  <app-community-profile-summary class="mt-auto" [profile]="myProfile()" [userId]="user()?.id ?? null" /> -->
+ 
+           
           </div>
 
           <!-- TOP ROW: Hero + Stories, paired with the left nav at every width -->
@@ -279,25 +286,10 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
             <app-community-join-requests />
             <app-community-travelers-rail />
             <app-community-destination-trending />
-            <app-community-upcoming-events-widget />
-
-            <!-- The page already has a dedicated <footer> below for narrow layouts;
-                 this compact inline footer is the lg+ sticky-rail variant only. -->
-            <div class="hidden lg:block text-[11.5px] font-semibold text-text-faint leading-relaxed px-1">
-              <div class="flex flex-wrap gap-x-3 gap-y-1">
-                <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
-                <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
-                <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
-                <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
-              </div>
-              <p class="mt-1.5 text-[10.5px] font-semibold tracking-wide text-text-disabled">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
-            </div>
+            <app-community-upcoming-events-widget />           
           </div>
-
         </div>
       </main>
-
-
 
       @if (savePostId) {
         <app-community-save-modal
@@ -322,15 +314,7 @@ type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPla
         </div>
       }
 
-      <footer class="py-6 text-center">
-        <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-2xs-plus font-semibold text-text-tertiary">
-          <a routerLink="/about" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_ABOUT' | translate }}</a>
-          <a routerLink="/help" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_HELP' | translate }}</a>
-          <a routerLink="/privacy" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_PRIVACY' | translate }}</a>
-          <a routerLink="/terms" class="hover:text-primary hover:underline transition-colors">{{ 'COMMUNITY.FOOTER_TERMS' | translate }}</a>
-        </div>
-        <p class="text-2xs text-text-disabled mt-1.5 uppercase tracking-wider font-semibold">{{ 'COMMUNITY.FOOTER_COPYRIGHT' | translate }}</p>
-      </footer>
+      
     </div>
   `,
     styles: [`
