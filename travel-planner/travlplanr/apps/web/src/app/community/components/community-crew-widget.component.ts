@@ -4,6 +4,7 @@ import { DOCUMENT } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/utils/toast.service';
+import { ProfileService } from '../../profile/profile.service';
 import { ModalShellComponent } from '../circles-trips/features/community-home/components/overlays/modal-shell/modal-shell.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from '../circles-trips/features/community-travelcircles/components/create-circle-modal/create-circle-modal.component';
 import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.component';
@@ -74,6 +75,7 @@ import { CommunityCrewChatModalComponent } from './community-crew-chat-modal.com
 
     @if (showCrewChat()) {
       <app-community-crew-chat-modal
+        [currentUserName]="profile.profile().name"
         (close)="showCrewChat.set(false)"
         (exitedGroup)="onExitGroup()"
       />
@@ -125,6 +127,7 @@ export class CommunityCrewWidgetComponent {
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
+  readonly profile = inject(ProfileService);
 
   readonly inviterName = 'Maya Kondo';
   readonly inviterCustomerId = '80da4269-efef-482e-bf18-b5291ce03abf';

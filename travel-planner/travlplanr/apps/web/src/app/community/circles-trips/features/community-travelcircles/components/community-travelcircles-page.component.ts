@@ -8,6 +8,7 @@ import { TRAVEL_CIRCLE_CARDS, TravelCircleCard, circleCtaLabel } from '../data/t
 import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-modal.component';
 import { CreateCircleModalComponent, CreateCirclePayload } from './create-circle-modal/create-circle-modal.component';
 import { CommunityCrewChatModalComponent } from '../../../../components/community-crew-chat-modal.component';
+import { ChatCircleContext, PARIS_CREW_CHAT_MOCK } from '../../../../components/community-crew-chat.mock';
 
 const ACCENT_PALETTE: Array<[string, string]> = [
   ['#0060ea', '#2aa98b'],
@@ -69,6 +70,23 @@ export class CommunityTravelCirclesComponent {
   readonly memberIds = this._memberIds.asReadonly();
 
   readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
+
+  /** Joined circle cards mapped to ChatCircleContext for the crew chat's
+   * circle dropdown selector. Only includes cards the user is a member of. */
+  readonly joinedCircleContexts = computed<ChatCircleContext[]>(() =>
+    this.cards()
+      .filter(card => this._memberIds().has(card.id))
+      .map(card => ({
+        id: card.id,
+        title: card.title,
+        dateRange: card.members[0]?.dates ?? PARIS_CREW_CHAT_MOCK.dateRange,
+        memberCount: card.members.length,
+        onlineCount: Math.min(card.members.length, 4),
+        endsInDays: PARIS_CREW_CHAT_MOCK.endsInDays,
+        members: card.members,
+        messages: PARIS_CREW_CHAT_MOCK.messages,
+      })),
+  );
 
   isMember(id: string): boolean {
     return this._memberIds().has(id);
