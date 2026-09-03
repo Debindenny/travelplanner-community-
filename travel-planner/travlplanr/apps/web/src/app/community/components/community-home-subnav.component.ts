@@ -1,12 +1,11 @@
-import { Component, OnInit, Output, EventEmitter, inject, signal } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, inject, signal, computed } from '@angular/core';
 
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';
 import { CommunityEventsService } from '../services/community-events.service';
 import { DiscoverSavedStore } from '../discover-saved/discover-saved.store';
-import { MyCommunityProfile } from '../services/community-profile.service';
-import { Input } from '@angular/core';
+import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 
 interface SubnavItem {
   label: string;
@@ -51,9 +50,9 @@ interface SubnavItem {
         }
       </nav>   
 
-@if (profile) {
+@if (profile(); as profile) {
   <a
-    [routerLink]="userId ? ['/community/users', userId] : ['/community']"
+    [routerLink]="userId() ? ['/community/users', userId()] : ['/community']"
     class="mt-40 flex items-center gap-3 px-3 py-3 ..."
   >
     <img
@@ -77,13 +76,15 @@ interface SubnavItem {
   `,
 })
 export class CommunityHomeSubnavComponent implements OnInit {
-  @Input() profile: MyCommunityProfile | null = null;
-  @Input() userId: string | null = null;
   @Output() sharePost = new EventEmitter<void>();
 
   private readonly auth = inject(AuthService);
   private readonly eventsService = inject(CommunityEventsService);
   private readonly store = inject(DiscoverSavedStore);
+  private readonly profileService = inject(CommunityProfileService);
+
+  readonly profile = signal<MyCommunityProfile | null>(null);
+  readonly userId = computed(() => this.auth.user()?.id ?? null);
 
   private readonly eventsCount = signal<number | null>(null);
 
@@ -101,6 +102,10 @@ export class CommunityHomeSubnavComponent implements OnInit {
     if (!this.auth.user()) {
       return;
     }
+    this.profileService.getMyProfile().subscribe({
+      next: (p) => this.profile.set(p),
+      error: () => {},
+    });
     this.eventsService.getEvents(20, 0).subscribe({
       next: (res) => this.eventsCount.set(res.meetups?.length || null),
       error: () => {},
