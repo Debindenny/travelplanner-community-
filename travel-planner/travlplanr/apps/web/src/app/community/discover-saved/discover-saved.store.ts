@@ -15,31 +15,6 @@ import {
   SavedDetailPayload,
 } from './discover-saved.models';
 
-// const EMPTY_FILTERS: DiscoverFilters = {
-//   categories: ['All'],
-//   places: [{ label: 'All places', count: 0 }],
-//   sorts: ['Most used'],
-// };
-// const EMPTY_FILTERS: DiscoverFilters = {
-//   categories: [
-//     'All',
-//     'Tips',
-//     'Routes',
-//     'Reels',
-//     'Food',
-//     'Budget'
-//   ],
-//   "places": [
-// { "label": "All places", "count": 6 },
-// { "label": "Paris", "count": 2 },
-// { "label": "Tokyo", "count": 1 },
-// { "label": "Kyoto", "count": 1 },
-// { "label": "Lisbon", "count": 1 },
-// { "label": "Europe", "count": 1 }
-// ],
-//   sorts: ['Most used','Newest','Most saved'],
-// };
-
 const EMPTY_FILTERS: DiscoverFilters = {
   categories: ['All'],
   places: [{ label: 'All places', count: 0 }],
