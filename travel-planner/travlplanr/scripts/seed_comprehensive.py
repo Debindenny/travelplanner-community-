@@ -345,7 +345,28 @@ async def seed_community(
         return []
 
     post_ids: list[uuid.UUID] = []
-    names = [f"Traveler {i}" for i in range(1, 21)]
+    names = [
+    "Priya Nair",
+    "Marco Villa",
+    "Emma Ross",
+    "Aarav Menon",
+    "Daniel Rossi",
+    "Maya Kondo",
+    "Rhea Sharma",
+    "Lea Fontaine",
+    "Camille Roy",
+    "Iker Solano",
+    "Sofia Marchetti",
+    "Tom Becker",
+    "Jonas Weber",
+    "Sofia Almeida",
+    "Liam Foster",
+    "Owen Park",
+    "Erik Halvorsen",
+    "Nora Fjeld",
+    "Yasmine Idrissi",
+    "Ava Reyes"
+]
 
     for i, (cid, _) in enumerate(customers[:20]):
         pid = uuid.uuid5(TENANT_ID, f"post-{i}")
@@ -410,7 +431,7 @@ async def seed_community(
                 "VALUES (:id, :cid, :name, :url, :cap, :now, :exp)"
             ),
             {
-                "id": uuid.uuid4(), "cid": cid, "name": f"Traveler {i}",
+                "id": uuid.uuid4(), "cid": cid, "name": names[i],
                 "url": f"assets/stories/{i}.mp4", "cap": "Live from the airport!",
                 "now": NAIVE_NOW, "exp": NAIVE_NOW + timedelta(hours=24),
             },
