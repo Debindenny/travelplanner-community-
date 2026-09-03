@@ -16,6 +16,14 @@
   </div>
 </div>
 
+@if (isLoading()) {
+  <p class="circles-status">Loading circles…</p>
+} @else if (loadError()) {
+  <p class="circles-status circles-status--error">{{ loadError() }}</p>
+} @else if (cards().length === 0) {
+  <p class="circles-status">No travel circles yet. Create one to get started.</p>
+}
+
 <div class="circle-grid">
   @for (card of cards(); track card.id) {
     <article class="circle-card">
@@ -79,6 +87,7 @@
       [isRecentlyActive]="isRecentlyActive(circle)"
       (close)="onCloseCircleDetail()"
       (toggleMembership)="onToggleMembership(circle)"
+      (deleteCircle)="onDeleteCircle(circle)"
     />
   </app-modal-shell>
 }

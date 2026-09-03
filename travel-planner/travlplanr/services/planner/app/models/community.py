@@ -390,6 +390,14 @@ class CommunitySpace(Base):
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     cover_image: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    # Travel Circles fields — a CommunitySpace doubles as a "circle" once these
+    # are set; kept on the same table rather than a parallel domain since the
+    # membership/creation semantics are identical.
+    visibility: Mapped[str] = mapped_column(String(20), default="public")  # public, invite_only, friends
+    audience: Mapped[str | None] = mapped_column(String(20), nullable=True)  # everyone, women_only, men_only
+    accent: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    accent2: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    last_activity_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -402,3 +410,63 @@ class SpaceMember(Base):
     joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("space_id", "customer_id"),)
+
+
+class SpaceMessage(Base):
+    """A group-chat message inside a Travel Circle (CommunitySpace).
+
+    `content` holds the kind-specific static fields (poll question/options,
+    meetup title/meta, expense amount/participants, place image/title) — the
+    interactive state each kind carries (votes, RSVPs, settlements, adds) is
+    tracked in the tables below instead, since it's per-member and mutates
+    after the message is sent.
+    """
+    __tablename__ = "space_messages"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    space_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_spaces.id", ondelete="CASCADE"), index=True)
+    sender_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # text, poll, meetup, expense, place
+    content: Mapped[dict] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+class SpaceMessagePollVote(Base):
+    __tablename__ = "space_message_poll_votes"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("space_messages.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    option: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("message_id", "customer_id"),)
+
+
+class SpaceMessageMeetupRsvp(Base):
+    __tablename__ = "space_message_meetup_rsvps"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("space_messages.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    status: Mapped[str] = mapped_column(String(10))  # in, out
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("message_id", "customer_id"),)
+
+
+class SpaceMessageExpenseSettlement(Base):
+    __tablename__ = "space_message_expense_settlements"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("space_messages.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("message_id", "customer_id"),)
+
+
+class SpaceMessagePlaceAdd(Base):
+    __tablename__ = "space_message_place_adds"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("space_messages.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("message_id", "customer_id"),)

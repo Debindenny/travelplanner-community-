@@ -15,11 +15,19 @@ export interface SpaceAuthor {
   avatar: string | null;
 }
 
+export type SpaceVisibility = 'public' | 'invite_only' | 'friends';
+export type SpaceAudience = 'everyone' | 'women_only' | 'men_only';
+
 export interface SpaceListItem {
   id: string;
   name: string;
   description: string | null;
   coverImage: string | null;
+  visibility: SpaceVisibility;
+  audience: SpaceAudience | null;
+  accent: string | null;
+  accent2: string | null;
+  lastActivityAt: string | null;
   memberCount: number;
   isJoined: boolean;
   role: string | null;
@@ -29,10 +37,23 @@ export interface SpaceListItem {
 
 export type Space = SpaceListItem;
 
+export interface SpaceMemberSummary {
+  customer_id: string;
+  name: string;
+  avatar: string | null;
+  location: string | null;
+  role: 'admin' | 'member';
+  joined_at: string | null;
+}
+
 export interface CreateSpacePayload {
   name: string;
   description?: string;
   coverImage?: string;
+  visibility?: SpaceVisibility;
+  audience?: SpaceAudience;
+  accent?: string;
+  accent2?: string;
 }
 
 /* ── Wire <-> model mapping ───────────────────────────── */
@@ -43,6 +64,11 @@ function fromWire(s: any): Space {
     name: s.name,
     description: s.description ?? null,
     coverImage: s.cover_image ?? null,
+    visibility: s.visibility ?? 'public',
+    audience: s.audience ?? null,
+    accent: s.accent ?? null,
+    accent2: s.accent2 ?? null,
+    lastActivityAt: s.last_activity_at ?? null,
     memberCount: s.member_count ?? 0,
     isJoined: !!s.is_joined,
     role: s.role ?? null,
@@ -75,12 +101,21 @@ export class CommunitySpacesService {
 
   /** Create a new space. */
   createSpace(payload: CreateSpacePayload): Observable<Space> {
-    const wire = {
+    const wire: Record<string, unknown> = {
       name: payload.name,
       description: payload.description,
       cover_image: payload.coverImage,
     };
+    if (payload.visibility) wire['visibility'] = payload.visibility;
+    if (payload.audience) wire['audience'] = payload.audience;
+    if (payload.accent) wire['accent'] = payload.accent;
+    if (payload.accent2) wire['accent2'] = payload.accent2;
     return this.http.post<any>(apiUrl('/community/spaces'), wire).pipe(map(fromWire));
+  }
+
+  /** Delete a space. Only an admin (the creator, by default) may do this. */
+  deleteSpace(spaceId: string): Observable<void> {
+    return this.http.delete<void>(apiUrl(`/community/spaces/${spaceId}`));
   }
 
   /** Join or leave a space. Returns the new membership state. */
@@ -108,7 +143,7 @@ export class CommunitySpacesService {
   }
 
   /** List members of a space. */
-  getSpaceMembers(spaceId: string, limit = 50, offset = 0): Observable<any[]> {
-    return this.http.get<any[]>(apiUrl(`/community/spaces/${spaceId}/members?limit=${limit}&offset=${offset}`));
+  getSpaceMembers(spaceId: string, limit = 50, offset = 0): Observable<SpaceMemberSummary[]> {
+    return this.http.get<SpaceMemberSummary[]>(apiUrl(`/community/spaces/${spaceId}/members?limit=${limit}&offset=${offset}`));
   }
 }

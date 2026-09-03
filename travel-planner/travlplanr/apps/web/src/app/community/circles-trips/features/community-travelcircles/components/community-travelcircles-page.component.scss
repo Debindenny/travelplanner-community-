@@ -115,6 +115,18 @@
 
 /* ---------- Card grid ---------- */
 
+.circles-status {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+
+  &--error {
+    color: #dc2626;
+  }
+}
+
 .circle-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

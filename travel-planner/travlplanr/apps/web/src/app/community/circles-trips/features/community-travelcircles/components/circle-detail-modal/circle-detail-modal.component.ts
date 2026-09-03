@@ -20,6 +20,7 @@ export class CircleDetailModalComponent {
 
   readonly close = output<void>();
   readonly toggleMembership = output<void>();
+  readonly deleteCircle = output<void>();
 
   memberSubtext(member: CircleMember): string {
     return member.role === 'Host' ? `Host · ${member.location}` : `${member.location} · ${member.joinedLabel}`;

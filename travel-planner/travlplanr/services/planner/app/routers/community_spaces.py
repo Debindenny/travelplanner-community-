@@ -1,19 +1,42 @@
+from datetime import datetime
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select, desc, func
 
 from shared.auth_dependencies import optional_customer, require_customer
 from shared.rate_limit import rate_limiter
 from app.models.community import CommunitySpace, SpaceMember, CommunityProfile
+from .community_shared import iso_utc
 
 router = APIRouter()
+
+VISIBILITY_VALUES = {"public", "invite_only", "friends"}
+AUDIENCE_VALUES = {"everyone", "women_only", "men_only"}
 
 
 class CreateSpaceRequest(BaseModel):
     name: str = Field(..., max_length=255)
     description: str | None = Field(default=None, max_length=1000)
     cover_image: str | None = None
+    visibility: str = Field(default="public")
+    audience: str | None = None
+    accent: str | None = Field(default=None, max_length=20)
+    accent2: str | None = Field(default=None, max_length=20)
+
+    @field_validator("visibility")
+    @classmethod
+    def _validate_visibility(cls, value: str) -> str:
+        if value not in VISIBILITY_VALUES:
+            raise ValueError(f"visibility must be one of {sorted(VISIBILITY_VALUES)}")
+        return value
+
+    @field_validator("audience")
+    @classmethod
+    def _validate_audience(cls, value: str | None) -> str | None:
+        if value is not None and value not in AUDIENCE_VALUES:
+            raise ValueError(f"audience must be one of {sorted(AUDIENCE_VALUES)}")
+        return value
 
 
 async def _member_counts(session, space_ids: list[UUID]) -> dict:
@@ -52,6 +75,11 @@ def _serialize_space(space: CommunitySpace, member_count: int, role: str | None,
         "name": space.name,
         "description": space.description,
         "cover_image": space.cover_image,
+        "visibility": space.visibility,
+        "audience": space.audience,
+        "accent": space.accent,
+        "accent2": space.accent2,
+        "last_activity_at": iso_utc(space.last_activity_at),
         "created_at": space.created_at.isoformat() if space.created_at else None,
         "created_by": {
             "id": str(space.created_by),
@@ -76,6 +104,10 @@ async def create_space(data: CreateSpaceRequest, request: Request, auth: dict = 
             name=data.name.strip(),
             description=data.description,
             cover_image=data.cover_image,
+            visibility=data.visibility,
+            audience=data.audience,
+            accent=data.accent,
+            accent2=data.accent2,
         )
         session.add(space)
         await session.flush()
@@ -167,11 +199,32 @@ async def toggle_space_membership(space_id: UUID, request: Request, auth: dict =
             session.add(SpaceMember(space_id=space_id, customer_id=customer_id, role="member"))
             action = "joined"
 
+        space.last_activity_at = datetime.utcnow()
         await session.commit()
         member_count = (await session.execute(
             select(func.count(SpaceMember.id)).where(SpaceMember.space_id == space_id)
         )).scalar() or 0
         return {"status": "success", "action": action, "member_count": member_count}
+
+
+@router.delete("/{space_id}", dependencies=[Depends(rate_limiter("space-delete", 10, 60))])
+async def delete_space(space_id: UUID, request: Request, auth: dict = Depends(require_customer)):
+    customer_id = UUID(auth["customer_id"])
+    async with request.app.state.session_factory() as session:
+        space = (await session.execute(select(CommunitySpace).where(CommunitySpace.id == space_id))).scalar_one_or_none()
+        if not space:
+            raise HTTPException(status_code=404, detail="Space not found")
+
+        membership = (await session.execute(
+            select(SpaceMember).where(SpaceMember.space_id == space_id, SpaceMember.customer_id == customer_id)
+        )).scalar_one_or_none()
+        if not membership or membership.role != "admin":
+            raise HTTPException(status_code=403, detail="Only a circle admin can delete this circle")
+
+        # SpaceMember/SpaceMessage rows cascade via ON DELETE CASCADE FKs.
+        await session.delete(space)
+        await session.commit()
+        return {"status": "success"}
 
 
 @router.get("/{space_id}/members")
@@ -192,6 +245,7 @@ async def get_space_members(space_id: UUID, request: Request, limit: int = 50, o
                 "customer_id": str(m.customer_id),
                 "name": prof.name if prof and prof.name else "Traveler",
                 "avatar": prof.avatar_url if prof else None,
+                "location": prof.local_in if prof else None,
                 "role": m.role,
                 "joined_at": m.joined_at.isoformat() if m.joined_at else None,
             })

@@ -167,6 +167,7 @@ from app.routers import (
     community_meetups,
     community_journals,
     community_spaces,
+    community_space_messages,
     collaboration,
     matching,
     websocket,
@@ -206,6 +207,7 @@ app.include_router(community_gamification.router, prefix="/api/v1/community/gami
 app.include_router(community_meetups.router, prefix="/api/v1/community/meetups", tags=["Community"])
 app.include_router(community_journals.router, prefix="/api/v1/community/journals", tags=["Community"])
 app.include_router(community_spaces.router, prefix="/api/v1/community/spaces", tags=["Community"])
+app.include_router(community_space_messages.router, prefix="/api/v1/community/spaces", tags=["Community"])
 # community_posts defines a catch-all GET/PATCH/DELETE "/{post_id}" under the bare
 # "/api/v1/community" prefix — it MUST be registered last among community_* routers
 # sharing that prefix, or its single-segment param route shadows every literal

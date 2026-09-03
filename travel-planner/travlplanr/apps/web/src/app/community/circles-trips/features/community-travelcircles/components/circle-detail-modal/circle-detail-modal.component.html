@@ -37,13 +37,26 @@
     <span class="circle-detail__activity-dot" [class.circle-detail__activity-dot--live]="isRecentlyActive()"></span>
     {{ circle().activity }}
   </span>
-  <button
-    type="button"
-    class="circle-detail__action"
-    [class.circle-detail__action--active]="isMember()"
-    [class.circle-detail__action--owner]="isOwner()"
-    (click)="toggleMembership.emit()"
-  >
-    {{ actionLabel() }}
-  </button>
+  <span class="circle-detail__footer-actions">
+    @if (isOwner()) {
+      <button
+        type="button"
+        class="circle-detail__delete"
+        (click)="deleteCircle.emit()"
+        aria-label="Delete circle"
+        title="Delete circle"
+      >
+        <app-icon name="trash" [size]="16" />
+      </button>
+    }
+    <button
+      type="button"
+      class="circle-detail__action"
+      [class.circle-detail__action--active]="isMember()"
+      [class.circle-detail__action--owner]="isOwner()"
+      (click)="toggleMembership.emit()"
+    >
+      {{ actionLabel() }}
+    </button>
+  </span>
 </div>

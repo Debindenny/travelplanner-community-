@@ -14,7 +14,6 @@ import {
   TravelCircleCard,
   circleCtaLabel,
 } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
-import { MOCK_OWNER } from '../circles-trips/core/data/community-mock-users';
 import { ToastService } from '../../shared/utils/toast.service';
 import { ProfileService } from '../../profile/profile.service';
 
@@ -499,6 +498,7 @@ import { ProfileService } from '../../profile/profile.service';
             (click)="sendPlace()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Share a place"
+            title="Share a place"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0Z" />
@@ -507,9 +507,10 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="sendPoll()"
+            (click)="openPollModal()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Start a poll"
+            title="Start a poll"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 20V10m4 10V4m4 16v-7" />
@@ -517,9 +518,10 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="sendMeetup()"
+            (click)="openMeetupModal()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Plan a meetup"
+            title="Plan a meetup"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
@@ -527,9 +529,10 @@ import { ProfileService } from '../../profile/profile.service';
           </button>
           <button
             type="button"
-            (click)="sendExpense()"
+            (click)="openExpenseModal()"
             class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
             aria-label="Split an expense"
+            title="Split an expense"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
@@ -672,6 +675,193 @@ import { ProfileService } from '../../profile/profile.service';
           </div>
         </div>
       }
+
+      <!-- Create Poll Modal Overlay -->
+      @if (showPollModal()) {
+        <div
+          class="fixed inset-0 z-[91] bg-black/30 flex items-center justify-center p-4"
+          (click)="closePollModal(); $event.stopPropagation()"
+        >
+          <div
+            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden animate-fade-in-up"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h3 class="text-[15px] font-bold text-text-primary">Create Poll</h3>
+              <button
+                type="button"
+                (click)="closePollModal()"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
+                aria-label="Close"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="px-5 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto chat-scroll">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Question</label>
+                <input
+                  type="text"
+                  [value]="pollQuestion()"
+                  (input)="pollQuestion.set($any($event.target).value)"
+                  placeholder="e.g. Dinner Thursday — where?"
+                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Options</label>
+                @for (option of pollOptions(); track $index) {
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="text"
+                      [value]="option"
+                      (input)="updatePollOption($index, $any($event.target).value)"
+                      [placeholder]="'Option ' + ($index + 1)"
+                      class="flex-1 h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                    />
+                    @if (pollOptions().length > 2) {
+                      <button
+                        type="button"
+                        (click)="removePollOption($index)"
+                        class="shrink-0 w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-text-faint hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none"
+                        [attr.aria-label]="'Remove option ' + ($index + 1)"
+                      >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+                @if (pollOptions().length < 6) {
+                  <button
+                    type="button"
+                    (click)="addPollOption()"
+                    class="self-start flex items-center gap-1.5 text-[12.5px] font-bold text-primary hover:underline focus:outline-none"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add option
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="px-5 py-4 border-t border-slate-100 flex gap-3">
+              <button
+                type="button"
+                (click)="closePollModal()"
+                class="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
+              >Cancel</button>
+              <button
+                type="button"
+                (click)="createPoll()"
+                [disabled]="!canSavePoll()"
+                class="flex-1 h-10 rounded-xl text-[13px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
+                [class.bg-primary]="canSavePoll()"
+                [class.hover:bg-primary-hover]="canSavePoll()"
+                [class.bg-slate-200]="!canSavePoll()"
+                [class.text-text-faint]="!canSavePoll()"
+              >Save Poll</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Plan Meetup Modal Overlay -->
+      @if (showMeetupModal()) {
+        <div
+          class="fixed inset-0 z-[91] bg-black/30 flex items-center justify-center p-4"
+          (click)="closeMeetupModal(); $event.stopPropagation()"
+        >
+          <div
+            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden animate-fade-in-up"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h3 class="text-[15px] font-bold text-text-primary">Plan a Meetup</h3>
+              <button
+                type="button"
+                (click)="closeMeetupModal()"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
+                aria-label="Close"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="px-5 py-4 flex flex-col gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">What</label>
+                <input
+                  type="text"
+                  [value]="meetupTitle()"
+                  (input)="meetupTitle.set($any($event.target).value)"
+                  placeholder="e.g. Coffee at Saint-Jean"
+                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Where</label>
+                <input
+                  type="text"
+                  [value]="meetupLocation()"
+                  (input)="meetupLocation.set($any($event.target).value)"
+                  placeholder="e.g. Montmartre"
+                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Date</label>
+                  <input
+                    type="date"
+                    [value]="meetupDate()"
+                    (input)="meetupDate.set($any($event.target).value)"
+                    class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Time</label>
+                  <input
+                    type="time"
+                    [value]="meetupTime()"
+                    (input)="meetupTime.set($any($event.target).value)"
+                    class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="px-5 py-4 border-t border-slate-100 flex gap-3">
+              <button
+                type="button"
+                (click)="closeMeetupModal()"
+                class="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
+              >Cancel</button>
+              <button
+                type="button"
+                (click)="createMeetup()"
+                [disabled]="!canSaveMeetup()"
+                class="flex-1 h-10 rounded-xl text-[13px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
+                [class.bg-primary]="canSaveMeetup()"
+                [class.hover:bg-primary-hover]="canSaveMeetup()"
+                [class.bg-slate-200]="!canSaveMeetup()"
+                [class.text-text-faint]="!canSaveMeetup()"
+              >Plan Meetup</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -747,6 +937,16 @@ export class CommunityCrewChatModalComponent {
   readonly expenseAmount = signal('');
   readonly expensePeople = signal(2);
   readonly expenseNotes = signal('');
+
+  readonly showPollModal = signal(false);
+  readonly pollQuestion = signal('');
+  readonly pollOptions = signal<string[]>(['', '']);
+
+  readonly showMeetupModal = signal(false);
+  readonly meetupTitle = signal('');
+  readonly meetupLocation = signal('');
+  readonly meetupDate = signal('');
+  readonly meetupTime = signal('');
 
   /** The chat context currently displayed. When `joinedCircles` is provided
    * this is the selected circle; otherwise it's the single-circle fallback
@@ -854,7 +1054,7 @@ export class CommunityCrewChatModalComponent {
     this.pushMessage({
       id: `local-${Date.now()}`,
       author: this.currentUserName() || 'You',
-      customer_id: MOCK_OWNER.customerId,
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       kind: 'text',
       text,
@@ -862,118 +1062,172 @@ export class CommunityCrewChatModalComponent {
     this.draft = '';
   }
 
-  /** Appends a message to the active circle's feed (or the single-circle
-   * fallback signal when no `joinedCircles` are set), mirroring the fallback
-   * chain `activeMessages` reads from. */
-  private pushMessage(message: CrewMessage): void {
-    if (this.joinedCircles().length === 0) {
-      this.messages.update(list => [...list, message]);
-      return;
-    }
+  private pushMessage(msg: CrewMessage): void {
     const circleId = this.activeCircle().id;
-    this.messagesByCircle.update(map => ({
-      ...map,
-      [circleId]: [...(map[circleId] ?? this.activeCircle().messages), message],
-    }));
-  }
-
-  /** Whether `msg` was sent by the current (demo) user, so it renders on the
-   * right of the feed instead of the left. */
-  isSelfMessage(msg: CrewMessage): boolean {
-    return msg.customer_id === MOCK_OWNER.customerId;
-  }
-
-  /** Timestamps render only at the end of a consecutive run of messages from
-   * the same author, not under every bubble. */
-  showTime(messages: CrewMessage[], index: number): boolean {
-    const next = messages[index + 1];
-    return !next || next.author !== messages[index].author;
+    this.messagesByCircle.update(map => {
+      const existing = map[circleId] ?? this.activeCircle().messages;
+      return { ...map, [circleId]: [...existing, msg] };
+    });
   }
 
   sendPlace(): void {
     this.pushMessage({
-      id: `local-${Date.now()}`,
+      id: `place-${Date.now()}`,
       author: this.currentUserName() || 'You',
-      customer_id: MOCK_OWNER.customerId,
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'place',
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
-      title: 'Shared a place',
-      meta: 'Tap to view details',
+      kind: 'place' as const,
+      image: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?auto=format&fit=crop&w=800&q=80',
+      title: 'Shakespeare & Company',
+      meta: 'Bookshop \u00b7 5th arrondissement',
       ctaLabel: 'Add to my trip',
     });
   }
 
-  sendPoll(): void {
-    this.pushMessage({
-      id: `local-${Date.now()}`,
-      author: this.currentUserName() || 'You',
-      customer_id: MOCK_OWNER.customerId,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'poll',
-      question: 'New poll — what do you think?',
-      options: ['Yes', 'No', 'Maybe'],
-    });
+  openPollModal(): void {
+    this.pollQuestion.set('');
+    this.pollOptions.set(['', '']);
+    this.showPollModal.set(true);
   }
 
-  sendMeetup(): void {
-    this.pushMessage({
-      id: `local-${Date.now()}`,
-      author: this.currentUserName() || 'You',
-      customer_id: MOCK_OWNER.customerId,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'meetup',
-      title: 'New meetup',
-      meta: 'Today · TBD',
-    });
+  closePollModal(): void {
+    this.showPollModal.set(false);
   }
 
-  sendExpense(): void {
+  addPollOption(): void {
+    this.pollOptions.update(opts => (opts.length < 6 ? [...opts, ''] : opts));
+  }
+
+  removePollOption(index: number): void {
+    this.pollOptions.update(opts => (opts.length > 2 ? opts.filter((_, i) => i !== index) : opts));
+  }
+
+  updatePollOption(index: number, value: string): void {
+    this.pollOptions.update(opts => opts.map((o, i) => (i === index ? value : o)));
+  }
+
+  canSavePoll(): boolean {
+    const question = this.pollQuestion().trim();
+    const filled = this.pollOptions().filter(o => o.trim().length > 0);
+    return question.length > 0 && filled.length >= 2;
+  }
+
+  createPoll(): void {
+    if (!this.canSavePoll()) return;
+    const question = this.pollQuestion().trim();
+    const options = this.pollOptions().map(o => o.trim()).filter(o => o.length > 0);
+    this.pushMessage({
+      id: `poll-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'poll' as const,
+      question,
+      options,
+    });
+    this.closePollModal();
+  }
+
+  openMeetupModal(): void {
+    this.meetupTitle.set('');
+    this.meetupLocation.set('');
+    this.meetupDate.set('');
+    this.meetupTime.set('');
+    this.showMeetupModal.set(true);
+  }
+
+  closeMeetupModal(): void {
+    this.showMeetupModal.set(false);
+  }
+
+  canSaveMeetup(): boolean {
+    return (
+      this.meetupTitle().trim().length > 0 &&
+      this.meetupLocation().trim().length > 0 &&
+      this.meetupDate().length > 0 &&
+      this.meetupTime().length > 0
+    );
+  }
+
+  createMeetup(): void {
+    if (!this.canSaveMeetup()) return;
+    const [year, month, day] = this.meetupDate().split('-').map(Number);
+    const when = new Date(year, month - 1, day);
+    const weekday = when.toLocaleDateString('en-US', { weekday: 'short' });
+    this.pushMessage({
+      id: `meetup-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'meetup' as const,
+      title: this.meetupTitle().trim(),
+      meta: `${weekday} ${this.meetupTime()} \u00b7 ${this.meetupLocation().trim()}`,
+    });
+    this.closeMeetupModal();
+  }
+
+  openExpenseModal(): void {
+    this.expenseTitle.set('');
+    this.expenseAmount.set('');
+    this.expensePeople.set(2);
+    this.expenseNotes.set('');
     this.showExpenseModal.set(true);
   }
 
   closeExpenseModal(): void {
     this.showExpenseModal.set(false);
-    this.expenseTitle.set('');
-    this.expenseAmount.set('');
-    this.expensePeople.set(2);
-    this.expenseNotes.set('');
-  }
-
-  decrementPeople(): void {
-    this.expensePeople.update(n => Math.max(1, n - 1));
-  }
-
-  incrementPeople(): void {
-    this.expensePeople.update(n => n + 1);
   }
 
   createExpense(): void {
     const title = this.expenseTitle().trim();
     const amountStr = this.expenseAmount().trim();
-    if (!title || !amountStr) return;
-    const totalAmount = Number(amountStr) || 0;
-    const participantCount = this.expensePeople();
-    const perPerson = (totalAmount / participantCount).toFixed(2);
-    const notes = this.expenseNotes().trim();
+    const amount = parseFloat(amountStr.replace(/[^0-9.]/g, ''));
+    const people = this.expensePeople();
+
+    if (!title || isNaN(amount) || amount <= 0 || people < 2) return;
+
+    const perPerson = amount / people;
+    const perPersonStr = perPerson % 1 === 0 ? `\u20ac${perPerson}` : `\u20ac${perPerson.toFixed(2)}`;
+
     this.pushMessage({
-      id: `local-${Date.now()}`,
+      id: `expense-${Date.now()}`,
       author: this.currentUserName() || 'You',
-      customer_id: MOCK_OWNER.customerId,
+      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'expense',
+      kind: 'expense' as const,
       title,
-      meta: notes
-        ? `€${perPerson} each · ${participantCount} people · ${notes}`
-        : `€${perPerson} each · ${participantCount} people`,
-      totalAmount,
-      participantCount,
-      splitType: 'equal',
+      meta: `${perPersonStr} each \u00b7 ${people} people`,
+      totalAmount: amount,
+      participantCount: people,
+      splitType: 'equal' as const,
     });
-    this.closeExpenseModal();
+    this.showExpenseModal.set(false);
   }
 
-  memberSub(member: CircleMember): string {
+  isSelfMessage(msg: CrewMessage): boolean {
+    const name = this.currentUserName();
+    return name ? msg.author === name : msg.author === 'You';
+  }
+
+  showTime(messages: CrewMessage[], index: number): boolean {
+    const msg = messages[index];
+    if (!msg) return true;
+    if (index === 0) return true;
+    const prev = messages[index - 1];
+    if (!prev || prev.author !== msg.author) return true;
+    return !msg.time || msg.time !== prev.time;
+  }
+
+  decrementPeople(): void {
+    const v = this.expensePeople();
+    if (v > 2) this.expensePeople.set(v - 1);
+  }
+
+  incrementPeople(): void {
+    this.expensePeople.update(v => v + 1);
+  }
+
+  member(member: CircleMember): string {
     const route = member.route ?? member.location;
     return member.dates ? `${route} · ${member.dates}` : route;
   }
@@ -985,6 +1239,11 @@ export class CommunityCrewChatModalComponent {
   selectCircle(circle: ChatCircleContext): void {
     this.selectedCircleId.set(circle.id);
     this.circleMenuOpen.set(false);
+  }
+
+  memberSub(member: CircleMember): string {
+    const route = member.route ?? member.location;
+    return member.dates ? `${route} · ${member.dates}` : route;
   }
 
   isCurrentUser(name: string): boolean {
@@ -1014,6 +1273,10 @@ export class CommunityCrewChatModalComponent {
   onEscapeKey(): void {
     if (this.showExpenseModal()) {
       this.closeExpenseModal();
+    } else if (this.showPollModal()) {
+      this.closePollModal();
+    } else if (this.showMeetupModal()) {
+      this.closeMeetupModal();
     } else {
       this.close.emit();
     }
