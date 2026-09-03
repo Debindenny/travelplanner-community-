@@ -17,6 +17,8 @@ export class CircleDetailModalComponent {
   readonly isMember = input(false);
   readonly isOwner = input(false);
   readonly isRecentlyActive = input(false);
+  /** Name of the signed-in user, so their own row in the member list can be marked "You". */
+  readonly currentUserName = input<string>('');
 
   readonly close = output<void>();
   readonly toggleMembership = output<void>();
@@ -24,5 +26,9 @@ export class CircleDetailModalComponent {
 
   memberSubtext(member: CircleMember): string {
     return member.role === 'Host' ? `Host · ${member.location}` : `${member.location} · ${member.joinedLabel}`;
+  }
+
+  isCurrentUser(member: CircleMember): boolean {
+    return !!this.currentUserName() && member.name === this.currentUserName();
   }
 }

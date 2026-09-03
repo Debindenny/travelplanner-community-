@@ -233,7 +233,7 @@ export class CommunityTravelCirclesComponent {
   private async joinCircle(card: TravelCircleCard): Promise<void> {
     try {
       const res = await firstValueFrom(this.spacesService.toggleJoin(card.id));
-      this.applyMembership(card.id, res.isJoined, res.memberCount);
+      await this.applyMembership(card.id, res.isJoined, res.memberCount);
       this.lastJoinedCircle.set(card);
       this.openChatCircle.set(card);
     } catch (e) {
@@ -246,7 +246,7 @@ export class CommunityTravelCirclesComponent {
     const wasMember = this.isMember(card.id);
     try {
       const res = await firstValueFrom(this.spacesService.toggleJoin(card.id));
-      this.applyMembership(card.id, res.isJoined, res.memberCount);
+      await this.applyMembership(card.id, res.isJoined, res.memberCount);
 
       if (card.cta === 'Join') {
         this.store.showToast(wasMember ? `Left ${card.title}` : `Joined ${card.title}`);
@@ -259,7 +259,7 @@ export class CommunityTravelCirclesComponent {
     }
   }
 
-  private applyMembership(id: string, isJoined: boolean, memberCount: number): void {
+  private async applyMembership(id: string, isJoined: boolean, memberCount: number): Promise<void> {
     const next = new Set(this._memberIds());
     if (isJoined) {
       next.add(id);
@@ -268,6 +268,16 @@ export class CommunityTravelCirclesComponent {
     }
     this._memberIds.set(next);
     this.updateCardMemberCount(id, memberCount);
+
+    // Refresh the real member list so the newly joined/left member shows up
+    // immediately (including their "You" badge) instead of only after the
+    // next full page reload.
+    try {
+      const members = await firstValueFrom(this.spacesService.getSpaceMembers(id));
+      this._cards.set(this._cards().map((c) => (c.id === id ? { ...c, members: members.map(toCircleMember) } : c)));
+    } catch (e) {
+      console.error('Failed to refresh circle members', e);
+    }
   }
 
   closeCrewChat(): void {
@@ -307,7 +317,7 @@ export class CommunityTravelCirclesComponent {
   private async leaveCircle(circle: TravelCircleCard): Promise<void> {
     try {
       const res = await firstValueFrom(this.spacesService.toggleJoin(circle.id));
-      this.applyMembership(circle.id, res.isJoined, res.memberCount);
+      await this.applyMembership(circle.id, res.isJoined, res.memberCount);
       this.store.showToast(`You left ${circle.title}.`);
     } catch (e) {
       console.error('Failed to leave circle', e);
@@ -316,12 +326,20 @@ export class CommunityTravelCirclesComponent {
   }
 
   onFloatingChatClick(): void {
-    const joined = this.lastJoinedCircle();
-    if (joined) {
-      this.openChatCircle.set(joined);
-    } else {
-      this.showCrewChat.set(true);
+    const justJoined = this.lastJoinedCircle();
+    if (justJoined) {
+      this.openChatCircle.set(justJoined);
+      return;
     }
+    // Real (persisted) membership survives a reload even though
+    // `lastJoinedCircle` — set only right when the Join button is clicked —
+    // does not, so check it too before falling back to the discovery list.
+    const alreadyJoined = this.cards().find((c) => this.isMember(c.id));
+    if (alreadyJoined) {
+      this.openChatCircle.set(alreadyJoined);
+      return;
+    }
+    this.showCrewChat.set(true);
   }
 
   onCreateCircle(): void {

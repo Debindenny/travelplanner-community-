@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, computed, effect, inject, afterNextRender, input } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, computed, effect, untracked, inject, afterNextRender, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +16,7 @@ import {
   circleCtaLabel,
 } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 import { ToastService } from '../../shared/utils/toast.service';
-import { ProfileService } from '../../profile/profile.service';
+import { CommunityProfileService } from '../services/community-profile.service';
 
 /**
  * Crew group-chat preview. UI-only: every interaction below (poll votes, RSVPs,
@@ -478,10 +479,10 @@ import { ProfileService } from '../../profile/profile.service';
             } @else {
               <button
                 type="button"
-                (click)="toggleFollow(member.name)"
+                (click)="toggleFollow(member)"
                 class="shrink-0 w-[88px] h-9 rounded-[12px] border border-[#D7DDE8] bg-white text-sm font-semibold text-[#4A5A70] flex items-center justify-center hover:border-[#c5cede] hover:bg-slate-50 active:scale-[0.98] transition-colors focus:outline-none"
               >
-                {{ activeFollowingIds().has(member.name) ? 'Unfollow' : 'Follow' }}
+                {{ activeFollowingIds().has(member.customer_id) ? 'Unfollow' : 'Follow' }}
               </button>
             }
           </div>
@@ -884,6 +885,7 @@ export class CommunityCrewChatModalComponent {
   @ViewChild('draftInput') draftInputRef?: ElementRef<HTMLInputElement>;
 
   private readonly toast = inject(ToastService);
+  private readonly profileService = inject(CommunityProfileService);
   private readonly hostRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly document = inject(DOCUMENT);
 
@@ -913,7 +915,6 @@ export class CommunityCrewChatModalComponent {
    * the Joined / Requested / You created it states live. */
   readonly memberIds = input<ReadonlySet<string>>(new Set());
   readonly activeTab = signal<'chat' | 'people'>('chat');
-  readonly followingIds = signal<Set<string>>(new Set());
 
   /** Selected circle id + dropdown open state for the circle selector. */
   readonly selectedCircleId = signal<string>('');
@@ -1018,6 +1019,31 @@ export class CommunityCrewChatModalComponent {
           list.some(c => c.id === requested) ? requested : list[0].id,
         );
       }
+    });
+    /* Seed the active circle's real "following" state from the backend once
+     * its members are known, so Follow/Unfollow reflects the server (and
+     * survives a refresh) instead of only ever starting blank. Runs once per
+     * circle — `followingByCircle` is read untracked so writing to it here
+     * doesn't re-trigger this same effect. */
+    effect(() => {
+      const circleId = this.activeCircle().id;
+      const memberIds = this.activeMembers()
+        .filter(m => m.name !== this.currentUserName())
+        .map(m => m.customer_id)
+        .filter((id, i, arr) => !!id && arr.indexOf(id) === i);
+      if (memberIds.length === 0) return;
+      if (untracked(() => circleId in this.followingByCircle())) return;
+
+      Promise.all(
+        memberIds.map(id =>
+          firstValueFrom(this.profileService.getUserProfile(id))
+            .then(p => (p.is_following ? id : null))
+            .catch(() => null),
+        ),
+      ).then(results => {
+        const followed = new Set(results.filter((id): id is string => !!id));
+        this.followingByCircle.update(map => ({ ...map, [circleId]: followed }));
+      });
     });
   }
 
@@ -1250,17 +1276,33 @@ export class CommunityCrewChatModalComponent {
     return name === this.currentUserName();
   }
 
-  toggleFollow(name: string): void {
+  toggleFollow(member: CircleMember): void {
     const circleId = this.activeCircle().id;
     const current = this.followingByCircle()[circleId] ?? new Set<string>();
-    const next = new Set(current);
-    if (next.has(name)) {
-      next.delete(name);
-    } else {
-      next.add(name);
-    }
-    this.followingIds.set(next);
-    this.toast.success(next.has(name) ? `Followed ${name}` : `Unfollowed ${name}`);
+    const wasFollowing = current.has(member.customer_id);
+
+    // Optimistic update — flipped immediately, then reconciled (or rolled
+    // back on failure) once the real follow/unfollow call resolves.
+    const optimistic = new Set(current);
+    if (wasFollowing) optimistic.delete(member.customer_id);
+    else optimistic.add(member.customer_id);
+    this.followingByCircle.update(map => ({ ...map, [circleId]: optimistic }));
+
+    this.profileService.toggleFollow(member.customer_id).subscribe({
+      next: (res) => {
+        this.followingByCircle.update(map => {
+          const set = new Set(map[circleId] ?? new Set<string>());
+          if (res.is_following) set.add(member.customer_id);
+          else set.delete(member.customer_id);
+          return { ...map, [circleId]: set };
+        });
+        this.toast.success(res.is_following ? `Followed ${member.name}` : `Unfollowed ${member.name}`);
+      },
+      error: () => {
+        this.followingByCircle.update(map => ({ ...map, [circleId]: current }));
+        this.toast.error(`Could not update follow status for ${member.name}`);
+      },
+    });
   }
 
   

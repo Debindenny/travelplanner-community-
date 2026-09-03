@@ -34,11 +34,15 @@ const STANDARD_MEMBERS: CircleMember[] = [
   { name: 'Emma Ross', customer_id: mockCustomerId('Emma Ross'), location: 'UK', joinedLabel: 'joined 1w ago', route: 'UK → Paris', dates: 'Jun 4 - 11' },
 ];
 
-/** The two model/example circles — mirrored as real seeded rows in the
- * `community_spaces` table (see services/planner/alembic/versions/0026_travel_circles_backend.py).
+/** The model/example circles — mirrored as real seeded rows in the
+ * `community_spaces` table (see services/planner/alembic/versions/0026_travel_circles_backend.py,
+ * 0027_seed_travel_circle_members.py, 0029_seed_slow_travel_europe.py and
+ * 0030_seed_paris_june_crew.py).
  * The Travel Circles page no longer reads this array directly (it loads live
  * data via CommunitySpacesService); this stays as the reference definition
- * those seed rows are kept in sync with. */
+ * those seed rows are kept in sync with. Each seeded circle has its own real
+ * member roster in the database — `STANDARD_MEMBERS` below is only a display
+ * placeholder for this reference array, not what's actually seeded. */
 export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
   {
     id: 'tc1',
@@ -64,6 +68,32 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     accent: '#5b3fa0',
     accent2: '#8b5cf6',
     image: unsplashUrl('1499856871958-5b9627545d1a', 600),
+    members: STANDARD_MEMBERS,
+  },
+  {
+    id: 'tc3',
+    title: 'Slow Travel Europe',
+    meta: '860 members',
+    visibility: 'Public',
+    description: 'Two weeks minimum, trains over flights, one city at a time.',
+    activity: 'Active 1h ago',
+    cta: 'Join',
+    accent: '#8b5cf6',
+    accent2: '#8b5cf6',
+    image: unsplashUrl('1474487548417-781cb71495f3', 600),
+    members: STANDARD_MEMBERS,
+  },
+  {
+    id: 'tc4',
+    title: 'Paris June Crew',
+    meta: '9 members · overlapping dates',
+    visibility: 'Invite only',
+    description: 'Everyone here is in Paris the first week of June. Sharing a food walk and a museum day.',
+    activity: 'Active 5m ago',
+    cta: 'Request',
+    accent: '#c2569b',
+    accent2: '#c2569b',
+    image: unsplashUrl('1502602898657-3e91760cbb34', 600),
     members: STANDARD_MEMBERS,
   },
 ];

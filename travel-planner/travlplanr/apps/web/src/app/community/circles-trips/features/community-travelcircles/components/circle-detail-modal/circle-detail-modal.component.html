@@ -24,9 +24,14 @@
           <a class="circle-detail__member-name" [routerLink]="['/community/users', member.customer_id]">{{ member.name }}</a>
           <span class="circle-detail__member-sub">{{ memberSubtext(member) }}</span>
         </span>
-        @if (member.role === 'Host') {
-          <span class="circle-detail__member-badge">HOST</span>
-        }
+        <span class="circle-detail__member-badges">
+          @if (member.role === 'Host') {
+            <span class="circle-detail__member-badge">HOST</span>
+          }
+          @if (isCurrentUser(member)) {
+            <span class="circle-detail__member-badge circle-detail__member-badge--you">YOU</span>
+          }
+        </span>
       </div>
     }
   </div>

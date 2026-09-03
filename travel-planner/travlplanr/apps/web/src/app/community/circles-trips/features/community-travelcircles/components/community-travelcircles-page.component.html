@@ -85,6 +85,7 @@
       [isMember]="isMember(circle.id)"
       [isOwner]="isOwner(circle)"
       [isRecentlyActive]="isRecentlyActive(circle)"
+      [currentUserName]="store.currentUser.name"
       (close)="onCloseCircleDetail()"
       (toggleMembership)="onToggleMembership(circle)"
       (deleteCircle)="onDeleteCircle(circle)"

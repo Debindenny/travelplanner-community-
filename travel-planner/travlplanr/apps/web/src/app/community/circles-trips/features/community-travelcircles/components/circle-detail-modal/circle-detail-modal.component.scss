@@ -138,6 +138,13 @@
   color: var(--text-faint);
 }
 
+.circle-detail__member-badges {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .circle-detail__member-badge {
   flex: none;
   height: 22px;
@@ -150,6 +157,11 @@
   letter-spacing: 0.04em;
   display: flex;
   align-items: center;
+
+  &--you {
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+  }
 }
 
 .circle-detail__footer {
