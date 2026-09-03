@@ -30,10 +30,10 @@ import { CommunityCollectionService } from './services/community-collection.serv
 import { apiUrl } from '../shared/utils/api-url';
 import { catchError,of } from 'rxjs';
 import { CommunityStoryService, StoryGroup, Story } from './services/community-story.service';
-import { CommunityStoryPreviewModalComponent } from './components/community-story-preview-modal.component';
-import { CommunityCreateStoryComponent } from './components/community-create-story.component';
 import { PreviewStoryDetail, PREVIEW_STORY_DETAILS } from './components/community-story-preview.mock';
 import { A11yModule } from '@angular/cdk/a11y';
+import { FormsModule } from '@angular/forms';
+import { ToastService } from '../shared/utils/toast.service';
 
 
 
@@ -66,9 +66,8 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
       CommunitySimilarTravelersComponent,
       CommunityComposerModalComponent,
       CommunityJoinRequestsComponent,
-      CommunityStoryPreviewModalComponent,
-      CommunityCreateStoryComponent,
       A11yModule,
+      FormsModule,
     ],
     template: `
     <!-- font-manrope: the app-wide default (Poppins) is a rounded geometric face that
@@ -214,7 +213,7 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
       <!-- Add Story -->
       <button
         type="button"
-        (click)="showCreateModal.set(true)"
+        (click)="openCreateStoryModal()"
         class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 focus:outline-none"
       >
         <span class="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
@@ -364,17 +363,184 @@ const SEEN_STORIES_KEY = 'community_seen_stories';
     }
 
     @if (showCreateModal()) {
-      <app-community-create-story
-        (close)="showCreateModal.set(false)"
-        (created)="loadFeed()"
-      />
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+
+          <div class="flex items-center justify-between p-4 border-b">
+            <h2 class="text-lg font-bold text-gray-900">{{ 'COMMUNITY.CREATE_STORY.TITLE' | translate }}</h2>
+            <button
+              (click)="showCreateModal.set(false)"
+              class="text-gray-500 hover:text-gray-700 focus:outline-none"
+              [attr.aria-label]="'COMMUNITY.CREATE_STORY.CLOSE' | translate"
+            >
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-6">
+            <!-- Media upload -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'COMMUNITY.CREATE_STORY.IMAGE_URL' | translate }}</label>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                (change)="onFileSelected($event)"
+                class="w-full text-sm text-gray-700"
+              />
+
+              @if (isUploading()) {
+                <p class="text-xs text-gray-500 mt-2">{{ 'COMMUNITY.CREATE_STORY.UPLOADING' | translate }}</p>
+              }
+              @if (mediaUrl()) {
+                <div class="mt-4 aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden">
+                  <img [src]="mediaUrl()" [attr.alt]="'COMMUNITY.CREATE_STORY.IMAGE_PREVIEW_ALT' | translate" class="w-full h-full object-cover" (error)="imageError = true" />
+                </div>
+                @if (imageError) {
+                  <p class="text-xs text-red-500 mt-1">{{ 'COMMUNITY.CREATE_STORY.IMAGE_LOAD_ERROR' | translate }}</p>
+                }
+              }
+            </div>
+
+            <!-- Caption -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'COMMUNITY.CREATE_STORY.CAPTION_OPTIONAL' | translate }}</label>
+              <input
+                type="text"
+                [(ngModel)]="caption"
+                [attr.placeholder]="'COMMUNITY.CREATE_STORY.CAPTION_PLACEHOLDER' | translate"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div class="p-4 border-t bg-gray-50 flex justify-end gap-3">
+            <button
+              (click)="showCreateModal.set(false)"
+              class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              {{ 'COMMUNITY.CREATE_STORY.CANCEL' | translate }}
+            </button>
+            <button
+              (click)="submit()"
+              [disabled]="isSubmitting() || isUploading() || !mediaUrl() || imageError"
+              class="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {{ isSubmitting() ? ('COMMUNITY.CREATE_STORY.POSTING' | translate) : ('COMMUNITY.CREATE_STORY.SHARE_STORY' | translate) }}
+            </button>
+          </div>
+
+        </div>
+      </div>
     }
 
     @if (activePreviewStory(); as story) {
-      <app-community-story-preview-modal
-        [story]="story"
-        (close)="activePreviewStory.set(null)"
-      />
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in-up"
+        (click)="activePreviewStory.set(null)"
+        (window:keydown.escape)="activePreviewStory.set(null)"
+      >
+        <div
+          class="relative w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl"
+          cdkTrapFocus
+          cdkTrapFocusAutoCapture
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Header: progress bar, avatar/name/location, status badge, close -->
+          <div class="px-4 pt-3 pb-3">
+            <div class="h-1 rounded-full bg-slate-200 overflow-hidden mb-3">
+              <div class="h-full w-full rounded-full bg-primary"></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-full shrink-0 bg-primary-50 text-primary flex items-center justify-center text-sm">
+                {{ story.name.charAt(0) }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] text-text-primary truncate">{{ story.name }}</p>
+                <p class="text-[11.5px] text-text-faint truncate">{{ story.location }}</p>
+              </div>
+              <span
+                class="shrink-0 text-[11px] px-3 py-1 rounded-full border whitespace-nowrap"
+                [class]="statusClasses(story)"
+              >
+                {{ statusLabel(story) | translate }}
+              </span>
+              <button
+                type="button"
+                (click)="activePreviewStory.set(null)"
+                class="shrink-0 w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors focus:outline-none"
+                [attr.aria-label]="'COMMUNITY.STORY_MODAL.CLOSE' | translate"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Photo -->
+          <img [src]="story.image" class="w-full h-72 sm:h-80 object-cover" alt="" />
+
+          <!-- Caption + actions -->
+          <div class="bg-slate-900 text-white px-5 py-4">
+            <p class="text-[12.5px] leading-relaxed">
+              {{ 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.CAPTION' | translate: { name: story.name, location: story.location } }}
+            </p>
+            <div class="flex items-center justify-between mt-4">
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="togglePreviewFollow(story)"
+                  class="w-9 h-9 rounded-full flex items-center justify-center transition-colors focus:outline-none"
+                  [class.bg-primary]="!followed()"
+                  [class.bg-white]="followed()"
+                  [class.text-white]="!followed()"
+                  [class.text-primary]="followed()"
+                  [attr.aria-label]="(followed() ? 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.FOLLOWING_ARIA' : 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.FOLLOW_ARIA') | translate"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="explainUnavailable(story)"
+                  class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors focus:outline-none"
+                  [attr.aria-label]="'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.ROUTE_ARIA' | translate"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="explainUnavailable(story)"
+                  class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors focus:outline-none"
+                  [attr.aria-label]="'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.COMMENT_ARIA' | translate"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                </button>
+              </div>
+              <button
+                type="button"
+                (click)="toggleLike()"
+                class="w-9 h-9 rounded-full border border-white flex items-center justify-center transition-colors focus:outline-none"
+                [class.text-white]="!liked()"
+                [class.bg-white]="liked()"
+                [class.text-danger]="liked()"
+                [attr.aria-label]="(liked() ? 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.UNLIKE_ARIA' : 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.LIKE_ARIA') | translate"
+              >
+                <svg class="w-4 h-4" [attr.fill]="liked() ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     }
 
             </div>
@@ -638,6 +804,14 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     private readonly UPDATE_INTERVAL_MS = 50;
     private ngZone = inject(NgZone);
 
+    // Create Story modal state (formerly CommunityCreateStoryComponent)
+    mediaUrl = signal('');
+    caption = signal('');
+    isSubmitting = signal(false);
+    isUploading = signal(false);
+    imageError = false;
+    private toast = inject(ToastService);
+
 
   feedMode = signal<string>('following');
   followedTags = signal<string[]>([]);
@@ -860,6 +1034,61 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
         }
       });
     }
+
+    // --- Create Story modal (formerly CommunityCreateStoryComponent) ---
+
+    openCreateStoryModal() {
+      // The modal used to be a fresh component instance every time it opened
+      // (created by the @if block), so reset its state here to match.
+      this.mediaUrl.set('');
+      this.caption.set('');
+      this.isSubmitting.set(false);
+      this.isUploading.set(false);
+      this.imageError = false;
+      this.showCreateModal.set(true);
+    }
+
+    onFileSelected(event: Event) {
+      const input = event.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      this.imageError = false;
+      this.isUploading.set(true);
+      this.storyService.uploadMedia(file).subscribe({
+        next: (res) => {
+          this.mediaUrl.set(res.url);
+          this.isUploading.set(false);
+        },
+        error: () => {
+          this.isUploading.set(false);
+          this.toast.error(this.translate.instant('COMMUNITY.CREATE_STORY.POST_FAILED'));
+        }
+      });
+    }
+
+    submit() {
+      if (!this.mediaUrl() || this.imageError) return;
+
+      this.isSubmitting.set(true);
+
+      const payload = {
+        media_url: this.mediaUrl(),
+        caption: this.caption() || undefined
+      };
+
+      this.storyService.createStory(payload).subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.loadFeed();
+          this.showCreateModal.set(false);
+        },
+        error: () => {
+          this.isSubmitting.set(false);
+          this.toast.error(this.translate.instant('COMMUNITY.CREATE_STORY.POST_FAILED'));
+        }
+      });
+    }
   
     loadMyAvatar() {
       this.profileService.getMyProfile().subscribe({
@@ -887,6 +1116,46 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
     openPreviewStory(story: PreviewStoryDetail): void {
       this.activePreviewStory.set(story);
+    }
+
+    // --- Story preview modal (formerly CommunityStoryPreviewModalComponent) ---
+
+    readonly followed = signal(false);
+    readonly liked = signal(false);
+
+    statusLabel(story: PreviewStoryDetail): string {
+      switch (story.status) {
+        case 'there': return 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.STATUS_THERE';
+        case 'soon': return 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.STATUS_SOON';
+        default: return 'COMMUNITY.STORIES_BAR.PREVIEW_MODAL.STATUS_RECENT';
+      }
+    }
+
+    statusClasses(story: PreviewStoryDetail): string {
+      switch (story.status) {
+        case 'there': return 'bg-white border-emerald-200 text-emerald-600';
+        case 'soon': return 'bg-white border-primary-subtle text-primary';
+        default: return 'bg-white border-slate-200 text-text-faint';
+      }
+    }
+
+    // Renamed from the source component's toggleFollow() — this page already has a
+    // toggleFollow(post) for feed-post authors; this one only toggles local preview state.
+    togglePreviewFollow(story: PreviewStoryDetail): void {
+      this.followed.update(v => !v);
+      this.toast.success(
+        this.translate.instant('COMMUNITY.STORIES_BAR.PREVIEW_NOTICE', { name: story.name })
+      );
+    }
+
+    toggleLike(): void {
+      this.liked.update(v => !v);
+    }
+
+    explainUnavailable(story: PreviewStoryDetail): void {
+      this.toast.success(
+        this.translate.instant('COMMUNITY.STORIES_BAR.PREVIEW_NOTICE', { name: story.name })
+      );
     }
 
     // --- Story viewer modal (formerly CommunityStoryModalComponent) ---
