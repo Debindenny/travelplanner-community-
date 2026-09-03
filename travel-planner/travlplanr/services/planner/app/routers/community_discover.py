@@ -73,19 +73,53 @@ def _serialize_tip(tip: CommunityTip, saved_ids: set[UUID]) -> dict:
     }
 
 
+# @router.get("/discover/filters")
+# async def get_discover_filters(request: Request):
+#     async with request.app.state.session_factory() as session:
+#         place_rows = (
+#             await session.execute(
+#                 select(CommunityTip.place, func.count(CommunityTip.id)).group_by(CommunityTip.place)
+#             )
+#         ).all()
+#         total = sum(count for _, count in place_rows)
+#         places = [{"label": "All places", "count": total}] + [
+#             {"label": place, "count": count} for place, count in sorted(place_rows, key=lambda row: row[0])
+#         ]
+#         return {"categories": CATEGORIES, "places": places, "sorts": SORTS}
+
 @router.get("/discover/filters")
 async def get_discover_filters(request: Request):
     async with request.app.state.session_factory() as session:
+
+        category_rows = (
+            await session.execute(
+                select(CommunityTip.category).distinct()
+            )
+        ).scalars().all()
+
+        categories = ["All"] + sorted(category_rows)
+
         place_rows = (
             await session.execute(
-                select(CommunityTip.place, func.count(CommunityTip.id)).group_by(CommunityTip.place)
+                select(
+                    CommunityTip.place,
+                    func.count(CommunityTip.id)
+                ).group_by(CommunityTip.place)
             )
         ).all()
+
         total = sum(count for _, count in place_rows)
+
         places = [{"label": "All places", "count": total}] + [
-            {"label": place, "count": count} for place, count in sorted(place_rows, key=lambda row: row[0])
+            {"label": place, "count": count}
+            for place, count in sorted(place_rows, key=lambda row: row[0])
         ]
-        return {"categories": CATEGORIES, "places": places, "sorts": SORTS}
+
+        return {
+            "categories": categories,
+            "places": places,
+            "sorts": SORTS,
+        }
 
 
 @router.get("/discover")
