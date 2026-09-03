@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
@@ -50,7 +49,6 @@ function minutesSinceActivity(activity: string): number {
 })
 export class CommunityTravelCirclesComponent {
   readonly store = inject(CommunityHomeStore);
-  private readonly router = inject(Router);
 
   readonly goHome = output<void>();
 
@@ -113,10 +111,6 @@ export class CommunityTravelCirclesComponent {
       this.joinCircle(card);
       return;
     }
-    if (!this.isMember(card.id) && card.cta === 'Join') {
-      this.joinCircle(card);
-      return;
-    }
     this.toggleMembership(card);
   }
 
@@ -144,8 +138,6 @@ export class CommunityTravelCirclesComponent {
       this.store.showToast(wasMember ? 'Request withdrawn' : 'Request sent · the creator will review it');
     }
   }
-
-  
 
   closeCrewChat(): void {
     this.showCrewChat.set(false);

@@ -14,6 +14,7 @@ import {
   TravelCircleCard,
   circleCtaLabel,
 } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
+import { MOCK_OWNER } from '../circles-trips/core/data/community-mock-users';
 import { ToastService } from '../../shared/utils/toast.service';
 import { ProfileService } from '../../profile/profile.service';
 
@@ -853,12 +854,123 @@ export class CommunityCrewChatModalComponent {
     this.pushMessage({
       id: `local-${Date.now()}`,
       author: this.currentUserName() || 'You',
-      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+      customer_id: MOCK_OWNER.customerId,
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       kind: 'text',
       text,
     });
     this.draft = '';
+  }
+
+  /** Appends a message to the active circle's feed (or the single-circle
+   * fallback signal when no `joinedCircles` are set), mirroring the fallback
+   * chain `activeMessages` reads from. */
+  private pushMessage(message: CrewMessage): void {
+    if (this.joinedCircles().length === 0) {
+      this.messages.update(list => [...list, message]);
+      return;
+    }
+    const circleId = this.activeCircle().id;
+    this.messagesByCircle.update(map => ({
+      ...map,
+      [circleId]: [...(map[circleId] ?? this.activeCircle().messages), message],
+    }));
+  }
+
+  /** Whether `msg` was sent by the current (demo) user, so it renders on the
+   * right of the feed instead of the left. */
+  isSelfMessage(msg: CrewMessage): boolean {
+    return msg.customer_id === MOCK_OWNER.customerId;
+  }
+
+  /** Timestamps render only at the end of a consecutive run of messages from
+   * the same author, not under every bubble. */
+  showTime(messages: CrewMessage[], index: number): boolean {
+    const next = messages[index + 1];
+    return !next || next.author !== messages[index].author;
+  }
+
+  sendPlace(): void {
+    this.pushMessage({
+      id: `local-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: MOCK_OWNER.customerId,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'place',
+      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
+      title: 'Shared a place',
+      meta: 'Tap to view details',
+      ctaLabel: 'Add to my trip',
+    });
+  }
+
+  sendPoll(): void {
+    this.pushMessage({
+      id: `local-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: MOCK_OWNER.customerId,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'poll',
+      question: 'New poll — what do you think?',
+      options: ['Yes', 'No', 'Maybe'],
+    });
+  }
+
+  sendMeetup(): void {
+    this.pushMessage({
+      id: `local-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: MOCK_OWNER.customerId,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'meetup',
+      title: 'New meetup',
+      meta: 'Today · TBD',
+    });
+  }
+
+  sendExpense(): void {
+    this.showExpenseModal.set(true);
+  }
+
+  closeExpenseModal(): void {
+    this.showExpenseModal.set(false);
+    this.expenseTitle.set('');
+    this.expenseAmount.set('');
+    this.expensePeople.set(2);
+    this.expenseNotes.set('');
+  }
+
+  decrementPeople(): void {
+    this.expensePeople.update(n => Math.max(1, n - 1));
+  }
+
+  incrementPeople(): void {
+    this.expensePeople.update(n => n + 1);
+  }
+
+  createExpense(): void {
+    const title = this.expenseTitle().trim();
+    const amountStr = this.expenseAmount().trim();
+    if (!title || !amountStr) return;
+    const totalAmount = Number(amountStr) || 0;
+    const participantCount = this.expensePeople();
+    const perPerson = (totalAmount / participantCount).toFixed(2);
+    const notes = this.expenseNotes().trim();
+    this.pushMessage({
+      id: `local-${Date.now()}`,
+      author: this.currentUserName() || 'You',
+      customer_id: MOCK_OWNER.customerId,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      kind: 'expense',
+      title,
+      meta: notes
+        ? `€${perPerson} each · ${participantCount} people · ${notes}`
+        : `€${perPerson} each · ${participantCount} people`,
+      totalAmount,
+      participantCount,
+      splitType: 'equal',
+    });
+    this.closeExpenseModal();
   }
 
   memberSub(member: CircleMember): string {
@@ -873,11 +985,6 @@ export class CommunityCrewChatModalComponent {
   selectCircle(circle: ChatCircleContext): void {
     this.selectedCircleId.set(circle.id);
     this.circleMenuOpen.set(false);
-  }
-
-  memberSub(member: CircleMember): string {
-    const route = member.route ?? member.location;
-    return member.dates ? `${route} · ${member.dates}` : route;
   }
 
   isCurrentUser(name: string): boolean {
