@@ -77,6 +77,7 @@ async def get_destinations(
     region: str = None,
     tag: str = None,
     search: str = None,
+    has_image: bool = False,
     limit: int = Query(200, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -95,6 +96,8 @@ async def get_destinations(
                 (Destination.region.ilike(search_term)) |
                 (Destination.description.ilike(search_term))
             )
+        if has_image:
+            query = query.where(Destination.image_url.is_not(None), Destination.image_url != "")
 
         query = query.order_by(Destination.name).offset(offset).limit(limit)
         result = await session.execute(query)
@@ -128,6 +131,8 @@ async def get_destinations(
                     semantic_query = semantic_query.where(Destination.region == region)
                 if tag:
                     semantic_query = semantic_query.where(Destination.tags.any(tag))
+                if has_image:
+                    semantic_query = semantic_query.where(Destination.image_url.is_not(None), Destination.image_url != "")
                 semantic_result = await session.execute(semantic_query)
                 dests.extend(semantic_result.scalars().all())
             elif semantic_error:
