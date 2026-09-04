@@ -23,6 +23,15 @@ export interface CommunityPost {
     countries_visited?: number;
     local_in?: string | null;
   };
+  title?: string | null;
+  tag?: string | null;
+  category?: string | null;
+  authorLine?: string | null;
+  body?: string | null;
+  usedLabel?: string | null;
+  facts?: { label: string; value: string }[] | null;
+  points?: string[] | null;
+  useCount?: number | null;
   location?: string;
   destination?: {
     id: string;
@@ -42,6 +51,8 @@ export interface CommunityPost {
   video_url?: string | null;
   is_reel?: boolean;
   views_count?: number;
+  isSaved?: boolean;
+  saveCount?: number;
   reactions?: { [key: string]: number };
   userReaction?: string | null;
   itinerary_id?: string | null;
@@ -107,6 +118,13 @@ export class CommunityPostService {
 
   viewPost(postId: string): Observable<any> {
     return this.http.post(apiUrl(`/community/${postId}/view`), {});
+  }
+
+  toggleSave(postId: string): Observable<{ saved: boolean }> {
+    return this.http.post<{ saved: boolean }>(
+      apiUrl('/community/saved/toggle'),
+      { item_type: 'post', item_id: postId }
+    );
   }
 
   deletePost(postId: string): Observable<any> {

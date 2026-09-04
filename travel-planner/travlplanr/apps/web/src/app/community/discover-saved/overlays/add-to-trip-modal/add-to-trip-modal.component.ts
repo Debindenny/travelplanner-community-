@@ -18,9 +18,14 @@ export class DsAddToTripModalComponent {
   readonly tripPick = input('');
   readonly days = input<{ label: string; date: string; count: string; active: boolean; day: number }[]>([]);
   readonly confirmationLine = input('');
+  readonly noTrip = input(false);
+  readonly noTripText = input('');
+  readonly hasDayItems = input(false);
+  readonly dayItems = input<{ time: string; name: string }[]>([]);
 
   readonly pickTrip = output<string>();
   readonly pickDay = output<number>();
   readonly cancel = output<void>();
   readonly confirm = output<void>();
+  readonly createTrip = output<void>();
 }

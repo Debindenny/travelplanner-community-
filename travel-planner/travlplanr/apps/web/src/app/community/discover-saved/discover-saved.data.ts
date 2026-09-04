@@ -30,8 +30,8 @@ export function avatarPhotoUrl(seed: string, width = 200): string {
 // backend endpoints don't cover Trips/itineraries, so "Add to trip" keeps
 // working against this fixture rather than a real trip-planning API.
 export const TRIP_PICK_OPTIONS: TripPickOption[] = [
-  { id: 't1', name: 'Paris · Long weekend', dates: 'Jun 03 – Jun 06 · 4 activities' },
-  { id: 't2', name: 'Japan 2027', dates: 'Apr 04 – Apr 11 · 9 activities' },
+  { id: 't1', name: 'Paris · Long weekend', dates: 'Jun 03 – Jun 06 · 4 activities', places: ['Paris'] },
+  { id: 't2', name: 'Japan 2027', dates: 'Apr 04 – Apr 11 · 9 activities', places: ['Tokyo', 'Kyoto'] },
 ];
 
 export const TRIP_ITINERARIES: Record<string, ItineraryDay[]> = {

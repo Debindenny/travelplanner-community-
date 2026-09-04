@@ -100,14 +100,19 @@
           [spot]="trip.spot"
           [spotMeta]="trip.meta"
           [spotImage]="trip.image"
-          [trips]="store.tripPickOptions"
+          [trips]="store.addTrips()"
           [tripPick]="store.tripPick()"
           [days]="store.addDays()"
           [confirmationLine]="store.addConfirmationLine()"
+          [noTrip]="store.addNoTrip()"
+          [noTripText]="store.addNoTripText()"
+          [hasDayItems]="store.addHasDayItems()"
+          [dayItems]="store.addDayList()"
           (pickTrip)="store.pickTrip($event)"
           (pickDay)="store.pickAddDay($event)"
           (cancel)="store.closeModal()"
           (confirm)="store.confirmAddToTrip()"
+          (createTrip)="store.addNewTrip()"
         />
       </app-ds-modal-shell>
     }

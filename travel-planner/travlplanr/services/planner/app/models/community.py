@@ -28,10 +28,24 @@ class CommunityPost(Base):
     comments_count: Mapped[int] = mapped_column(Integer, default=0)
     views_count: Mapped[int] = mapped_column(Integer, default=0)
     itinerary_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    
+
     is_reel: Mapped[bool] = mapped_column(Boolean, default=False)
     video_url: Mapped[str] = mapped_column(String(2048), nullable=True)
-    
+
+    # Discover fields — only set on posts curated/promoted as a Discover "tip"
+    # (title IS NOT NULL is what marks a post as Discover-eligible). Plain
+    # feed posts leave all of these null.
+    title: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
+    tag: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    author_line: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    body: Mapped[str | None] = mapped_column(String(4000), nullable=True)
+    used_label: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    facts: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True, default=list)
+    points: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True, default=list)
+    use_count: Mapped[int] = mapped_column(Integer, default=0)
+    save_count: Mapped[int] = mapped_column(Integer, default=0)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -217,32 +231,6 @@ class CommunityCollectionItem(Base):
         UniqueConstraint("collection_id", "item_type", "item_id", name="uq_collection_item_once"),
     )
 
-
-class CommunityTip(Base):
-    """Curated Discover content — travel tips/routes/reels/food/budget highlights.
-
-    Distinct from CommunityPost: these are editorial cards (facts grid, "why
-    travelers use it" points, author bio line) seeded/managed separately from
-    organic user posts, which don't carry that shape.
-    """
-    __tablename__ = "community_tips"
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tag: Mapped[str] = mapped_column(String(20))  # 'TIP' | 'ROUTE' | 'REEL' | 'FOOD' | 'BUDGET'
-    category: Mapped[str] = mapped_column(String(50), index=True)  # 'Tips' | 'Routes' | 'Reels' | 'Food' | 'Budget'
-    place: Mapped[str] = mapped_column(String(255), index=True)
-    title: Mapped[str] = mapped_column(String(500))
-    used_label: Mapped[str] = mapped_column(String(50))  # display text, e.g. "1.2K used" / "840 saves"
-    blurb: Mapped[str] = mapped_column(String(1000))
-    author_name: Mapped[str] = mapped_column(String(255))
-    author_line: Mapped[str] = mapped_column(String(255))
-    body: Mapped[str] = mapped_column(String(4000))
-    facts: Mapped[list[dict]] = mapped_column(JSONB, default=list)  # [{"label": str, "value": str}]
-    points: Mapped[list[str]] = mapped_column(JSONB, default=list)
-    image: Mapped[str] = mapped_column(String(1024))
-    use_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
-    save_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class PostReaction(Base):
     __tablename__ = "post_reactions"

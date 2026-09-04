@@ -31,6 +31,15 @@ function sortPlacesByCount(places: DiscoverPlaceOption[]): DiscoverPlaceOption[]
   return allPlaces ? [allPlaces, ...rest] : rest;
 }
 
+/** Matches Community Home.dc.html's `addPlace` heuristic exactly — the "Add to trip"
+ * payload only carries free-text spot/meta, so the destination is recovered by
+ * scanning both for a known place name (first match wins). */
+const KNOWN_PLACES = ['Paris', 'Tokyo', 'Kyoto', 'Lisbon', 'Europe'];
+function derivePlace(spot: string, meta: string): string {
+  const blob = `${spot} ${meta}`;
+  return KNOWN_PLACES.find((place) => blob.includes(place)) ?? '';
+}
+
 @Injectable({ providedIn: 'root' })
 export class DiscoverSavedStore {
   private readonly http = inject(HttpClient);
@@ -138,6 +147,24 @@ export class DiscoverSavedStore {
   /** Total saved items regardless of the currently-selected tab filter — used by the sidebar badge. */
   readonly savedItemCount = computed(() => this._savedItems().length);
 
+  readonly addPlace = computed(() => {
+    const payload = this._modal()?.addToTrip;
+    return payload ? derivePlace(payload.spot, payload.meta) : '';
+  });
+
+  /** Trips relevant to the item being added — matches Community Home.dc.html's
+   * `addTrips` filter so e.g. a Tokyo spot only offers the Japan trip. */
+  readonly addTrips = computed(() => {
+    const place = this.addPlace();
+    return place ? this.tripPickOptions.filter((trip) => trip.places.includes(place)) : this.tripPickOptions;
+  });
+
+  readonly addNoTrip = computed(() => this.addTrips().length === 0);
+
+  readonly addNoTripText = computed(
+    () => `You have no trip to ${this.addPlace() || 'this place'} yet. Create one and this will be waiting in it.`,
+  );
+
   private readonly activeItinerary = computed(() => TRIP_ITINERARIES[this._tripPick()] ?? []);
 
   readonly addDays = computed(() =>
@@ -149,6 +176,12 @@ export class DiscoverSavedStore {
       day: index + 1,
     })),
   );
+
+  /** "That day so far" — the selected day's existing items, shown so adding a
+   * new spot doesn't silently double-book a slot. */
+  readonly addHasDayItems = computed(() => (this.activeItinerary()[this._addDay() - 1]?.items.length ?? 0) > 0);
+
+  readonly addDayList = computed(() => this.activeItinerary()[this._addDay() - 1]?.items ?? []);
 
   readonly addConfirmationLine = computed(() => {
     const trip = this.tripPickOptions.find((option) => option.id === this._tripPick());
@@ -309,9 +342,19 @@ export class DiscoverSavedStore {
   }
 
   openAddToTrip(payload: AddToTripPayload): void {
-    this._tripPick.set('t1');
+    const place = derivePlace(payload.spot, payload.meta);
+    const matches = place ? this.tripPickOptions.filter((trip) => trip.places.includes(place)) : this.tripPickOptions;
+    this._tripPick.set(matches[0]?.id ?? '');
     this._addDay.set(1);
     this._modal.set({ kind: 'addToTrip', addToTrip: payload });
+  }
+
+  /** Matches Community Home.dc.html's `addNewTrip` — no real trip-creation backend
+   * exists yet, so this just closes the modal with a confirmation toast. */
+  addNewTrip(): void {
+    const place = this.addPlace();
+    this._modal.set(null);
+    this.toast.info(`New trip to ${place || 'this place'} started`);
   }
 
   pickTrip(tripId: string): void {

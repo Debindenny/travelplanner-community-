@@ -40,15 +40,18 @@ import { A11yModule } from '@angular/cdk/a11y';
                 }
               </a>
               <app-community-level-badge [xp]="post.author.xp" [levelRank]="post.author.level_rank || post.author.level?.rank" />
-              <span
-                class="h-[21px] px-2.5 rounded-md text-[9.5px] font-semibold tracking-wide flex items-center whitespace-nowrap"
-                [class.text-primary]="kindLabel() === 'INSIGHT'"
-                [class.bg-primary-50]="kindLabel() === 'INSIGHT'"
-                [class.text-purple-700]="kindLabel() === 'POLL'"
-                [class.bg-purple-50]="kindLabel() === 'POLL'"
-                [class.text-amber-700]="kindLabel() === 'QUESTION'"
-                [class.bg-amber-50]="kindLabel() === 'QUESTION'"
-              >{{ kindLabel() }}</span>
+              @if (kindLabel() !== 'INSIGHT') {
+                <span
+                  class="h-[21px] px-2.5 rounded-md text-[9.5px] font-semibold tracking-wide flex items-center whitespace-nowrap"
+                  [class.text-purple-700]="kindLabel() === 'POLL'"
+                  [class.bg-purple-50]="kindLabel() === 'POLL'"
+                  [class.text-amber-700]="kindLabel() === 'QUESTION'"
+                  [class.bg-amber-50]="kindLabel() === 'QUESTION'"
+                >{{ kindLabel() }}</span>
+              }
+              @if (post.tag) {
+                <span class="h-[21px] px-2.5 rounded-md text-[9.5px] font-semibold tracking-wide flex items-center whitespace-nowrap bg-slate-100 dark:bg-gray-700 text-text-secondary">{{ post.tag }}</span>
+              }
             </div>
             <p class="text-xs font-semibold text-text-faint mt-0.5 truncate">
               {{ formatDate(post.created_at) }}
@@ -56,6 +59,9 @@ import { A11yModule } from '@angular/cdk/a11y';
                 <span> · {{ post.location }}</span>
               }
             </p>
+            @if (post.authorLine) {
+              <p class="text-xs text-text-faint mt-0.5 truncate">{{ post.authorLine }}</p>
+            }
             @if (isEditing) {
               <input type="text" [(ngModel)]="editLocation" class="mt-1 border border-slate-200 rounded px-2 py-1 text-xs" [placeholder]="'COMMUNITY.POST_CARD.LOCATION_PLACEHOLDER' | translate" />
             }
@@ -123,6 +129,28 @@ import { A11yModule } from '@angular/cdk/a11y';
           <div class="flex justify-end gap-2 mt-2">
             <button (click)="cancelEdit()" class="px-4 py-1.5 text-xs text-text-secondary hover:bg-slate-100 rounded-full font-semibold transition-all">{{ 'COMMUNITY.POST_CARD.CANCEL' | translate }}</button>
             <button (click)="saveEdit()" class="px-4 py-1.5 text-xs bg-primary hover:bg-primary-hover text-white rounded-full font-semibold transition-all shadow-sm">{{ 'COMMUNITY.POST_CARD.SAVE' | translate }}</button>
+          </div>
+        }
+
+        @if (post.facts?.length) {
+          <div class="grid gap-2 mt-3" [style.grid-template-columns]="'repeat(' + post.facts!.length + ', 1fr)'">
+            @for (fact of post.facts; track fact.label) {
+              <span class="flex flex-col gap-0.5 rounded-lg border border-slate-100 dark:border-gray-700 bg-slate-50/60 dark:bg-gray-900/30 px-2.5 py-2">
+                <span class="text-[9.5px] font-bold tracking-wide text-text-faint">{{ fact.label }}</span>
+                <span class="text-xs font-bold text-text-primary">{{ fact.value }}</span>
+              </span>
+            }
+          </div>
+        }
+
+        @if (post.points?.length) {
+          <div class="flex flex-col gap-1 mt-3">
+            @for (point of post.points; track point) {
+              <span class="flex items-start gap-1.5 text-xs text-text-secondary">
+                <span class="mt-1.5 w-1 h-1 rounded-full bg-text-faint shrink-0"></span>
+                <span>{{ point }}</span>
+              </span>
+            }
           </div>
         }
       </div>
@@ -201,8 +229,43 @@ import { A11yModule } from '@angular/cdk/a11y';
         }
       </div>
 
+      @if (post.views_count || post.saveCount || post.usedLabel) {
+        <div class="px-4 pt-1.5 text-[11.5px] font-semibold text-text-faint">
+          @if (post.usedLabel) {
+            {{ post.usedLabel }}
+          } @else {
+            @if (post.views_count) {
+              {{ 'COMMUNITY.POST_CARD.VIEWED_BY_COUNT' | translate: { count: post.views_count } }}
+            }
+            @if (post.views_count && post.saveCount) {
+              ·
+            }
+            @if (post.saveCount) {
+              {{ 'COMMUNITY.POST_CARD.SAVED_BY_COUNT' | translate: { count: post.saveCount } }}
+            }
+          }
+        </div>
+      }
+
       <!-- Actions -->
       <div class="flex items-center gap-2 mx-4 mt-3 mb-4 pt-3 border-t border-slate-100 dark:border-gray-700 flex-wrap">
+        <button
+          (click)="toggleSavePost()"
+          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
+          [class.border-primary]="post.isSaved"
+          [class.bg-primary-50]="post.isSaved"
+          [class.text-primary]="post.isSaved"
+          [class.border-slate-200]="!post.isSaved"
+          [class.dark:border-gray-700]="!post.isSaved"
+          [class.bg-white]="!post.isSaved"
+          [class.dark:bg-gray-800]="!post.isSaved"
+          [class.text-text-secondary]="!post.isSaved"
+          >
+          <svg class="w-4 h-4" [attr.fill]="post.isSaved ? 'currentColor' : 'none'" viewBox="0 0 24 24" [attr.stroke]="post.isSaved ? 'none' : 'currentColor'" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
+          </svg>
+          {{ (post.isSaved ? 'COMMUNITY.POST_CARD.SAVED' : 'COMMUNITY.POST_CARD.SAVE') | translate }}
+        </button>
         <button
           (click)="reactPost()"
           class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
@@ -233,14 +296,7 @@ import { A11yModule } from '@angular/cdk/a11y';
           [class.text-text-secondary]="!commentsOpen"
           >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-          {{ 'COMMUNITY.POST_CARD.COMMENT' | translate }} · {{ post.comments }}
-        </button>
-        <button
-          (click)="sharePost()"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none"
-          >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-          {{ 'COMMUNITY.POST_CARD.SHARE' | translate }}
+          {{ 'COMMUNITY.POST_CARD.DISCUSS' | translate }}
         </button>
         @if (!post.itinerary) {
           <span class="flex-1"></span>
@@ -458,6 +514,26 @@ export class CommunityPostCardComponent {
     }
   }
 
+  toggleSavePost() {
+    if (!this.post) return;
+
+    const previousState = { isSaved: this.post.isSaved, saveCount: this.post.saveCount };
+    const wasSaved = !!this.post.isSaved;
+    this.post.isSaved = !wasSaved;
+    this.post.saveCount = Math.max(0, (this.post.saveCount || 0) + (wasSaved ? -1 : 1));
+
+    this.postService.toggleSave(this.post.id).subscribe({
+      next: ({ saved }) => {
+        this.post.isSaved = saved;
+      },
+      error: () => {
+        this.post.isSaved = previousState.isSaved;
+        this.post.saveCount = previousState.saveCount;
+        this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_SAVE_ERROR'));
+      }
+    });
+  }
+
   reactPost() {
     if (!this.post) return;
 
@@ -496,21 +572,6 @@ export class CommunityPostCardComponent {
         this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_REACTION_ERROR'));
       }
     });
-  }
-
-  sharePost() {
-    const url = window.location.origin + '/community/posts/' + this.post.id;
-    if (navigator.share) {
-      navigator.share({
-        title: this.translate.instant('COMMUNITY.POST_CARD.SHARE_TITLE'),
-        text: this.post.caption,
-        url: url
-      }).catch(err => console.error('Error sharing:', err));
-    } else {
-      navigator.clipboard.writeText(url).then(() => {
-        this.toast.success(this.translate.instant('COMMUNITY.POST_CARD.TOAST_LINK_COPIED'));
-      });
-    }
   }
 
   getDisplayCaption(): string {

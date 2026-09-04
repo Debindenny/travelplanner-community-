@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import desc, select
 
 from shared.auth_dependencies import require_customer
-from app.models.community import CommunityCollection, CommunityCollectionItem, CommunityPost, CommunityTip
+from app.models.community import CommunityCollection, CommunityCollectionItem, CommunityPost
 from app.models.destinations import Destination
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,9 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
         destination_ids = [i.item_id for i in saved_items if i.item_type == "destination"]
         tips_map, posts_map, destinations_map = {}, {}, {}
         if tip_ids:
-            rows = (await session.execute(select(CommunityTip).where(CommunityTip.id.in_(tip_ids)))).scalars().all()
+            # "tip" saves point at a CommunityPost row that was curated as a
+            # Discover tip (title IS NOT NULL) — same table as "post" saves.
+            rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(tip_ids)))).scalars().all()
             tips_map = {t.id: t for t in rows}
         if post_ids:
             rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(post_ids)))).scalars().all()
@@ -102,8 +104,8 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
                     "item_id": str(item.item_id),
                     "kind": _KIND_BY_ITEM_TYPE["tip"],
                     "title": tip.title,
-                    "meta": f"{tip.place} · saved {when}",
-                    "image": tip.image,
+                    "meta": f"{tip.location} · saved {when}",
+                    "image": (tip.images or [None])[0],
                 })
             elif item.item_type == "post" and item.item_id in posts_map:
                 post = posts_map[item.item_id]
@@ -163,7 +165,7 @@ async def toggle_saved(data: ToggleSavedRequest, request: Request, auth: dict = 
             saved = True
 
         if data.item_type == "tip":
-            tip = await session.get(CommunityTip, item_uuid)
+            tip = await session.get(CommunityPost, item_uuid)
             if tip:
                 tip.save_count = max(0, tip.save_count + (1 if saved else -1))
 
@@ -189,7 +191,7 @@ async def remove_saved_item(collection_item_id: UUID, request: Request, auth: di
             raise HTTPException(status_code=404, detail="Saved item not found")
 
         if item.item_type == "tip":
-            tip = await session.get(CommunityTip, item.item_id)
+            tip = await session.get(CommunityPost, item.item_id)
             if tip:
                 tip.save_count = max(0, tip.save_count - 1)
 

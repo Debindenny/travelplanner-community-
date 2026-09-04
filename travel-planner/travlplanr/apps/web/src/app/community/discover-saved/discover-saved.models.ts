@@ -79,6 +79,7 @@ export interface TripPickOption {
   id: string;
   name: string;
   dates: string;
+  places: string[];
 }
 
 export interface AddToTripPayload {

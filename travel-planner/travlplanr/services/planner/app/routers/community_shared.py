@@ -12,7 +12,8 @@ from fastapi import WebSocket
 logger = logging.getLogger(__name__)
 
 from app.models.community import (
-    CommunityPost, PostReaction, Hashtag, PostHashtag, CommunityProfile, NotificationPreference
+    CommunityPost, PostReaction, Hashtag, PostHashtag, CommunityProfile, NotificationPreference,
+    CommunityCollection, CommunityCollectionItem
 )
 
 
@@ -131,6 +132,27 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
             select(UserFollow.following_id).where(UserFollow.follower_id == customer_id, UserFollow.following_id.in_(author_ids))
         )
         following_set = set(following_res.scalars().all())
+
+    saved_post_ids: set[uuid.UUID] = set()
+    if customer_id:
+        default_collection_id = (
+            await session.execute(
+                select(CommunityCollection.id).where(
+                    CommunityCollection.customer_id == customer_id,
+                    CommunityCollection.is_default == True,
+                )
+            )
+        ).scalar_one_or_none()
+        if default_collection_id:
+            saved_post_ids = set((
+                await session.execute(
+                    select(CommunityCollectionItem.item_id).where(
+                        CommunityCollectionItem.collection_id == default_collection_id,
+                        CommunityCollectionItem.item_type == "post",
+                        CommunityCollectionItem.item_id.in_(post_ids),
+                    )
+                )
+            ).scalars().all())
     itinerary_ids = [p.itinerary_id for p in posts if p.itinerary_id]
     trips_dict = {}
     if itinerary_ids:
@@ -152,9 +174,12 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
         response.append({
             "id": str(post.id),
             "author": {"id": str(post.customer_id), "name": prof_dict.get("name") or post.author_name or "Traveler", "avatar": prof_dict.get("avatar") or post.author_avatar, "is_verified": prof_dict.get("is_verified", False), "countries_visited": prof_dict.get("countries_visited", 0), "local_in": prof_dict.get("local_in")},
+            "title": post.title, "tag": post.tag, "category": post.category, "authorLine": post.author_line,
+            "body": post.body, "usedLabel": post.used_label, "facts": post.facts, "points": post.points, "useCount": post.use_count,
             "location": post.location, "destination": dest_dict, "images": post.images, "caption": post.caption,
             "likes": sum(p_reacts.values()) if p_reacts else post.likes_count, "comments": post.comments_count, "comments_count": post.comments_count,
             "views_count": post.views_count, "is_reel": getattr(post, 'is_reel', False), "video_url": getattr(post, 'video_url', None),
+            "isSaved": post.id in saved_post_ids, "saveCount": post.save_count,
             "isLiked": user_react is not None, "timeAgo": iso_utc(post.created_at), "created_at": iso_utc(post.created_at),
             "reactions": p_reacts, "user_reaction": user_react, "itinerary_id": str(post.itinerary_id) if post.itinerary_id else None,
             "itinerary": trips_dict.get(post.itinerary_id) if post.itinerary_id else None, "is_following": post.customer_id in following_set, "hashtags": post_hashtags_dict.get(post.id, [])
