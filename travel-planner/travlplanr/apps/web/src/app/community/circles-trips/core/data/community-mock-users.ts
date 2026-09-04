@@ -26,7 +26,7 @@ export const MOCK_OWNER: MockTraveler = {
 
 export const MOCK_USERS: Record<string, MockTraveler> = {
   'Ava Reyes': { customerId: '1627e255-8a3c-4dbb-a553-fb797f6b0244', name: 'Ava Reyes' },
-  'Priya Nair': { customerId: 'e52b43b7-9af4-4318-ae1b-d2b3cd0cc4fe', name: 'Priya Nair' },
+  'Priya Nair': { customerId: 'f9b5954f-1d7b-4e6f-bb89-1146f0807d46', name: 'Priya Nair' },
   'Maya Kondo': { customerId: '80da4269-efef-482e-bf18-b5291ce03abf', name: 'Maya Kondo' },
   'Emma Ross': { customerId: '7efdbee8-bc0a-481d-a214-08683f6869c8', name: 'Emma Ross' },
   'Aarav Menon': { customerId: '6f784546-fb73-4ce8-a982-960b50bcf76d', name: 'Aarav Menon' },
@@ -45,6 +45,8 @@ export const MOCK_USERS: Record<string, MockTraveler> = {
   'Erik Halvorsen': { customerId: '45c59bf1-0129-401b-858f-6ee2d8aa340a', name: 'Erik Halvorsen' },
   'Nora Fjeld': { customerId: '3a64158a-f27b-4ae0-a665-0c04da0af7eb', name: 'Nora Fjeld' },
   'Yasmine Idrissi': { customerId: '1d3b1515-c835-495b-9d09-ac4b9cac8635', name: 'Yasmine Idrissi' },
+  'Iker Zubia': { customerId: 'bc768cce-1bdd-4e28-8c09-0cfa68d3d403',name: 'Iker Zubia'
+},
 };
 
 /** Lookup helper — returns the customer_id for a display name (falls back to owner). */
