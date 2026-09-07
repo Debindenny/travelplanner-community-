@@ -492,55 +492,206 @@ import { CommunityProfileService } from '../services/community-profile.service';
 
       @if (activeTab() === 'chat') {
       <!-- Quick-compose shortcuts + message input -->
-      <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-3">
-        <div class="flex items-stretch gap-3">
-          <button
-            type="button"
-            (click)="sendPlace()"
-            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
-            aria-label="Share a place"
-            title="Share a place"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5Z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="openPollModal()"
-            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
-            aria-label="Start a poll"
-            title="Start a poll"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 20V10m4 10V4m4 16v-7" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="openMeetupModal()"
-            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
-            aria-label="Plan a meetup"
-            title="Plan a meetup"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="openExpenseModal()"
-            class="flex-1 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
-            aria-label="Split an expense"
-            title="Split an expense"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
-            </svg>
-          </button>
-        </div>
+      <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-2.5">
+        @if (showPollModal()) {
+          <div class="rounded-2xl border border-slate-200 bg-primary-50 px-3.5 py-3 flex flex-col gap-3">
+            <div class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide text-primary">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 20V10m4 10V4m4 16v-7" />
+              </svg>
+              New poll
+            </div>
+            <input
+              type="text"
+              [value]="pollQuestion()"
+              (input)="pollQuestion.set($any($event.target).value)"
+              placeholder="Where do we eat on Thursday?"
+              class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+            />
+            <div class="flex flex-col gap-2">
+              @for (option of pollOptions(); track $index) {
+                <div class="flex items-center gap-2">
+                  <span class="shrink-0 w-4 text-[11px] font-bold text-text-faint">{{ $index + 1 }}</span>
+                  <input
+                    type="text"
+                    [value]="option"
+                    (input)="updatePollOption($index, $any($event.target).value)"
+                    [placeholder]="$index === 0 ? 'First option' : $index === 1 ? 'Second option' : 'Option ' + ($index + 1)"
+                    class="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+                  />
+                  @if (pollOptions().length > 2) {
+                    <button
+                      type="button"
+                      (click)="removePollOption($index)"
+                      class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none"
+                      [attr.aria-label]="'Remove option ' + ($index + 1)"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <div class="flex items-center justify-between">
+              @if (pollOptions().length < 6) {
+                <button
+                  type="button"
+                  (click)="addPollOption()"
+                  class="flex items-center gap-1 text-[12px] font-bold text-primary hover:underline focus:outline-none"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Option
+                </button>
+              } @else {
+                <span></span>
+              }
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="closePollModal()"
+                  class="h-8 px-3.5 rounded-lg border border-slate-200 bg-white text-[12px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
+                >Cancel</button>
+                <button
+                  type="button"
+                  (click)="createPoll()"
+                  [disabled]="!canSavePoll()"
+                  class="h-8 px-3.5 rounded-lg text-[12px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
+                  [class.bg-primary]="canSavePoll()"
+                  [class.hover:bg-primary-hover]="canSavePoll()"
+                  [class.bg-slate-200]="!canSavePoll()"
+                  [class.text-text-faint]="!canSavePoll()"
+                >Post poll</button>
+              </div>
+            </div>
+          </div>
+        } @else if (showMeetupModal()) {
+          <div class="rounded-2xl border border-slate-200 bg-primary-50 px-3.5 py-3 flex flex-col gap-3">
+            <div class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide text-primary">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
+              </svg>
+              Propose a meet-up
+            </div>
+
+            <div class="flex items-center gap-1.5 overflow-x-auto chat-scroll pb-0.5">
+              @for (day of meetupDayOptions; track day.iso) {
+                <button
+                  type="button"
+                  (click)="selectMeetupDay(day.iso)"
+                  class="shrink-0 h-8 px-3 rounded-full border text-[12px] font-bold transition-colors focus:outline-none"
+                  [class.bg-primary]="meetupDate() === day.iso"
+                  [class.text-white]="meetupDate() === day.iso"
+                  [class.border-primary]="meetupDate() === day.iso"
+                  [class.bg-white]="meetupDate() !== day.iso"
+                  [class.text-text-secondary]="meetupDate() !== day.iso"
+                  [class.border-slate-200]="meetupDate() !== day.iso"
+                >{{ day.weekday }} {{ day.dayNum }}</button>
+              }
+            </div>
+
+            <div class="rounded-xl border border-slate-200 bg-white max-h-32 overflow-y-auto chat-scroll flex flex-col divide-y divide-slate-100">
+              @for (loc of meetupLocationOptions; track loc.id) {
+                <button
+                  type="button"
+                  (click)="selectMeetupLocation(loc.id)"
+                  class="flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors focus:outline-none"
+                  [class.bg-primary-50]="meetupLocationId() === loc.id"
+                  [class.hover:bg-slate-50]="meetupLocationId() !== loc.id"
+                >
+                  <svg class="w-4 h-4 shrink-0 text-text-faint" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5Z" />
+                  </svg>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-[12.5px] font-bold text-text-primary truncate">{{ loc.name }}</p>
+                    <p class="text-[11px] font-semibold text-text-faint truncate">{{ loc.subtitle }}</p>
+                  </div>
+                  @if (meetupLocationId() === loc.id) {
+                    <svg class="w-4 h-4 shrink-0 text-primary" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+
+            <div class="flex items-center justify-between gap-2">
+              <input
+                type="time"
+                [value]="meetupTime()"
+                (input)="meetupTime.set($any($event.target).value)"
+                class="h-9 w-[104px] rounded-xl border border-slate-200 bg-white px-2.5 text-[13px] text-text-primary focus:outline-none focus:border-primary transition-colors"
+              />
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="closeMeetupModal()"
+                  class="h-8 px-3.5 rounded-lg border border-slate-200 bg-white text-[12px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
+                >Cancel</button>
+                <button
+                  type="button"
+                  (click)="createMeetup()"
+                  [disabled]="!canSaveMeetup()"
+                  class="h-8 px-3.5 rounded-lg text-[12px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
+                  [class.bg-primary]="canSaveMeetup()"
+                  [class.hover:bg-primary-hover]="canSaveMeetup()"
+                  [class.bg-slate-200]="!canSaveMeetup()"
+                  [class.text-text-faint]="!canSaveMeetup()"
+                >Propose</button>
+              </div>
+            </div>
+          </div>
+        } @else if (showQuickActions()) {
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="openPollModal()"
+              class="h-9 px-3.5 rounded-full border border-slate-200 bg-white flex items-center gap-1.5 text-[12.5px] font-bold text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
+            >
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 20V10m4 10V4m4 16v-7" />
+              </svg>
+              Poll
+            </button>
+            <button
+              type="button"
+              (click)="openMeetupModal()"
+              class="h-9 px-3.5 rounded-full border border-slate-200 bg-white flex items-center gap-1.5 text-[12.5px] font-bold text-text-secondary hover:border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none"
+            >
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7m4-2l2 2 4-4" />
+              </svg>
+              Meet-up
+            </button>
+          </div>
+        }
         <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="onComposerToggleClick()"
+            class="shrink-0 w-11 h-11 rounded-full border flex items-center justify-center transition-colors focus:outline-none"
+            [class.bg-primary-50]="!composerExpanded()"
+            [class.text-primary]="!composerExpanded()"
+            [class.border-transparent]="!composerExpanded()"
+            [class.bg-white]="composerExpanded()"
+            [class.text-text-secondary]="composerExpanded()"
+            [class.border-slate-200]="composerExpanded()"
+            [attr.aria-label]="composerExpanded() ? 'Close quick actions' : 'More options'"
+          >
+            @if (composerExpanded()) {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            } @else {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+              </svg>
+            }
+          </button>
           <input
             #draftInput
             type="text"
@@ -677,192 +828,6 @@ import { CommunityProfileService } from '../services/community-profile.service';
         </div>
       }
 
-      <!-- Create Poll Modal Overlay -->
-      @if (showPollModal()) {
-        <div
-          class="fixed inset-0 z-[91] bg-black/30 flex items-center justify-center p-4"
-          (click)="closePollModal(); $event.stopPropagation()"
-        >
-          <div
-            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden animate-fade-in-up"
-            (click)="$event.stopPropagation()"
-          >
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h3 class="text-[15px] font-bold text-text-primary">Create Poll</h3>
-              <button
-                type="button"
-                (click)="closePollModal()"
-                class="w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
-                aria-label="Close"
-              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div class="px-5 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto chat-scroll">
-              <div class="flex flex-col gap-1.5">
-                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Question</label>
-                <input
-                  type="text"
-                  [value]="pollQuestion()"
-                  (input)="pollQuestion.set($any($event.target).value)"
-                  placeholder="e.g. Dinner Thursday — where?"
-                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div class="flex flex-col gap-1.5">
-                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Options</label>
-                @for (option of pollOptions(); track $index) {
-                  <div class="flex items-center gap-2">
-                    <input
-                      type="text"
-                      [value]="option"
-                      (input)="updatePollOption($index, $any($event.target).value)"
-                      [placeholder]="'Option ' + ($index + 1)"
-                      class="flex-1 h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-                    />
-                    @if (pollOptions().length > 2) {
-                      <button
-                        type="button"
-                        (click)="removePollOption($index)"
-                        class="shrink-0 w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-text-faint hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none"
-                        [attr.aria-label]="'Remove option ' + ($index + 1)"
-                      >
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    }
-                  </div>
-                }
-                @if (pollOptions().length < 6) {
-                  <button
-                    type="button"
-                    (click)="addPollOption()"
-                    class="self-start flex items-center gap-1.5 text-[12.5px] font-bold text-primary hover:underline focus:outline-none"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add option
-                  </button>
-                }
-              </div>
-            </div>
-
-            <div class="px-5 py-4 border-t border-slate-100 flex gap-3">
-              <button
-                type="button"
-                (click)="closePollModal()"
-                class="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
-              >Cancel</button>
-              <button
-                type="button"
-                (click)="createPoll()"
-                [disabled]="!canSavePoll()"
-                class="flex-1 h-10 rounded-xl text-[13px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
-                [class.bg-primary]="canSavePoll()"
-                [class.hover:bg-primary-hover]="canSavePoll()"
-                [class.bg-slate-200]="!canSavePoll()"
-                [class.text-text-faint]="!canSavePoll()"
-              >Save Poll</button>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Plan Meetup Modal Overlay -->
-      @if (showMeetupModal()) {
-        <div
-          class="fixed inset-0 z-[91] bg-black/30 flex items-center justify-center p-4"
-          (click)="closeMeetupModal(); $event.stopPropagation()"
-        >
-          <div
-            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden animate-fade-in-up"
-            (click)="$event.stopPropagation()"
-          >
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h3 class="text-[15px] font-bold text-text-primary">Plan a Meetup</h3>
-              <button
-                type="button"
-                (click)="closeMeetupModal()"
-                class="w-8 h-8 rounded-full flex items-center justify-center text-text-faint hover:text-text-primary hover:bg-slate-100 transition-colors focus:outline-none"
-                aria-label="Close"
-              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div class="px-5 py-4 flex flex-col gap-4">
-              <div class="flex flex-col gap-1.5">
-                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">What</label>
-                <input
-                  type="text"
-                  [value]="meetupTitle()"
-                  (input)="meetupTitle.set($any($event.target).value)"
-                  placeholder="e.g. Coffee at Saint-Jean"
-                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div class="flex flex-col gap-1.5">
-                <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Where</label>
-                <input
-                  type="text"
-                  [value]="meetupLocation()"
-                  (input)="meetupLocation.set($any($event.target).value)"
-                  placeholder="e.g. Montmartre"
-                  class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1.5">
-                  <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Date</label>
-                  <input
-                    type="date"
-                    [value]="meetupDate()"
-                    (input)="meetupDate.set($any($event.target).value)"
-                    class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-                <div class="flex flex-col gap-1.5">
-                  <label class="text-[12px] font-bold text-text-faint uppercase tracking-wide">Time</label>
-                  <input
-                    type="time"
-                    [value]="meetupTime()"
-                    (input)="meetupTime.set($any($event.target).value)"
-                    class="h-10 rounded-xl border border-slate-200 px-3 text-[13px] text-text-primary focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="px-5 py-4 border-t border-slate-100 flex gap-3">
-              <button
-                type="button"
-                (click)="closeMeetupModal()"
-                class="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-bold text-text-secondary hover:bg-slate-50 transition-colors focus:outline-none"
-              >Cancel</button>
-              <button
-                type="button"
-                (click)="createMeetup()"
-                [disabled]="!canSaveMeetup()"
-                class="flex-1 h-10 rounded-xl text-[13px] font-bold text-white transition-colors focus:outline-none disabled:cursor-not-allowed"
-                [class.bg-primary]="canSaveMeetup()"
-                [class.hover:bg-primary-hover]="canSaveMeetup()"
-                [class.bg-slate-200]="!canSaveMeetup()"
-                [class.text-text-faint]="!canSaveMeetup()"
-              >Plan Meetup</button>
-            </div>
-          </div>
-        </div>
-      }
     </div>
   `,
   styles: [`
@@ -944,10 +909,40 @@ export class CommunityCrewChatModalComponent {
   readonly pollOptions = signal<string[]>(['', '']);
 
   readonly showMeetupModal = signal(false);
-  readonly meetupTitle = signal('');
-  readonly meetupLocation = signal('');
   readonly meetupDate = signal('');
-  readonly meetupTime = signal('');
+  readonly meetupTime = signal('19:00');
+  readonly meetupLocationId = signal<string | null>(null);
+
+  /** Next 7 days, for the meet-up composer's day-pill picker. */
+  readonly meetupDayOptions: { iso: string; weekday: string; dayNum: string }[] = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return {
+      iso: d.toISOString().slice(0, 10),
+      weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayNum: String(d.getDate()).padStart(2, '0'),
+    };
+  });
+
+  /** Curated suggested spots for the meet-up composer's location list — this
+   * circle's chat has no real place-search backing it, so these are fixed
+   * rather than fabricated per-circle content. */
+  readonly meetupLocationOptions: { id: string; name: string; subtitle: string }[] = [
+    { id: 'pont-neuf', name: 'Pont Neuf', subtitle: 'Riverside · Île de la Cité' },
+    { id: 'le-marais', name: 'Le Marais', subtitle: 'Street food · 3rd' },
+    { id: 'musee-dorsay', name: 'Musée d’Orsay', subtitle: 'Museum · 7th' },
+    { id: 'montmartre-steps', name: 'Montmartre steps', subtitle: 'Viewpoint · 18th' },
+    { id: 'canal-saint-martin', name: 'Canal Saint-Martin', subtitle: 'Drinks · 10th' },
+  ];
+
+  /** Whether the "+" quick-actions row (Poll / Meet-up) is expanded above
+   * the message input. */
+  readonly showQuickActions = signal(false);
+
+  /** True whenever the composer footer shows anything beyond the plain
+   * input — the quick-actions pills, or an inline Poll/Meet-up form —
+   * driving the launcher button's "+" vs "✕" state. */
+  readonly composerExpanded = computed(() => this.showQuickActions() || this.showPollModal() || this.showMeetupModal());
 
   /** The chat context currently displayed. When `joinedCircles` is provided
    * this is the selected circle; otherwise it's the single-circle fallback
@@ -1114,6 +1109,26 @@ export class CommunityCrewChatModalComponent {
     this.pollQuestion.set('');
     this.pollOptions.set(['', '']);
     this.showPollModal.set(true);
+    this.showQuickActions.set(false);
+  }
+
+  toggleQuickActions(): void {
+    this.showQuickActions.update(v => !v);
+  }
+
+  /** Launcher button next to the input — closes whichever composer state is
+   * active (inline poll/meetup form, or the quick-actions pills) rather than
+   * always toggling `showQuickActions` directly. */
+  onComposerToggleClick(): void {
+    if (this.showPollModal()) {
+      this.closePollModal();
+      return;
+    }
+    if (this.showMeetupModal()) {
+      this.closeMeetupModal();
+      return;
+    }
+    this.toggleQuickActions();
   }
 
   closePollModal(): void {
@@ -1155,28 +1170,33 @@ export class CommunityCrewChatModalComponent {
   }
 
   openMeetupModal(): void {
-    this.meetupTitle.set('');
-    this.meetupLocation.set('');
-    this.meetupDate.set('');
-    this.meetupTime.set('');
+    this.meetupDate.set(this.meetupDayOptions[0]?.iso ?? '');
+    this.meetupTime.set('19:00');
+    this.meetupLocationId.set(null);
     this.showMeetupModal.set(true);
+    this.showQuickActions.set(false);
   }
 
   closeMeetupModal(): void {
     this.showMeetupModal.set(false);
   }
 
+  selectMeetupDay(iso: string): void {
+    this.meetupDate.set(iso);
+  }
+
+  selectMeetupLocation(id: string): void {
+    this.meetupLocationId.set(id);
+  }
+
   canSaveMeetup(): boolean {
-    return (
-      this.meetupTitle().trim().length > 0 &&
-      this.meetupLocation().trim().length > 0 &&
-      this.meetupDate().length > 0 &&
-      this.meetupTime().length > 0
-    );
+    return this.meetupDate().length > 0 && this.meetupTime().length > 0 && this.meetupLocationId() !== null;
   }
 
   createMeetup(): void {
     if (!this.canSaveMeetup()) return;
+    const location = this.meetupLocationOptions.find(l => l.id === this.meetupLocationId());
+    if (!location) return;
     const [year, month, day] = this.meetupDate().split('-').map(Number);
     const when = new Date(year, month - 1, day);
     const weekday = when.toLocaleDateString('en-US', { weekday: 'short' });
@@ -1186,8 +1206,8 @@ export class CommunityCrewChatModalComponent {
       customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       kind: 'meetup' as const,
-      title: this.meetupTitle().trim(),
-      meta: `${weekday} ${this.meetupTime()} \u00b7 ${this.meetupLocation().trim()}`,
+      title: `Meetup at ${location.name}`,
+      meta: `${weekday} ${this.meetupTime()} \u00b7 ${location.name}`,
     });
     this.closeMeetupModal();
   }

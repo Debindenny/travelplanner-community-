@@ -1,60 +1,62 @@
-<div class="circles-header">
-  <div class="circles-header__row">
-    <div class="circles-header__copy">
-      <h1 class="circles-header__title">Plan with a small group</h1>
-      <p class="circles-header__subtitle">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+<div class="circles-page" [class.circles-page--chat-open]="isChatOpen()">
+  <div class="circles-header">
+    <div class="circles-header__row">
+      <div class="circles-header__copy">
+        <h1 class="circles-header__title">Plan with a small group</h1>
+        <p class="circles-header__subtitle">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+      </div>
+      <button type="button" class="circles-header__cta" (click)="onCreateCircle()">Create a circle</button>
     </div>
-    <button type="button" class="circles-header__cta" (click)="onCreateCircle()">Create a circle</button>
   </div>
-</div>
 
-@if (isLoading()) {
-  <p class="circles-status">Loading circles…</p>
-} @else if (loadError()) {
-  <p class="circles-status circles-status--error">{{ loadError() }}</p>
-} @else if (cards().length === 0) {
-  <p class="circles-status">No travel circles yet. Create one to get started.</p>
-}
-
-<div class="circle-grid">
-  @for (card of cards(); track card.id) {
-    <article class="circle-card">
-      <div class="circle-card__image" [style.background-image]="'url(' + card.image + ')'">
-        <div class="circle-card__image-top">
-          <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
-          <span class="circle-card__activity">
-            <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="isRecentlyActive(card)"></span>
-            {{ card.activity }}
-          </span>
-        </div>
-
-        <div class="circle-card__image-overlay">
-          <h3 class="circle-card__title">{{ card.title }}</h3>
-          <p class="circle-card__meta">{{ card.meta }}</p>
-        </div>
-      </div>
-
-      <div class="circle-card__body">
-        <p class="circle-card__description">{{ card.description }}</p>
-
-        <div class="circle-card__bottom">
-          <span class="circle-card__footer-meta">{{ card.meta }}</span>
-          <span class="circle-card__actions">
-            <button type="button" class="circle-card__view" (click)="onViewCircle(card)">View details</button>
-            <button
-              type="button"
-              class="circle-card__cta"
-              [class.circle-card__cta--active]="isMember(card.id)"
-              [class.circle-card__cta--owner]="isOwner(card)"
-              (click)="onToggleMembership(card)"
-            >
-              {{ buttonLabel(card) }}
-            </button>
-          </span>
-        </div>
-      </div>
-    </article>
+  @if (isLoading()) {
+    <p class="circles-status">Loading circles…</p>
+  } @else if (loadError()) {
+    <p class="circles-status circles-status--error">{{ loadError() }}</p>
+  } @else if (cards().length === 0) {
+    <p class="circles-status">No travel circles yet. Create one to get started.</p>
   }
+
+  <div class="circle-grid">
+    @for (card of cards(); track card.id) {
+      <article class="circle-card">
+        <div class="circle-card__image" [style.background-image]="'url(' + card.image + ')'">
+          <div class="circle-card__image-top">
+            <span class="circle-card__badge" [class.circle-card__badge--public]="card.visibility === 'Public'">{{ card.visibility }}</span>
+            <span class="circle-card__activity">
+              <span class="circle-card__activity-dot" [class.circle-card__activity-dot--live]="isRecentlyActive(card)"></span>
+              {{ card.activity }}
+            </span>
+          </div>
+
+          <div class="circle-card__image-overlay">
+            <h3 class="circle-card__title">{{ card.title }}</h3>
+            <p class="circle-card__meta">{{ card.meta }}</p>
+          </div>
+        </div>
+
+        <div class="circle-card__body">
+          <p class="circle-card__description">{{ card.description }}</p>
+
+          <div class="circle-card__bottom">
+            <span class="circle-card__footer-meta">{{ card.meta }}</span>
+            <span class="circle-card__actions">
+              <button type="button" class="circle-card__view" (click)="onViewCircle(card)">View details</button>
+              <button
+                type="button"
+                class="circle-card__cta"
+                [class.circle-card__cta--active]="isMember(card.id)"
+                [class.circle-card__cta--owner]="isOwner(card)"
+                (click)="onToggleMembership(card)"
+              >
+                {{ buttonLabel(card) }}
+              </button>
+            </span>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
 </div>
 
 @if (showCreateModal()) {
@@ -100,14 +102,28 @@
 }
 
 <!-- Floating chat launcher — same fixed bottom-right button as the Community
-     Home page's crew chat, always available on Travel Circles. -->
-<button
-  type="button"
-  (click)="onFloatingChatClick()"
-  class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-white shadow-[0_10px_28px_rgba(0,96,234,0.35)] border-2 border-white flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none"
-  aria-label="Open chat"
->
-  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 20l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-  </svg>
-</button>
+     Home page's crew chat, always available on Travel Circles. Swaps to a
+     black "close" state while the panel is docked open. -->
+@if (isChatOpen()) {
+  <button
+    type="button"
+    (click)="onFloatingChatButtonClick()"
+    class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-slate-900 hover:bg-black text-white shadow-[0_10px_28px_rgba(15,23,42,0.45)] border-2 border-white flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+    aria-label="Close chat"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+} @else {
+  <button
+    type="button"
+    (click)="onFloatingChatButtonClick()"
+    class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-white shadow-[0_10px_28px_rgba(0,96,234,0.35)] border-2 border-white flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+    aria-label="Open chat"
+  >
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 20l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+    </svg>
+  </button>
+}

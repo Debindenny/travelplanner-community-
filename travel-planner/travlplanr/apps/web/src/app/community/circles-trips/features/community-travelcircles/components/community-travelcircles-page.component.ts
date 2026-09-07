@@ -134,6 +134,11 @@ export class CommunityTravelCirclesComponent {
 
   readonly viewedCircle = () => this.cards().find((card) => card.id === this.viewedCircleId()) ?? null;
 
+  /** Whether the crew chat panel is docked open (either a specific circle's
+   * chat or the discovery view) — used to shrink the card grid so it doesn't
+   * sit underneath the panel. */
+  readonly isChatOpen = computed(() => this.openChatCircle() !== null || this.showCrewChat());
+
   /** Joined circle cards mapped to ChatCircleContext for the crew chat's
    * circle dropdown selector. Only includes cards the user is a member of. */
   readonly joinedCircleContexts = computed<ChatCircleContext[]>(() =>
@@ -340,6 +345,22 @@ export class CommunityTravelCirclesComponent {
       return;
     }
     this.showCrewChat.set(true);
+  }
+
+  /** Floating launcher button — opens the chat via `onFloatingChatClick`
+   * when closed, or just docks the panel closed (without leaving the
+   * circle) when it's already open, since the button doubles as the panel's
+   * close control in that state. */
+  onFloatingChatButtonClick(): void {
+    if (!this.isChatOpen()) {
+      this.onFloatingChatClick();
+      return;
+    }
+    if (this.openChatCircle()) {
+      this.onCloseCircleChat();
+    } else {
+      this.closeCrewChat();
+    }
   }
 
   onCreateCircle(): void {
