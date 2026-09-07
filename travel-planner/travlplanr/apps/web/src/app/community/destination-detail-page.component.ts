@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { CommunityPost } from './services/community-post.service';
 import { DestinationDetail, DestinationService } from './services/destination-detail.service';
-import { CommunityPostCardComponent } from './components/community-post-card.component';
+import { CommunityPostCardComponent } from './components/community-post-shared.component';
 import { NavbarComponent } from '../landing/components/navbar/navbar.component';
 
 @Component({

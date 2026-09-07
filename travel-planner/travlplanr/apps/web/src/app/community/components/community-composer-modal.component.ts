@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
-import { CommunityCreatePostComponent } from './community-create-post.component';
+import { CommunityCreatePostComponent } from './community-post-shared.component';
 import { CommunityTipComposerComponent } from './community-tip-composer.component';
 import { CommunityPhotoComposerComponent } from './community-photo-composer.component';
 import { CommunityTripComposerComponent } from './community-trip-composer.component';

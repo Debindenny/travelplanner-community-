@@ -5,7 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FooterSectionComponent } from '../../landing/components/footer-section/footer-section.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from '../services/community-post.service';
-import { CommunityPostCarouselComponent } from './community-post-carousel.component';
+import { CommunityPostCarouselComponent } from './community-post-shared.component';
 import { CommunityCommentService, Comment } from '../services/community-comment.service';
 import { AuthService } from '../../auth/auth.service';
 import { CommunityProfileService } from '../services/community-profile.service';

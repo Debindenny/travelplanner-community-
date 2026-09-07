@@ -298,6 +298,9 @@
       "CAPTION_PLACEHOLDER": "Que se passe-t-il ?",
       "CLOSE": "Fermer",
       "DEFAULT_AUTHOR_NAME": "Vous",
+      "DROPZONE_SUBTITLE": "Depuis votre appareil · JPG, PNG ou MP4",
+      "DROPZONE_TITLE": "Téléchargez une photo ou une vidéo",
+      "EMOJI_INSERT_ARIA": "Insérer {{emoji}}",
       "IMAGE_LOAD_ERROR": "Échec du chargement de l'image. Veuillez vérifier l'URL.",
       "IMAGE_PREVIEW_ALT": "Aperçu de l'image",
       "IMAGE_URL": "URL de l'image",
@@ -305,7 +308,10 @@
       "POSTING": "Publication en cours...",
       "POST_FAILED": "Échec de la publication de la story",
       "SHARE_STORY": "Partager la story",
-      "TITLE": "Créer une story"
+      "SUCCESS": "Votre story est en ligne !",
+      "TITLE": "Créer une story",
+      "TYPE_ROW_HINT": "Partagez une photo ou une vidéo avec une courte légende.",
+      "TYPE_ROW_TITLE": "Photo / Vidéo"
     },
     "CATEGORY_FOR_YOU": "Pour vous",
     "CATEGORY_NEAR_TRIP": "Près de mon voyage",

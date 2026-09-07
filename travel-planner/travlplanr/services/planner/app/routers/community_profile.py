@@ -39,7 +39,7 @@ async def get_my_community_profile(request: Request, auth: dict = Depends(requir
         posts_count = (await session.execute(select(func.count(CommunityPost.id)).where(CommunityPost.customer_id == customer_id))).scalar_one()
         return {
             "customer_id": str(prof.customer_id),
-            "name": prof.name or "",
+            "name": prof.name or auth.get("customer_name") or "",
             "bio": prof.bio,
             "profile_views": prof.profile_views,
             "followers_count": followers or 0,
@@ -75,7 +75,7 @@ async def update_my_community_profile(data: UpdateCommunityProfileRequest, reque
         helpful = (await session.execute(select(func.coalesce(func.sum(CommunityPost.likes_count), 0)).where(CommunityPost.customer_id == customer_id))).scalar_one()
         trips_count = (await session.execute(select(func.count(Trip.id)).where(Trip.customer_id == customer_id))).scalar_one()
         return {
-            "customer_id": str(prof.customer_id), "name": prof.name or "", "bio": prof.bio,
+            "customer_id": str(prof.customer_id), "name": prof.name or auth.get("customer_name") or "", "bio": prof.bio,
             "profile_views": prof.profile_views, "followers_count": followers or 0,
             "following_count": following or 0, "posts_count": posts_count or 0,
             "is_verified": prof.is_verified, "countries_visited": prof.countries_visited,

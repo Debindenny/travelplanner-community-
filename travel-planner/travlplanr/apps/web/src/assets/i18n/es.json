@@ -298,6 +298,9 @@
       "CAPTION_PLACEHOLDER": "¿Qué está pasando?",
       "CLOSE": "Cerrar",
       "DEFAULT_AUTHOR_NAME": "Tú",
+      "DROPZONE_SUBTITLE": "Desde tu dispositivo · JPG, PNG o MP4",
+      "DROPZONE_TITLE": "Sube una foto o video",
+      "EMOJI_INSERT_ARIA": "Insertar {{emoji}}",
       "IMAGE_LOAD_ERROR": "No se pudo cargar la imagen. Verifica la URL.",
       "IMAGE_PREVIEW_ALT": "Vista previa de la imagen",
       "IMAGE_URL": "URL de la imagen",
@@ -305,7 +308,10 @@
       "POSTING": "Publicando...",
       "POST_FAILED": "No se pudo publicar la historia",
       "SHARE_STORY": "Compartir historia",
-      "TITLE": "Crear historia"
+      "SUCCESS": "¡Tu historia ya está activa!",
+      "TITLE": "Crear historia",
+      "TYPE_ROW_HINT": "Comparte una foto o video con una breve descripción.",
+      "TYPE_ROW_TITLE": "Foto / Video"
     },
     "CATEGORY_FOR_YOU": "Para ti",
     "CATEGORY_NEAR_TRIP": "Cerca de mi viaje",

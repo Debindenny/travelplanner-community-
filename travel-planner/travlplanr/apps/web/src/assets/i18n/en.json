@@ -382,6 +382,9 @@
       "CAPTION_PLACEHOLDER": "What's happening?",
       "CLOSE": "Close",
       "DEFAULT_AUTHOR_NAME": "You",
+      "DROPZONE_SUBTITLE": "From your device · JPG, PNG or MP4",
+      "DROPZONE_TITLE": "Upload a photo or video",
+      "EMOJI_INSERT_ARIA": "Insert {{emoji}}",
       "IMAGE_LOAD_ERROR": "Failed to load image. Please check the URL.",
       "IMAGE_PREVIEW_ALT": "Image preview",
       "IMAGE_URL": "Photo or video",
@@ -390,7 +393,10 @@
       "POSTING": "Posting...",
       "POST_FAILED": "Failed to post story",
       "SHARE_STORY": "Share Story",
-      "TITLE": "Create Story"
+      "SUCCESS": "Your story is live!",
+      "TITLE": "Create Story",
+      "TYPE_ROW_HINT": "Share a photo or video with a short caption.",
+      "TYPE_ROW_TITLE": "Photo / Video"
     },
     "REPORT": {
       "TITLE": "Report",
