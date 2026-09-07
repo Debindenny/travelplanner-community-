@@ -61,17 +61,17 @@ interface SubnavItem {
       alt=""
     />
 
- <div>
+ <div class="flex-1 min-w-0">
   <p class="text-[13.5px] font-bold text-text-primary truncate">
     {{ profile.name }}
   </p>
 
   @if (profile.bio) {
-    <p class="text-[11.5px] font-semibold text-eventText-mid truncate">
+    <p class="text-[11.5px] font-semibold text-eventText-mid leading-snug line-clamp-2 break-words">
       {{ profile.bio }}
     </p>
   }
-    
+
 </div> </a>
 }
     </div>

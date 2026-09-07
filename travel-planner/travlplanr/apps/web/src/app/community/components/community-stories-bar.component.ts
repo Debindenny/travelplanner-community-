@@ -66,7 +66,13 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
             [class.dark:bg-gray-600]="isGroupSeen(group)"
           >
             <span class="block w-full h-full rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-slate-100 dark:bg-gray-700">
-              <img [src]="group.stories[0].media_url" class="w-full h-full object-cover" alt="" />
+              @if (group.stories[0].media_url; as thumbUrl) {
+                <img [src]="thumbUrl" class="w-full h-full object-cover" alt="" />
+              } @else {
+                <span class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-indigo-600 text-white text-[8px] font-bold text-center px-1 leading-tight">
+                  {{ group.stories[0].caption }}
+                </span>
+              }
             </span>
 
             <!-- Seen check overlay -->
@@ -147,17 +153,27 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
 
           <!-- Media -->
           <div class="flex-1 relative flex items-center justify-center">
-            <img
-              [src]="currentStory?.media_url"
-              class="w-full h-full object-contain"
-              (click)="handleTap($event)"
-            />
+            @if (currentStory?.media_url; as storyMediaUrl) {
+              <img
+                [src]="storyMediaUrl"
+                class="w-full h-full object-contain"
+                (click)="handleTap($event)"
+              />
 
-            @if (currentStory?.caption) {
-              <div class="absolute bottom-10 inset-x-0 text-center px-6 z-10">
-                <p class="text-white bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl inline-block text-sm">
-                  {{ currentStory?.caption }}
-                </p>
+              @if (currentStory?.caption) {
+                <div class="absolute bottom-10 inset-x-0 text-center px-6 z-10">
+                  <p class="text-white bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl inline-block text-sm">
+                    {{ currentStory?.caption }}
+                  </p>
+                </div>
+              }
+            } @else {
+              <!-- Text-only story: no media, so the caption itself becomes the story. -->
+              <div
+                class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary via-indigo-600 to-fuchsia-600 px-8"
+                (click)="handleTap($event)"
+              >
+                <p class="text-white text-xl sm:text-2xl font-bold text-center leading-snug">{{ currentStory?.caption }}</p>
               </div>
             }
           </div>
@@ -202,8 +218,9 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
 
           <div class="p-5 flex flex-col gap-5">
 
-            <!-- Post type row — a story is always Photo/Video, so this both confirms
-                 the type and offers a shortcut to swap the selected media. -->
+            <!-- Post type row — a story is always Photo/Video-capable, but media is
+                 optional (text-only stories are allowed), so this both confirms the
+                 type and offers a shortcut to swap the selected media. -->
             <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-primary-50/50 border border-primary-subtle/40">
               <span class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center shrink-0 shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -212,11 +229,13 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
                 <span class="block text-xs font-extrabold text-text-primary">{{ 'COMMUNITY.CREATE_STORY.TYPE_ROW_TITLE' | translate }}</span>
                 <span class="block text-[11px] font-medium text-text-faint">{{ 'COMMUNITY.CREATE_STORY.TYPE_ROW_HINT' | translate }}</span>
               </span>
-              <button
-                type="button"
-                (click)="fileInput.click()"
-                class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-[11px] font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
-              >{{ 'COMMUNITY.COMPOSER_MODAL.CHANGE' | translate }}</button>
+              @if (mediaUrl()) {
+                <button
+                  type="button"
+                  (click)="fileInput.click()"
+                  class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-[11px] font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                >{{ 'COMMUNITY.COMPOSER_MODAL.CHANGE' | translate }}</button>
+              }
             </div>
 
             <!-- Caption -->
@@ -255,7 +274,7 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
                 >
                   <svg class="w-6 h-6 text-text-faint" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
                   <span class="text-sm font-extrabold text-text-primary">{{ 'COMMUNITY.CREATE_STORY.DROPZONE_TITLE' | translate }}</span>
-                  <span class="text-[11px] font-medium text-text-faint">{{ 'COMMUNITY.CREATE_STORY.DROPZONE_SUBTITLE' | translate }}</span>
+                  <span class="text-[11px] font-medium text-text-faint">{{ 'COMMUNITY.CREATE_STORY.DROPZONE_SUBTITLE' | translate }} · {{ 'COMMUNITY.CREATE_STORY.OPTIONAL' | translate }}</span>
                 </button>
               } @else if (isUploading()) {
                 <div class="flex flex-col items-center justify-center gap-2 py-8 rounded-xl border-2 border-dashed border-slate-200 dark:border-gray-700">
@@ -311,7 +330,7 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
           <!-- Footer -->
           <div class="sticky bottom-0 z-10 rounded-b-2xl bg-white dark:bg-gray-800 flex items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100 dark:border-gray-700">
             <p class="text-[11px] font-medium text-text-faint">
-              {{ canShareStory() ? '' : ('COMMUNITY.COMPOSER_MODAL.TIP_FOOTER_HINT' | translate) }}
+              {{ canShareStory() ? '' : ('COMMUNITY.CREATE_STORY.FOOTER_HINT' | translate) }}
             </p>
             <div class="flex items-center gap-2 shrink-0">
               <button
@@ -482,7 +501,8 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
   readonly audiences = AUDIENCE_OPTIONS;
   readonly quickEmojis = QUICK_EMOJIS;
   readonly selectedAudienceHint = computed(() => this.audiences.find(a => a.value === this.audience())?.hintKey ?? '');
-  readonly canShareStory = computed(() => !!this.mediaUrl() && !this.imageError());
+  // A story needs a caption, media, or both — only block submission when both are empty.
+  readonly canShareStory = computed(() => (!!this.mediaUrl() || this.caption().trim().length > 0) && !this.imageError());
 
   // Story preview modal state (formerly CommunityStoryPreviewModalComponent)
   readonly followed = signal(false);
@@ -604,7 +624,7 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
     // isn't persisted. Kept as local state so the control is fully usable and its
     // hint text is accurate; wire it up once the API supports it.
     const payload = {
-      media_url: this.mediaUrl(),
+      media_url: this.mediaUrl() || undefined,
       caption: this.caption().trim() || undefined
     };
 
@@ -700,10 +720,14 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
   }
 
   handleTap(event: MouseEvent) {
-    const width = (event.target as HTMLElement).offsetWidth;
-    const clickX = event.offsetX;
+    // Use currentTarget (the element the handler is bound to) rather than target:
+    // a text-only story's caption is a child of the tap zone, and offsetX/target
+    // would otherwise be measured against whichever inner element was clicked.
+    const zone = event.currentTarget as HTMLElement;
+    const rect = zone.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
 
-    if (clickX < width / 3) {
+    if (clickX < rect.width / 3) {
       this.prevStory();
     } else {
       this.nextStory();

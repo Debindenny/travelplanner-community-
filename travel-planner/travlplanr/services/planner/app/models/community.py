@@ -86,7 +86,7 @@ class Story(Base):
     customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     author_name: Mapped[str] = mapped_column(String(255))
     author_avatar: Mapped[str] = mapped_column(String(1024), nullable=True)
-    media_url: Mapped[str] = mapped_column(String(2048))
+    media_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     caption: Mapped[str] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     expires_at: Mapped[datetime] = mapped_column(DateTime)

@@ -6,7 +6,7 @@ import { apiUrl } from '../../shared/utils/api-url';
 
 export interface Story {
   id: string;
-  media_url: string;
+  media_url: string | null;
   caption: string | null;
   created_at: string;
   expires_at: string;
@@ -25,7 +25,7 @@ export interface StoryGroup {
 export class CommunityStoryService {
   private readonly http = inject(HttpClient);
 
-  getFeed(): Observable<{ feed: StoryGroup[] }> {
+  getFeed(): Observable<{ feed: StoryGroup[] }> {    
     return this.http.get<{ feed: StoryGroup[] }>(apiUrl('/community/stories/feed'));
   }
 
@@ -33,7 +33,7 @@ export class CommunityStoryService {
     return this.http.get<Story[]>(apiUrl(`/community/stories/user/${customerId}`));
   }
 
-  createStory(payload: { media_url: string; caption?: string }): Observable<{ status: string; story_id: string }> {
+  createStory(payload: { media_url?: string; caption?: string }): Observable<{ status: string; story_id: string }> {
     return this.http.post<{ status: string; story_id: string }>(apiUrl('/community/stories'), payload);
   }
 

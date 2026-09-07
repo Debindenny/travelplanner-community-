@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 class CreateStoryRequest(BaseModel):
-    media_url: str
+    media_url: str | None = None
     caption: str | None = None
 
 
@@ -56,9 +56,12 @@ async def get_stories_feed(request: Request, auth: dict | None = Depends(optiona
 @router.post("", dependencies=[Depends(rate_limiter("story-create", 10, 300))])
 async def create_story(data: CreateStoryRequest, request: Request, auth: dict = Depends(require_customer)):
     customer_id = UUID(auth["customer_id"])
-    if not _is_trusted_media_url(data.media_url):
+    caption = data.caption.strip() if data.caption else None
+    if not data.media_url and not caption:
+        raise HTTPException(status_code=400, detail="Story must include a caption, media, or both")
+    if data.media_url and not _is_trusted_media_url(data.media_url):
         raise HTTPException(status_code=400, detail="media_url must come from /community/upload")
-    if data.caption and len(data.caption) > 500:
+    if caption and len(caption) > 500:
         raise HTTPException(status_code=400, detail="Caption exceeds maximum length of 500 characters")
 
     async with request.app.state.session_factory() as session:
@@ -66,9 +69,10 @@ async def create_story(data: CreateStoryRequest, request: Request, auth: dict = 
         now = datetime.utcnow()
         expires_at = now + timedelta(hours=24)
         story = Story(
-            customer_id=customer_id, author_name=profile.name if profile and profile.name else "Traveler",
+            customer_id=customer_id,
+            author_name=(profile.name if profile else None) or auth.get("customer_name") or "Traveler",
             author_avatar=profile.avatar_url if profile else None, media_url=data.media_url,
-            caption=data.caption, created_at=now, expires_at=expires_at
+            caption=caption, created_at=now, expires_at=expires_at
         )
         session.add(story)
         await award_xp(session, customer_id, "story_created")

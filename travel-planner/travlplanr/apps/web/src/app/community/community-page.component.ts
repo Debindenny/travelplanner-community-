@@ -199,6 +199,7 @@ interface HeroDestination {
 
             </div>
 
+
           <!-- CENTER COLUMN (Feed). No base col-span: it stays in the second grid
                column (beside the now row-spanning sidebar) instead of spanning both
                columns, which would have fought the sidebar for column 1. -->
@@ -315,7 +316,7 @@ interface HeroDestination {
                   </div>
                 }
               }
-
+       
               <!-- Posts -->
               @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
