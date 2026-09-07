@@ -16,6 +16,7 @@ import { TripSlotsRowComponent } from '../trip-slots-row/trip-slots-row.componen
 import { ChatContextService } from '../../services/chat-context.service';
 import { DestinationSearchService } from '../../services/destination-search.service';
 import { TravelChatSessionService } from '../../services/travel-chat-session.service';
+import { EventHostAssistantService } from '../../services/event-host-assistant.service';
 import { TravelChatMessagesComponent } from '../travel-chat-messages/travel-chat-messages.component';
 import { DestinationListItem } from '../../utils/destination.util';
 
@@ -441,6 +442,7 @@ export class FloatingChatbotComponent implements OnDestroy {
 
   readonly chatContext = inject(ChatContextService);
   readonly chat = inject(TravelChatSessionService);
+  readonly eventHost = inject(EventHostAssistantService);
   private readonly destinationSearch = inject(DestinationSearchService);
 
   readonly inputValue = signal('');
@@ -461,7 +463,10 @@ export class FloatingChatbotComponent implements OnDestroy {
 
   /** The dock expands when the user opened chat, or while a reply/voice turn
    * is in flight. Closing (scrim / outside click / Escape) always collapses
-   * the thread — slot chips may still show under the bar without trapping it open. */
+   * the thread — slot chips may still show under the bar without trapping it open.
+   * A running host-event conversation stays in the background (EventHostAssistantService.active)
+   * even after this collapses, so dismissing never loses progress — reopening the
+   * dock (e.g. via "Host Event" again) resumes exactly where it left off. */
   readonly showChatThread = computed(
     () =>
       this.chatContext.chatOpen() ||
@@ -640,7 +645,11 @@ export class FloatingChatbotComponent implements OnDestroy {
     if (input) input.value = '';
     this.inputValue.set('');
 
-    await this.chat.planFromSearchQuery(query);
+    if (this.eventHost.active()) {
+      this.eventHost.submitAnswer(query);
+    } else {
+      await this.chat.planFromSearchQuery(query);
+    }
     queueMicrotask(() => this.dockInput()?.nativeElement?.focus());
   }
 

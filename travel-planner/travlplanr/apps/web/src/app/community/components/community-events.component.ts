@@ -8,12 +8,10 @@ import { CommunityHomeSubnavComponent } from './community-home-subnav.component'
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
 import { AuthService } from '../../auth/auth.service';
+import { EventHostAssistantService } from '../../shared/services/event-host-assistant.service';
+import { ChatContextService } from '../../shared/services/chat-context.service';
 
-const MONTH_ORDER = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
-function dayKey(month: string, day: string | number): number {
-  return MONTH_ORDER.indexOf(month) * 100 + Number(day);
-}
+export type EventsTab = 'all' | 'hosted' | 'joined';
 
 @Component({
   selector: 'app-community-events',
@@ -31,6 +29,8 @@ export class CommunityEventsComponent {
   private readonly eventsService = inject(CommunityEventsService);
   private readonly auth = inject(AuthService);
   private readonly profileService = inject(CommunityProfileService);
+  private readonly eventHost = inject(EventHostAssistantService);
+  private readonly chatContext = inject(ChatContextService);
 
   readonly user = this.auth.user;
   readonly myProfile = signal<MyCommunityProfile | null>(null);
@@ -58,6 +58,17 @@ export class CommunityEventsComponent {
     }
   }
 
+  /** Blurs this page and opens the global AI chat dock, running the Event
+   * Hosting Assistant as turns in it — no navigation away from Events.
+   * Stops propagation so this same click isn't seen by the dock's global
+   * "click outside closes it" listener (the button itself is outside the
+   * dock element) and doesn't instantly close what it just opened. */
+  hostEvent(event: Event): void {
+    event.stopPropagation();
+    this.eventHost.start();
+    this.chatContext.setChatOpen(true);
+  }
+
   loadEvents(): void {
     this.loading = true;
     this.loadError = false;
@@ -73,26 +84,27 @@ export class CommunityEventsComponent {
     });
   }
 
-  /** The traveler's next upcoming trip — drives the "during your trip" filter toggle. */
-  readonly myTrip = {
-    destination: 'Paris',
-    dateRangeLabel: 'Jun 03 – Jun 08',
-    startKey: dayKey('JUN', 3),
-    endKey: dayKey('JUN', 8)
-  };
+  activeTab: EventsTab = 'all';
 
-  tripFilterOn = false;
-
-  toggleTripFilter(): void {
-    this.tripFilterOn = !this.tripFilterOn;
+  setTab(tab: EventsTab): void {
+    this.activeTab = tab;
   }
 
   get visibleEvents(): CommunityEventCard[] {
-    if (!this.tripFilterOn) return this.events;
-    return this.events.filter((ev) => {
-      const key = dayKey(ev.month, ev.day);
-      return key >= this.myTrip.startKey && key <= this.myTrip.endKey;
-    });
+    if (this.activeTab === 'hosted') {
+      const uid = this.user()?.id;
+      return this.events.filter((ev) => ev.hostId === uid);
+    }
+    if (this.activeTab === 'joined') {
+      return this.events.filter((ev) => ev.joined);
+    }
+    return this.events;
+  }
+
+  /** Location + price chips shown at the bottom of an event card. */
+  tagsFor(ev: CommunityEventCard): string[] {
+    const parts = ev.location.split(',').map((p) => p.trim()).filter(Boolean);
+    return [...parts, ev.price];
   }
 
   // "Join & add to itinerary" — joining opens the trip/day picker; leaving is instant.

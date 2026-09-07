@@ -6,6 +6,7 @@ import { SearchPlanAssistComponent } from '../../../shared/components/search-pla
 import { TripSlotsRowComponent } from '../../../shared/components/trip-slots-row/trip-slots-row.component';
 import { TravelChatMessagesComponent } from '../../../shared/components/travel-chat-messages/travel-chat-messages.component';
 import { TravelChatSessionService } from '../../../shared/services/travel-chat-session.service';
+import { EventHostAssistantService } from '../../../shared/services/event-host-assistant.service';
 import { ChatContextService } from '../../../shared/services/chat-context.service';
 import { DestinationSearchService } from '../../../shared/services/destination-search.service';
 import { DestinationListItem } from '../../../shared/utils/destination.util';
@@ -857,6 +858,7 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
   readonly chat = inject(TravelChatSessionService);
   private readonly chatContext = inject(ChatContextService);
   private readonly destinationSearch = inject(DestinationSearchService);
+  private readonly eventHost = inject(EventHostAssistantService);
 
   readonly typeaheadEnabled = computed(
     () =>
@@ -1024,7 +1026,7 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
     }
 
     effect(() => {
-      if (this.chat.sending() || this.chat.listening()) {
+      if (this.chat.sending() || this.chat.listening() || this.eventHost.active()) {
         this.chatMode.set(true);
       }
     }, { allowSignalWrites: true });
@@ -1694,7 +1696,11 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
     if (input) input.value = '';
     this.inputValue.set('');
 
-    await this.chat.planFromSearchQuery(query);
+    if (this.eventHost.active()) {
+      this.eventHost.submitAnswer(query);
+    } else {
+      await this.chat.planFromSearchQuery(query);
+    }
     queueMicrotask(() => this.searchInput()?.nativeElement?.focus());
   }
 

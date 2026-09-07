@@ -37,6 +37,7 @@ export interface CommunityEventCard {
   joined: boolean;
   followed: boolean;
   imageUrl: string;
+  hostId: string;
   hostName: string;
   hostRole: string;
   /** Short personalization line shown between the banner and the price row. Not backed by the API — empty for real events. */
@@ -167,6 +168,7 @@ export function toEventCard(ev: CommunityEvent): CommunityEventCard {
     joined: ev.rsvp_status === 'going',
     followed: false,
     imageUrl: ev.image_url || FALLBACK_IMAGE,
+    hostId: ev.organizer.id,
     hostName: ev.organizer.name,
     hostRole: '',
     reason: '',

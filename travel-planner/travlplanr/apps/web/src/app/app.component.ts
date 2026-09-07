@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FloatingChatbotComponent } from './shared/components/floating-chatbot/floating-chatbot.component';
 import { CommandPaletteComponent } from './shared/components/command-palette/command-palette.component';
 import { ChatContextService } from './shared/services/chat-context.service';
+import { EventHostAssistantService } from './shared/services/event-host-assistant.service';
 import { ToastHostComponent } from 'ui';
 
 @Component({
@@ -22,11 +23,12 @@ import { ToastHostComponent } from 'ui';
       tabindex="-1"
       class="outline-none"
       [class.chat-driving-bg]="chatContext.chatOpen() && chatContext.activeDestination()"
+      [class.event-host-blur]="eventHost.active() && chatContext.chatOpen()"
     >
       <router-outlet></router-outlet>
     </main>
     @defer (on idle) {
-      @if (!hideFloatingChat()) {
+      @if (!hideFloatingChat() || eventHost.active()) {
         <app-floating-chatbot />
       }
     }
@@ -57,10 +59,17 @@ import { ToastHostComponent } from 'ui';
     main.chat-driving-bg {
       transition: filter 0.35s ease;
     }
+    main.event-host-blur {
+      filter: blur(6px) brightness(0.94);
+      transition: filter 0.35s ease;
+      pointer-events: none;
+      user-select: none;
+    }
   `]
 })
 export class AppComponent implements OnInit {
   readonly chatContext = inject(ChatContextService);
+  readonly eventHost = inject(EventHostAssistantService);
   title = 'Travl Planr';
 
   private readonly document = inject(DOCUMENT);
@@ -69,10 +78,10 @@ export class AppComponent implements OnInit {
 
   // The floating "Describe your trip" chat widget doesn't belong on the
   // Discover/Saved/Trips/Travel Circles pages — they have their own focused UI.
+  // Events keeps it: it's also the entry point for the Host Event assistant.
   private static readonly HIDE_FLOATING_CHAT_ON = [
     '/community/discover',
     '/community/saved',
-    '/community/events',
     '/community/trips',
     '/community/travel-circles',
   ];
