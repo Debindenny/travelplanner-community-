@@ -1,16 +1,13 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommunityEventsService } from '../services/community-events.service';
-import { attendeesFor, eventDestination, toEventCard, CommunityEventCard, EventAttendee } from '../services/community-event-view.model';
-import { CommunityProfileService } from '../services/community-profile.service';
-import { AttendeesModalComponent } from './attendees-modal.component';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { CommunityEventsMockStore } from '../services/community-events-mock.store';
+import { CommunityEventCard } from '../services/community-event-view.model';
 
 @Component({
   selector: 'app-community-event-view',
-  imports: [CommonModule, RouterLink, AttendeesModalComponent],
+  imports: [RouterLink],
   template: `
-    <div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 font-manrope">
+    <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 font-manrope">
       <a
         routerLink="/community/events"
         class="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-sm text-[12.5px] font-bold text-eventText-mid dark:text-gray-300 hover:border-primary hover:text-primary hover:shadow-md transition-all mb-4"
@@ -21,20 +18,7 @@ import { AttendeesModalComponent } from './attendees-modal.component';
         Events
       </a>
 
-      @if (loading) {
-        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm flex flex-col items-center gap-2.5">
-          <span class="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin shrink-0"></span>
-          <p class="text-xs font-semibold text-eventText-soft">Loading event…</p>
-        </div>
-      } @else if (loadError) {
-        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
-          <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">Couldn't load this event</h3>
-          <p class="text-eventText-mid dark:text-gray-300 text-xs mb-4">Check your connection and try again.</p>
-          <a routerLink="/community/events" class="inline-block px-4 py-2 text-xs bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all">
-            Back to events
-          </a>
-        </div>
-      } @else if (!event) {
+      @if (!event) {
         <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
           <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">Event not found</h3>
           <p class="text-eventText-mid dark:text-gray-300 text-xs mb-4">It may have been removed.</p>
@@ -43,194 +27,161 @@ import { AttendeesModalComponent } from './attendees-modal.component';
           </a>
         </div>
       } @else {
-        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
-          <!-- Banner -->
-          <div
-            class="relative h-[160px] p-4 bg-cover bg-center"
-            [style.background-image]="
-              'linear-gradient(180deg, rgba(11,18,32,.05) 40%, rgba(11,18,32,.55) 100%), url(' + event.imageUrl + ')'
-            "
-          >
-            <div class="w-12 h-12 rounded-xl bg-[#EEF3FF] shadow flex flex-col items-center justify-center leading-none shrink-0">
-              <span class="text-[9px] font-extrabold uppercase text-[#1D63ED]">{{ event.month }}</span>
-              <span class="text-2xl font-black text-eventText-deep">{{ event.day }}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Main column -->
+          <div class="lg:col-span-8 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <!-- Hero -->
+            <div
+              class="relative h-64 sm:h-72 p-5 flex flex-col justify-between bg-cover bg-center"
+              [style.background-image]="
+                'linear-gradient(180deg, rgba(11,18,32,.15) 0%, rgba(11,18,32,.1) 35%, rgba(11,18,32,.88) 100%), url(' + event.imageUrl + ')'
+              "
+            >
+              <div>
+                <span class="px-2.5 py-1 rounded-full bg-white/95 text-[11px] font-extrabold text-primary shrink-0">
+                  {{ event.tag }}
+                </span>
+              </div>
+
+              <div class="text-white">
+                <h1 class="font-manrope text-2xl sm:text-3xl font-black leading-tight mb-1.5">{{ event.title }}</h1>
+                <p class="text-[12.5px] font-semibold text-white/85 mb-3">
+                  {{ event.location }} · {{ event.time }}{{ event.duration ? ' · ' + event.duration : '' }} · {{ event.price }}
+                </p>
+                <div class="flex items-center gap-3">
+                  <span class="w-9 h-9 rounded-full bg-white/15 border border-white/25 shrink-0"></span>
+                  <div class="leading-tight">
+                    <p class="text-[10.5px] font-semibold text-white/70">Hosted by</p>
+                    <p class="text-xs font-bold text-white/95">{{ event.hostName }}</p>
+                  </div>
+                  <span class="w-px h-8 bg-white/25 shrink-0"></span>
+                  <span class="flex items-center gap-1.5 text-xs font-bold text-white/90">
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    {{ event.travelersGoing }}{{ capacityMax(event) ? ' / ' + capacityMax(event) : '' }} Travelers joined
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-6 py-6 flex flex-col gap-5">
+              <!-- About -->
+              <div class="bg-[#FAFBFD] dark:bg-gray-700/30 border border-slate-100 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-4">
+                <div>
+                  <p class="text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1.5">About this event</p>
+                  <p class="text-[13.5px] text-eventText-mid dark:text-gray-300 leading-relaxed">{{ event.description }}</p>
+                </div>
+
+                @if (event.locationName) {
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="flex items-center gap-1.5 text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">
+                        <svg class="w-3 h-3 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        </svg>
+                        Meeting point
+                      </p>
+                      <p class="text-[12.5px] font-extrabold text-eventText-deep dark:text-white">{{ event.locationName }}</p>
+                    </div>
+                    @if (event.tag !== 'Online') {
+                      <a
+                        [href]="directionsUrl(event.locationName)"
+                        target="_blank"
+                        rel="noopener"
+                        class="text-[11px] font-bold text-primary hover:underline shrink-0"
+                      >
+                        Directions
+                      </a>
+                    }
+                  </div>
+                }
+
+                @if (event.locationNote) {
+                  <div>
+                    <p class="flex items-center gap-1.5 text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">
+                      <svg class="w-3 h-3 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 12h6M9 16h6M9 8h6M6 3h9l3 3v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+                      </svg>
+                      What to bring
+                    </p>
+                    <p class="text-[12.5px] font-semibold text-eventText-deep dark:text-white leading-relaxed">{{ event.locationNote }}</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Plan -->
+              @if (event.schedule.length) {
+                <div>
+                  <p class="text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">What happens</p>
+                  <div class="rounded-xl border border-slate-200 dark:border-gray-700 overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-primary text-white">
+                      <span class="text-[11px] font-extrabold uppercase tracking-wide">The plan</span>
+                      <span class="text-[11px] font-extrabold uppercase tracking-wide">{{ event.month }} {{ event.day }}</span>
+                    </div>
+                    <ul class="divide-y divide-slate-100 dark:divide-gray-700">
+                      @for (step of event.schedule; track $index) {
+                        <li class="flex items-center justify-between gap-3 px-4 py-3">
+                          <div class="min-w-0">
+                            <p class="text-xs font-extrabold text-eventText-deep dark:text-white truncate">{{ step.text }}</p>
+                            @if (step.time) {
+                              <p class="text-[11px] font-semibold text-eventText-soft mt-0.5">Starts {{ step.time }}</p>
+                            }
+                          </div>
+                          <span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-gray-700 text-eventText-soft dark:text-gray-300 text-[10px] font-bold shrink-0">
+                            {{ event.price }}
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              }
             </div>
           </div>
 
-          <div class="px-6 py-6 flex flex-col gap-5">
-            <div>
-              <h1 class="font-manrope text-2xl font-black text-eventText-deep dark:text-white mb-3">{{ event.title }}</h1>
+          <!-- Sidebar: Your Ticket -->
+          <div class="lg:col-span-4">
+            <div class="lg:sticky lg:top-6 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex flex-col gap-4">
+              <div>
+                <h2 class="font-manrope text-base font-black text-eventText-deep dark:text-white">Your Ticket</h2>
+                <p class="text-[11.5px] font-semibold text-eventText-soft mt-0.5">Review the details, then join</p>
+              </div>
 
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex flex-col gap-1.5">
-                  <span class="flex items-center gap-1.5 text-[13px] font-semibold text-eventText-mid dark:text-gray-300">
-                    <svg class="w-3.5 h-3.5 text-eventText-soft shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                      <path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    </svg>
-                    {{ event.location }}
-                  </span>
-                  <span class="flex items-center gap-1.5 text-[13px] font-semibold text-eventText-mid dark:text-gray-300">
-                    <svg class="w-3.5 h-3.5 text-eventText-soft shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7v5l3 3" />
-                    </svg>
-                    {{ event.time }}{{ event.duration ? ' · ' + event.duration : '' }}
+              <div class="flex flex-col divide-y divide-slate-100 dark:divide-gray-700 border-t border-b border-slate-100 dark:border-gray-700">
+                <div class="flex items-center justify-between py-2.5">
+                  <span class="text-xs font-semibold text-eventText-mid dark:text-gray-300">Ticket</span>
+                  <span class="text-xs font-extrabold text-eventText-deep dark:text-white">{{ event.price }}</span>
+                </div>
+                <div class="flex items-center justify-between py-2.5">
+                  <span class="text-xs font-semibold text-eventText-mid dark:text-gray-300">Spots</span>
+                  <span class="text-xs font-extrabold text-eventText-deep dark:text-white">
+                    {{ event.travelersGoing }}{{ capacityMax(event) ? ' / ' + capacityMax(event) : '' }}
                   </span>
                 </div>
-
-                <div
-                  class="border rounded-xl px-4 py-2.5 text-center shrink-0"
-                  [class.bg-green-50]="event.price === 'Free'"
-                  [class.border-green-100]="event.price === 'Free'"
-                  [class.dark:bg-green-500/10]="event.price === 'Free'"
-                  [class.dark:border-green-500/20]="event.price === 'Free'"
-                  [class.border-slate-200]="event.price !== 'Free'"
-                  [class.dark:border-gray-700]="event.price !== 'Free'"
-                >
-                  <p class="text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Price</p>
-                  <span
-                    class="text-sm font-extrabold"
-                    [class.text-green-700]="event.price === 'Free'"
-                    [class.dark:text-green-400]="event.price === 'Free'"
-                    [class.text-eventText-deep]="event.price !== 'Free'"
-                    [class.dark:text-white]="event.price !== 'Free'"
-                  >
-                    {{ event.price }}
-                  </span>
+                <div class="flex items-center justify-between py-2.5">
+                  <span class="text-xs font-bold text-eventText-deep dark:text-white">Total</span>
+                  <span class="text-xs font-extrabold text-eventText-deep dark:text-white">{{ event.price }}</span>
                 </div>
               </div>
-            </div>
 
-            <!-- Host -->
-            <div class="flex items-center gap-3 border border-slate-200 dark:border-gray-700 rounded-2xl p-4">
-              <span class="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold shrink-0">
-                {{ initials(event.hostName) }}
-              </span>
-              <div class="flex-1 min-w-0">
-                <p class="text-xs font-extrabold text-eventText-deep dark:text-white flex items-center gap-1.5">
-                  {{ event.hostName }}
-                  <span *ngIf="hostVerified" class="inline-flex items-center gap-0.5 text-[9.5px] font-extrabold text-primary bg-primary-50 dark:bg-primary/10 rounded-full px-1.5 py-0.5">
-                    <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14.9 4.6 18.8 4.2 19.6 8 23 9.8 21 13.2 22 17 18.3 17.9 16.9 21.5 13 20.5 9.1 21.5 7.7 17.9 4 17 5 13.2 3 9.8 6.4 8 7.2 4.2 11.1 4.6 12 2Z" opacity=".18"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                    Verified
-                  </span>
-                </p>
-                <p class="text-[11px] font-semibold text-eventText-soft mt-0.5">Hosted by {{ firstName(event.hostName) }}{{ event.hostRole ? ' · ' + event.hostRole : '' }}</p>
-              </div>
               <button
                 type="button"
-                (click)="toggleFollow()"
-                class="h-8 px-3.5 rounded-lg text-xs font-bold border transition-colors shrink-0"
-                [class.border-primary]="!event.followed"
-                [class.text-primary]="!event.followed"
-                [class.hover:bg-primary]="!event.followed"
-                [class.hover:text-white]="!event.followed"
-                [class.bg-primary-50]="event.followed"
-                [class.border-primary-subtle]="event.followed"
-                [class.text-eventText-mid]="event.followed"
+                (click)="toggleJoin()"
+                class="h-11 rounded-xl text-sm font-extrabold transition-colors"
+                [class.bg-primary]="!event.joined"
+                [class.hover:bg-primary-hover]="!event.joined"
+                [class.text-white]="!event.joined"
+                [class.bg-primary-50]="event.joined"
+                [class.text-primary]="event.joined"
               >
-                {{ event.followed ? 'Following' : 'Follow' }}
+                {{ event.joined ? "You're going" : 'Join this event' }}
               </button>
             </div>
-
-            <p class="text-[13.5px] text-eventText-mid dark:text-gray-300 leading-relaxed">{{ event.description }}</p>
-
-            <!-- Plan -->
-            @if (event.schedule.length) {
-              <div>
-                <p class="text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">The plan</p>
-                <ul class="space-y-2">
-                  @for (step of event.schedule; track $index) {
-                    <li class="flex items-start gap-2 text-xs font-semibold text-[#374151] dark:text-white">
-                      <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
-                      <span>{{ step.time ? step.time + ' · ' : '' }}{{ step.text }}</span>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-
-            <!-- Map + meeting point -->
-            @if (event.locationName) {
-              <div class="rounded-xl border border-[#E4EDFB] dark:border-gray-700 overflow-hidden">
-                <div class="relative h-[140px] bg-[#EAF1FE] dark:bg-gray-700/50 overflow-hidden">
-                  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 140" preserveAspectRatio="none">
-                    <rect width="400" height="140" fill="#EAF1FE" />
-                    <rect x="30" y="20" width="90" height="40" rx="4" fill="#D9E6FC" />
-                    <rect x="260" y="70" width="110" height="45" rx="4" fill="#D9E6FC" />
-                    <rect x="150" y="15" width="60" height="30" rx="4" fill="#DCEFE0" />
-                    <path d="M0 55 H400" stroke="#C7D8F5" stroke-width="3" />
-                    <path d="M0 95 H400" stroke="#C7D8F5" stroke-width="3" />
-                    <path d="M130 0 V140" stroke="#C7D8F5" stroke-width="3" />
-                    <path d="M250 0 V140" stroke="#C7D8F5" stroke-width="3" />
-                  </svg>
-                  <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center">
-                    <span class="w-8 h-8 rounded-full bg-primary border-2 border-white shadow-[0_2px_10px_rgba(37,99,235,0.5)] flex items-center justify-center shrink-0">
-                      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10Z" />
-                        <circle cx="12" cy="11" r="2" fill="#2563EB" />
-                      </svg>
-                    </span>
-                    <span class="w-0.5 h-2.5 bg-primary/70"></span>
-                  </span>
-                  <span class="absolute left-3 bottom-2.5 text-[9.5px] font-extrabold uppercase tracking-wide text-eventText-mid bg-white/85 rounded px-1.5 py-0.5">
-                    {{ event.location }}
-                  </span>
-                </div>
-                <div class="p-3.5 bg-[#F7FAFF] dark:bg-gray-700/50 flex items-center justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="text-[9.5px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Meeting point</p>
-                    <p class="text-[12.5px] font-extrabold text-eventText-deep dark:text-white truncate">{{ event.locationName }}</p>
-                  </div>
-                  <a
-                    [href]="directionsUrl(event.locationName)"
-                    target="_blank"
-                    rel="noopener"
-                    class="h-9 px-4 rounded-lg text-xs font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-eventText-mid dark:text-gray-300 hover:border-slate-300 transition-colors shrink-0 flex items-center justify-center text-center"
-                  >
-                    Directions
-                  </a>
-                </div>
-              </div>
-            }
-
-            <!-- Capacity -->
-            @if (capacityMax(event); as max) {
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <p class="text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em]">Capacity</p>
-                  <p class="text-xs font-bold text-eventText-mid dark:text-gray-300">{{ event.travelersGoing }} of {{ max }} spots filled</p>
-                </div>
-                <div class="h-2 rounded-full bg-slate-100 dark:bg-gray-700 overflow-hidden">
-                  <div
-                    class="h-full rounded-full"
-                    style="background: linear-gradient(90deg, #3B82F6, #22C55E)"
-                    [style.width.%]="capacityPercent(event, max)"
-                  ></div>
-                </div>
-              </div>
-            }
-
-            <!-- Who is going -->
-            <div>
-              <p class="text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">Who is going</p>
-              <div class="flex items-center justify-between border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                <span class="text-xs font-bold text-eventText-mid dark:text-gray-300">
-                  {{ event.travelersGoing }} traveler{{ event.travelersGoing === 1 ? '' : 's' }} going{{ event.joined ? ' · including you' : '' }}
-                </span>
-                <button type="button" (click)="showAttendees = true" class="text-xs font-bold text-primary hover:underline shrink-0">See all</button>
-              </div>
-            </div>
-
-            <!-- What to bring -->
-            @if (event.locationNote) {
-              <div>
-                <p class="text-[11px] font-extrabold text-eventText-mid uppercase tracking-[0.06em] mb-2">What to bring</p>
-                <p class="text-xs font-medium text-eventText-mid dark:text-gray-400 leading-relaxed">{{ event.locationNote }}</p>
-              </div>
-            }
           </div>
-
         </div>
       }
     </div>
@@ -242,79 +193,20 @@ import { AttendeesModalComponent } from './attendees-modal.component';
       </div>
     }
 
-    @if (showAttendees) {
-      <app-attendees-modal
-        [attendees]="attendees"
-        [destination]="destination"
-        (close)="showAttendees = false"
-        (selectTraveler)="onSelectTraveler($event)"
-      ></app-attendees-modal>
-    }
   `
 })
 export class CommunityEventDetailViewComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly eventsService = inject(CommunityEventsService);
-  private readonly profileService = inject(CommunityProfileService);
+  private readonly store = inject(CommunityEventsMockStore);
 
   event: CommunityEventCard | null = null;
-  loading = true;
-  loadError = false;
-  showAttendees = false;
-  attendees: EventAttendee[] = [];
-  destination = '';
-  hostVerified = false;
-
-  /** The organizer's customer id — needed to call the follow API but not part of the view model. */
-  private hostId: string | null = null;
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.loading = false;
-      return;
-    }
-
-    this.eventsService.getEvent(id).subscribe({
-      next: (ev) => {
-        this.event = toEventCard(ev);
-        this.hostId = ev.organizer.id;
-        this.attendees = attendeesFor(this.event);
-        this.destination = eventDestination(this.event);
-        this.loading = false;
-
-        // Seed the real "already following the host" state (defaults to false until this resolves).
-        this.profileService.getUserProfile(this.hostId).subscribe({
-          next: (profile) => {
-            if (!this.event) return;
-            this.event.followed = profile.is_following;
-            this.hostVerified = !!profile.is_verified;
-          },
-          error: () => {}
-        });
-      },
-      error: () => {
-        this.loading = false;
-        this.loadError = true;
-      }
-    });
-  }
-
-  initials(name: string): string {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join('');
-  }
-
-  firstName(name: string): string {
-    return name.split(' ')[0] ?? name;
+    this.event = id ? this.store.getById(id) : null;
   }
 
   directionsUrl(place: string): string {
@@ -326,30 +218,12 @@ export class CommunityEventDetailViewComponent {
     return match ? Number(match[0]) : null;
   }
 
-  capacityPercent(ev: CommunityEventCard, max: number): number {
-    return Math.min(100, Math.round((ev.travelersGoing / max) * 100));
-  }
-
-  toggleFollow(): void {
+  toggleJoin(): void {
     const ev = this.event;
-    if (!ev || !this.hostId) return;
-    this.profileService.toggleFollow(this.hostId).subscribe({
-      next: (res) => {
-        ev.followed = res.is_following;
-        this.showToast(ev.followed ? `Followed ${ev.hostName}` : `Unfollowed ${ev.hostName}`);
-      },
-      error: (err) => {
-        this.showToast(err?.status === 401 ? 'Log in to follow hosts' : "Couldn't update — try again");
-      }
-    });
-  }
-
-  onSelectTraveler(traveler: EventAttendee): void {
-    if (traveler.customer_id) {
-      void this.router.navigate(['/community/users', traveler.customer_id]);
-      return;
-    }
-    this.showToast(`Viewing ${traveler.name}'s profile · coming soon`);
+    if (!ev) return;
+    const joined = this.store.toggleJoin(ev.id);
+    this.event = this.store.getById(ev.id);
+    this.showToast(joined ? "You're going!" : `Spot released · ${ev.title}`);
   }
 
   private showToast(message: string): void {
