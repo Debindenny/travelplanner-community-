@@ -1,7 +1,8 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from 'ui';
 
+import { AuthService } from '../../auth/auth.service';
 import { apiUrl } from '../../shared/utils/api-url';
 import { TRIP_ITINERARIES, TRIP_PICK_OPTIONS } from './discover-saved.data';
 import {
@@ -44,6 +45,25 @@ function derivePlace(spot: string, meta: string): string {
 export class DiscoverSavedStore {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthService);
+  private lastCustomerId: string | null = this.auth.user()?.id ?? null;
+
+  constructor() {
+    // Saved items and each Discover card's isSaved flag are specific to
+    // whichever customer is logged in. This service is a root singleton that
+    // outlives login/logout, so without this it would keep showing the
+    // previous account's saved state for a moment after switching users —
+    // clear it the instant the logged-in user actually changes.
+    effect(() => {
+      const currentId = this.auth.user()?.id ?? null;
+      if (currentId !== this.lastCustomerId) {
+        this.lastCustomerId = currentId;
+        this._savedItems.set([]);
+        this._discoverItems.set([]);
+        this._modal.set(null);
+      }
+    });
+  }
 
   private readonly _modal = signal<ModalState | null>(null);
   private readonly _followedIds = signal<ReadonlySet<string>>(new Set());
