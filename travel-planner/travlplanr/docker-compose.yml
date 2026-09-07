@@ -13,7 +13,10 @@ services:
       POSTGRES_USER: travlplanr
       POSTGRES_PASSWORD: travlplanr
       POSTGRES_DB: identity_db
-    # Internal only — not published to host (use gateway :8080 for API access).
+    # Published to host for local DB tools (pgAdmin/DBeaver) — dev only.
+    # Host port 5432 is taken by a native PostgreSQL install on this machine, so use 5433.
+    ports:
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infra/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
