@@ -388,15 +388,7 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                       <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                       {{ 'COMMUNITY.FEED_COMPOSER_TRIP' | translate }}
                     </button>
-                    <button type="button" (click)="openFeedComposer('question')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
-                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                      {{ 'COMMUNITY.FEED_COMPOSER_QUESTION' | translate }}
-                    </button>
-                    <button type="button" (click)="openFeedComposer('poll')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
-                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
-                      {{ 'COMMUNITY.FEED_COMPOSER_POLL' | translate }}
-                    </button>
-                  </div>
+                                     </div>
                 }
               </div>
 
@@ -796,14 +788,24 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   submitFeedComposer() {
     if (!this.canSubmitComposer()) return;
 
-    let caption = this.composerText().trim();
-    if (this.composerType() === 'poll') {
-      // No poll-voting storage on the backend yet — fold the question + options into the
-      // caption so the post still gets created through the existing generic endpoint.
-      const options = this.composerPollOptions().map(o => o.trim()).filter(o => o.length > 0);
-      caption = `${caption}\n\n${options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`;
-    }
+    const caption = this.composerText().trim();
     this.composerSubmitting.set(true);
+
+    if (this.composerType() === 'poll') {
+      const pollOptions = this.composerPollOptions().map(o => o.trim()).filter(o => o.length > 0);
+      this.postService.createPost({ caption, images: [], poll_options: pollOptions }).subscribe({
+        next: (post) => {
+          this.composerSubmitting.set(false);
+          this.onPostCreated(post);
+          this.closeFeedComposer();
+        },
+        error: (err) => {
+          this.composerSubmitting.set(false);
+          this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.CREATE_FAILED')));
+        },
+      });
+      return;
+    }
 
     if (this.composerType() === 'photo') {
       const imageUploads = this.composerImages().map(img => this.postService.uploadImage(img.file));

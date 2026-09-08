@@ -11,6 +11,23 @@ export interface CreatePostPayload {
   itinerary_id?: string;
   video_url?: string;
   is_reel?: boolean;
+  /** 2+ option strings turn this into a poll post (type becomes 'poll'); the
+      question is just `caption`, same as every other post type. */
+  poll_options?: string[];
+}
+
+export interface CommunityPollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface CommunityPoll {
+  id: string;
+  question: string;
+  options: CommunityPollOption[];
+  totalVotes: number;
+  userVotedOptionId: string | null;
 }
 
 export interface CommunityPost {
@@ -66,6 +83,7 @@ export interface CommunityPost {
   } | null;
   hashtags?: string[];
   type?: string;
+  poll?: CommunityPoll | null;
 }
 
 export interface CommunityTripTemplate {
@@ -116,6 +134,13 @@ export class CommunityPostService {
     return this.http.post<CommunityPost>(
       apiUrl('/community'),
       data
+    );
+  }
+
+  votePoll(postId: string, optionId: string): Observable<CommunityPoll> {
+    return this.http.post<CommunityPoll>(
+      apiUrl(`/community/${postId}/poll/vote`),
+      { option_id: optionId }
     );
   }
 

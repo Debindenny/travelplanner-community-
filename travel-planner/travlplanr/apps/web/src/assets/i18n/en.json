@@ -546,6 +546,11 @@
     "NO_POSTS_BODY": "Follow some travelers to see their trips here.",
     "NO_POSTS_TITLE": "No posts yet",
     "NO_SHORTCUTS": "No shortcuts available",
+    "POLL": {
+      "VOTE_COUNT": "{{n}} vote",
+      "VOTES_COUNT": "{{n}} votes",
+      "YOU_VOTED": "you voted"
+    },
     "POST_CARD": {
       "ADD_TO_TRIP": "Add to trip",
       "AUTHOR_AVATAR_ALT": "Author avatar",
@@ -590,6 +595,7 @@
       "SHARE_TITLE": "Check out this post on TravlPlanr Community",
       "TOAST_DELETE_ERROR": "Failed to delete post",
       "TOAST_LINK_COPIED": "Link copied to clipboard",
+      "TOAST_POLL_VOTE_ERROR": "Failed to submit your vote. Please try again.",
       "TOAST_POST_DELETED": "Post deleted",
       "TOAST_POST_UPDATED": "Post updated",
       "TOAST_REACTION_ERROR": "Failed to add reaction",
