@@ -4,7 +4,6 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommunityStoriesBarComponent } from './components/community-stories-bar.component';
-import { CommunityFeedSkeletonComponent } from './components/community-feed-skeleton.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from './services/community-post.service';
 import { CommunityPostCardComponent, CommunityPostCommentsComponent } from './components/community-post-shared.component';
 import { CommunitySaveModalComponent } from './components/community-save-modal.component';
@@ -22,19 +21,54 @@ import { CommunityTravelersRailComponent } from './components/community-traveler
 import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
-import { CommunityComposerModalComponent } from './components/community-composer-modal.component';
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
 import { HttpClient } from '@angular/common/http';
 import { SavedTrip, TripService } from '../trip/trip.service';
 import { CommunityCollectionService } from './services/community-collection.service';
 import { apiUrl } from '../shared/utils/api-url';
-import { catchError,of } from 'rxjs';
+import { catchError,of,forkJoin } from 'rxjs';
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
 interface HeroDestination {
   name: string;
   image: string;
 }
+
+interface FeedComposerTypeMeta {
+  labelKey: string;
+  placeholderKey: string;
+  icon: string;
+}
+
+/** Inline feed composer type metadata (badge label, textarea placeholder, icon) — keyed by the
+    same post `type` values CommunityPostService posts already use elsewhere in the community feature. */
+const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
+  tip: {
+    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_TIP',
+    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_TIP',
+    icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z',
+  },
+  photo: {
+    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_PHOTO',
+    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_PHOTO',
+    icon: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  },
+  trip_share: {
+    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_TRIP',
+    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_TRIP',
+    icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
+  },
+  question: {
+    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_QUESTION',
+    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_QUESTION',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+  },
+  poll: {
+    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_POLL',
+    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_POLL',
+    icon: 'M3 3v18h18M8 17V9m4 8V5m4 12v-6',
+  },
+};
 
 @Component({
     selector: 'app-community-page',
@@ -46,7 +80,6 @@ interface HeroDestination {
       CommunitySaveModalComponent,
       CommunityMapComponent,
       TranslatePipe,
-      CommunityFeedSkeletonComponent,
       CommunityPostCommentsComponent,
       CommunityQaThreadComponent,
       CommunityHomeSubnavComponent,
@@ -55,7 +88,6 @@ interface HeroDestination {
       CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
       CommunitySimilarTravelersComponent,
-      CommunityComposerModalComponent,
       CommunityJoinRequestsComponent,
     ],
     template: `
@@ -205,118 +237,170 @@ interface HeroDestination {
                columns, which would have fought the sidebar for column 1. -->
           <div class="lg:col-span-7 space-y-3 sm:space-y-5">
 
-            <!-- Feed Filter Chips. Scroll horizontally instead of wrapping: with
-                 flex-wrap, chips used to wrap onto a second line on phones/tablets
-                 once they ran out of room. -->
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
-              <!-- Category chips (client-side filters over the loaded feed) -->
-              @for (cat of postCategories; track cat.key) {
-                <button
-                  (click)="setPostCategory(cat.key)"
-                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
-                  [ngClass]="postCategory() === cat.key ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                >{{ cat.labelKey | translate }}</button>
-              }
-              @for (tag of followedTags(); track tag) {
-                <button
-                  (click)="setFeedMode('hashtag-' + tag)"
-                  class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all focus:outline-none border whitespace-nowrap"
-                  [ngClass]="feedMode() === 'hashtag-' + tag ? 'bg-primary text-white border-primary' : 'bg-white dark:bg-gray-800 text-text-secondary border-slate-200 dark:border-gray-700'"
-                >#{{ tag }}</button>
-}
-            </div>
-
             @if (viewMode === 'feed') {
-              
-              @if (feedMode().startsWith('hashtag-') && !followedTags().includes(feedMode().replace('hashtag-', ''))) {
-                <div class="flex items-center justify-between gap-3 bg-primary-50 border border-primary-subtle/50 px-4 py-3 rounded-xl text-sm shadow-sm animate-fade-in-up">
-                  <span class="text-primary font-semibold min-w-0 truncate">{{ 'COMMUNITY.FILTERING_BY' | translate: { tag: feedMode().replace('hashtag-', '') } }}</span>
-                  <button (click)="clearHashtagFilter()" class="shrink-0 text-primary hover:text-primary-hover font-semibold text-xs bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-gray-700 shadow-sm transition-all hover:scale-105 active:scale-95">{{ 'COMMUNITY.CLEAR' | translate }}</button>
-                </div>
-              }
 
-              <!-- Live Feed Updates Pill -->
-              @if (newPostsCount() > 0) {
-                <div class="fixed top-[100px] left-1/2 transform -translate-x-1/2 z-40">
-                  <button (click)="loadNewPosts()" class="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-hover hover:to-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
-                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    {{ (newPostsCount() === 1 ? 'COMMUNITY.NEW_POST' : 'COMMUNITY.NEW_POSTS') | translate: { n: newPostsCount() } }}
-                  </button>
-                </div>
-              }
-              
-              <!-- Feed Skeletons -->
-              @if (isLoadingFeed) {
-                @for (i of [1, 2, 3]; track i) {
-                  <app-community-feed-skeleton />
-                }
-              }
+              <!-- Feed composer: fully inline, no modal. Picking a type swaps this card to a
+                   single caption field for that type; Post reuses the same
+                   CommunityPostService.createPost() / onPostCreated() pipeline every other
+                   post-creation entry point already uses. -->
+              <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-4 shadow-sm">
+                @if (composerMeta(); as meta) {
+                  <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary text-xs font-bold mb-3">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="meta.icon"/></svg>
+                    {{ meta.labelKey | translate }}
+                  </div>
 
-              @if (errorLoadingFeed) {
-                <div class="bg-danger-50 border border-red-200 rounded-2xl p-8 shadow-sm text-center mb-4 transition-all animate-fade-in-up">
-                  <svg class="w-12 h-12 text-danger-500/80 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <h3 class="text-red-950 font-semibold mb-1">{{ 'COMMUNITY.FEED_ERROR_TITLE' | translate }}</h3>
-                  <p class="text-danger text-sm mb-4">{{ 'COMMUNITY.FEED_ERROR_BODY' | translate }}</p>
-                  <button (click)="loadPosts(false)" class="bg-red-100 hover:bg-red-200 text-danger hover:text-danger-hover font-semibold py-2 px-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
-                    {{ 'COMMUNITY.RETRY' | translate }}
-                  </button>
-                </div>
-              }
-              
-              @if (posts.length > 0 && visiblePosts().length === 0 && !isLoadingFeed && !errorLoadingFeed) {
-                <!-- Category filter empty: real posts loaded, none match this category -->
-                <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
-                  <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-7 h-7 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  </div>
-                  <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_CATEGORY_TITLE' | translate }}</h3>
-                  <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_CATEGORY_BODY' | translate }}</p>
-                  <button (click)="setPostCategory('forYou')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
-                    {{ 'COMMUNITY.EMPTY_CATEGORY_RESET' | translate }}
-                  </button>
-                </div>
-              } @else if (posts.length === 0 && !isLoadingFeed && !errorLoadingFeed) {
-                @if (feedMode() === 'following') {
-                  <!-- Following empty: suggest switching to Discover -->
-                  <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
-                    <div class="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg class="w-7 h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <textarea
+                    [value]="composerText()"
+                    (input)="composerText.set($any($event.target).value)"
+                    [attr.placeholder]="meta.placeholderKey | translate"
+                    maxlength="500"
+                    class="w-full h-16 sm:h-20 px-4 py-3 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary resize-none mb-3"
+                  ></textarea>
+
+                  @if (composerType() === 'poll') {
+                    <!-- Poll needs at least 2 filled options alongside the question; Post stays
+                         disabled until both are met (see canSubmitComposer). -->
+                    <div class="space-y-2 mb-3">
+                      @for (option of composerPollOptions(); track $index; let i = $index) {
+                        <input
+                          type="text"
+                          [value]="option"
+                          (input)="updateComposerPollOption(i, $any($event.target).value)"
+                          [attr.placeholder]="(getComposerPollPlaceholderKey(i) | translate: { n: i + 1 })"
+                          maxlength="80"
+                          class="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary"
+                        />
+                      }
+                      <button
+                        type="button"
+                        (click)="addComposerPollOption()"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-50 text-primary text-xs font-bold hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        {{ 'COMMUNITY.FEED_COMPOSER_ADD_OPTION' | translate }}
+                      </button>
                     </div>
-                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_FOLLOWING_TITLE' | translate }}</h3>
-                    <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_FOLLOWING_BODY' | translate }}</p>
-                    <button (click)="setFeedMode('discover')" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
-                      {{ 'COMMUNITY.DISCOVER_TRAVELERS' | translate }}
-                    </button>
-                  </div>
-                } @else if (feedMode() === 'discover') {
-                  <!-- Discover empty: trending destinations -->
-                  <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
-                    <div class="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg class="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+                  }
+
+                  @if (composerType() === 'photo') {
+                    <!-- Photo is the only type that requires media; Tip/Trip/Question/Poll post from text alone. -->
+                    <div class="mb-3">
+                      @if (composerImages().length === 0 && !composerVideoPreviewUrl()) {
+                        <button
+                          type="button"
+                          (click)="composerFileInput.click()"
+                          class="w-full flex flex-col items-center justify-center gap-1 py-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-gray-700 hover:border-primary-subtle hover:bg-primary-50/30 transition-colors text-center"
+                        >
+                          <svg class="w-5 h-5 text-text-faint" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                          <span class="text-xs font-extrabold text-text-primary">{{ 'COMMUNITY.COMPOSER_MODAL.PHOTO_DROPZONE_TITLE' | translate }}</span>
+                          <span class="text-[11px] font-medium text-text-faint">{{ 'COMMUNITY.COMPOSER_MODAL.PHOTO_DROPZONE_SUBTITLE' | translate }}</span>
+                        </button>
+                      } @else {
+                        <div class="space-y-2">
+                          @if (composerImages().length > 0) {
+                            <div class="grid grid-cols-4 gap-1.5">
+                              @for (image of composerImages(); track image.url; let i = $index) {
+                                <div class="relative aspect-square rounded-lg overflow-hidden border border-slate-200/60 group">
+                                  <img [src]="image.url" class="w-full h-full object-cover" alt="" />
+                                  <button
+                                    type="button"
+                                    (click)="removeComposerImage(i)"
+                                    [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.PHOTO_DROPZONE_REMOVE_ARIA' | translate"
+                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                                  >
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
+                          @if (composerVideoPreviewUrl(); as videoUrl) {
+                            <div class="relative rounded-lg overflow-hidden border border-slate-200/60 bg-black">
+                              <video [src]="videoUrl" controls class="w-full max-h-44"></video>
+                              <button
+                                type="button"
+                                (click)="removeComposerVideo()"
+                                [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.PHOTO_DROPZONE_REMOVE_ARIA' | translate"
+                                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                              >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                              </button>
+                            </div>
+                          }
+                          <button type="button" (click)="composerFileInput.click()" class="text-[11px] font-bold text-primary hover:underline">
+                            {{ 'COMMUNITY.COMPOSER_MODAL.PHOTO_DROPZONE_TITLE' | translate }}
+                          </button>
+                        </div>
+                      }
+                      <input #composerFileInput type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple class="hidden" (change)="onComposerFileSelect($event)" />
                     </div>
-                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_DISCOVER_TITLE' | translate }}</h3>
-                    <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_DISCOVER_BODY' | translate }}</p>
-                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
-                      {{ 'COMMUNITY.SHARE_YOUR_JOURNEY' | translate }}
-                    </button>
+                  }
+
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-1 -ml-1.5">
+                      @for (emoji of composerEmojis; track emoji) {
+                        <button
+                          type="button"
+                          (click)="insertComposerEmoji(emoji)"
+                          class="w-8 h-8 flex items-center justify-center rounded-lg text-base hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors"
+                        >{{ emoji }}</button>
+                      }
+                    </div>
+                    <div class="flex items-center gap-2 ml-auto">
+                      <button
+                        type="button"
+                        (click)="closeFeedComposer()"
+                        class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-gray-600 text-xs font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                      >{{ 'COMMUNITY.CREATE_POST.CANCEL' | translate }}</button>
+                      <button
+                        type="button"
+                        [disabled]="!canSubmitComposer()"
+                        (click)="submitFeedComposer()"
+                        class="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors"
+                      >{{ 'COMMUNITY.CREATE_POST.POST' | translate }}</button>
+                    </div>
                   </div>
+
+                  @if (composerType() === 'photo' && !composerHasMedia()) {
+                    <p class="text-[11px] font-semibold text-danger mt-2">{{ 'COMMUNITY.FEED_COMPOSER_MEDIA_REQUIRED' | translate }}</p>
+                  }
+                  @if (composerType() === 'poll' && composerPollFilledOptionCount() < 2) {
+                    <p class="text-[11px] font-semibold text-danger mt-2">{{ 'COMMUNITY.FEED_COMPOSER_POLL_OPTIONS_REQUIRED' | translate }}</p>
+                  }
                 } @else {
-                  <!-- Hashtag empty -->
-                  <div class="bg-white/80 dark:bg-gray-800/90 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-8 shadow-sm text-center animate-fade-in-up">
-                    <div class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span class="text-2xl font-black text-primary">#</span>
-                    </div>
-                    <h3 class="text-text-primary font-semibold mb-1 text-base">{{ 'COMMUNITY.EMPTY_HASHTAG_TITLE' | translate: { tag: feedMode().replace('hashtag-', '') } }}</h3>
-                    <p class="text-text-tertiary text-sm mb-4">{{ 'COMMUNITY.EMPTY_HASHTAG_BODY' | translate }}</p>
-                    <button (click)="showComposerModal.set(true)" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-5 py-2 rounded-full transition-colors text-sm shadow-sm">
-                      {{ 'COMMUNITY.CREATE_A_POST' | translate }}
+                  <button
+                    type="button"
+                    (click)="openFeedComposer('tip')"
+                    class="w-full text-left text-sm text-text-tertiary bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 mb-3 hover:bg-slate-100 dark:hover:bg-gray-900/60 transition-colors"
+                  >{{ 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER' | translate }}</button>
+
+                  <div class="flex items-center justify-between gap-1">
+                    <button type="button" (click)="openFeedComposer('tip')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                      {{ 'COMMUNITY.FEED_COMPOSER_TIP' | translate }}
+                    </button>
+                    <button type="button" (click)="openFeedComposer('photo')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      {{ 'COMMUNITY.FEED_COMPOSER_PHOTO' | translate }}
+                    </button>
+                    <button type="button" (click)="openFeedComposer('trip_share')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      {{ 'COMMUNITY.FEED_COMPOSER_TRIP' | translate }}
+                    </button>
+                    <button type="button" (click)="openFeedComposer('question')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                      {{ 'COMMUNITY.FEED_COMPOSER_QUESTION' | translate }}
+                    </button>
+                    <button type="button" (click)="openFeedComposer('poll')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
+                      {{ 'COMMUNITY.FEED_COMPOSER_POLL' | translate }}
                     </button>
                   </div>
                 }
-              }
-       
+              </div>
+
+
               <!-- Posts -->
               @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
@@ -399,14 +483,6 @@ interface HeroDestination {
         />
       }
 
-      @if (showComposerModal()) {
-        <app-community-composer-modal
-          [userAvatar]="myProfile()?.avatar ?? undefined"
-          (postCreated)="onPostCreated($event); showComposerModal.set(false)"
-          (close)="showComposerModal.set(false)"
-        />
-      }
-
       @if (toastMessage()) {
         <div class="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded shadow-lg transition-opacity z-50">
           {{ toastMessage() }}
@@ -427,7 +503,33 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   profileService = inject(CommunityProfileService);
   notificationsService = inject(CommunityNotificationsService);
   posts: CommunityPostType[] = [];
-  showComposerModal = signal(false);
+
+  // Inline feed composer (no modal): composerType is the selected type ('tip' | 'photo' |
+  // 'trip_share' | 'question' | 'poll') or null while the type-picker row is shown.
+  composerType = signal<string | null>(null);
+  composerText = signal('');
+  composerSubmitting = signal(false);
+  // Media state: only the 'photo' type uses these — Tip/Trip/Question/Poll never read them.
+  composerImages = signal<{ file: File; url: string }[]>([]);
+  composerVideoFile = signal<File | null>(null);
+  composerVideoPreviewUrl = signal<string | null>(null);
+  // Poll options: only the 'poll' type uses this — starts with the 2 required options.
+  composerPollOptions = signal<string[]>(['', '']);
+  readonly composerEmojis = ['✨', '❤️', '🤩', '🌍', '📷', '🌞'];
+  readonly composerMeta = computed(() => {
+    const type = this.composerType();
+    return type ? FEED_COMPOSER_TYPE_META[type] ?? null : null;
+  });
+  readonly composerHasMedia = computed(() => this.composerImages().length > 0 || !!this.composerVideoFile());
+  readonly composerPollFilledOptionCount = computed(() => this.composerPollOptions().filter(o => o.trim().length > 0).length);
+  readonly canSubmitComposer = computed(() => {
+    if (this.composerSubmitting() || this.composerText().trim().length === 0) return false;
+    const type = this.composerType();
+    if (type === 'photo') return this.composerHasMedia();
+    if (type === 'poll') return this.composerPollFilledOptionCount() >= 2;
+    return true;
+  });
+
   isLoadingFeed = false;
   errorLoadingFeed = false;
   viewMode: 'feed' | 'map' = 'feed';
@@ -617,6 +719,138 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
         this.observer?.observe(this.scrollSentinel.nativeElement);
       }
     }, 500);
+  }
+
+  openFeedComposer(type: string) {
+    this.composerType.set(type);
+    this.composerText.set('');
+    this.composerPollOptions.set(['', '']);
+    this.clearComposerMedia();
+  }
+
+  closeFeedComposer() {
+    this.composerType.set(null);
+    this.composerText.set('');
+    this.composerPollOptions.set(['', '']);
+    this.clearComposerMedia();
+  }
+
+  insertComposerEmoji(emoji: string) {
+    this.composerText.update(text => text + emoji);
+  }
+
+  updateComposerPollOption(index: number, value: string) {
+    this.composerPollOptions.update(opts => opts.map((o, i) => i === index ? value : o));
+  }
+
+  addComposerPollOption() {
+    this.composerPollOptions.update(opts => [...opts, '']);
+  }
+
+  getComposerPollPlaceholderKey(index: number): string {
+    if (index === 0) return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_FIRST';
+    if (index === 1) return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_SECOND';
+    return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_OTHER';
+  }
+
+  onComposerFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    Array.from(input.files).forEach(file => {
+      if (file.type.startsWith('video/')) {
+        const prevUrl = this.composerVideoPreviewUrl();
+        if (prevUrl) URL.revokeObjectURL(prevUrl);
+        this.composerVideoFile.set(file);
+        this.composerVideoPreviewUrl.set(URL.createObjectURL(file));
+      } else {
+        this.composerImages.update(imgs => [...imgs, { file, url: URL.createObjectURL(file) }]);
+      }
+    });
+    input.value = '';
+  }
+
+  removeComposerImage(index: number): void {
+    const imgs = this.composerImages();
+    const removed = imgs[index];
+    if (removed) URL.revokeObjectURL(removed.url);
+    this.composerImages.set(imgs.filter((_, i) => i !== index));
+  }
+
+  removeComposerVideo(): void {
+    const url = this.composerVideoPreviewUrl();
+    if (url) URL.revokeObjectURL(url);
+    this.composerVideoFile.set(null);
+    this.composerVideoPreviewUrl.set(null);
+  }
+
+  private clearComposerMedia(): void {
+    this.composerImages().forEach(img => URL.revokeObjectURL(img.url));
+    this.composerImages.set([]);
+    const videoUrl = this.composerVideoPreviewUrl();
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    this.composerVideoFile.set(null);
+    this.composerVideoPreviewUrl.set(null);
+  }
+
+  submitFeedComposer() {
+    if (!this.canSubmitComposer()) return;
+
+    let caption = this.composerText().trim();
+    if (this.composerType() === 'poll') {
+      // No poll-voting storage on the backend yet — fold the question + options into the
+      // caption so the post still gets created through the existing generic endpoint.
+      const options = this.composerPollOptions().map(o => o.trim()).filter(o => o.length > 0);
+      caption = `${caption}\n\n${options.map((o, i) => `${i + 1}. ${o}`).join('\n')}`;
+    }
+    this.composerSubmitting.set(true);
+
+    if (this.composerType() === 'photo') {
+      const imageUploads = this.composerImages().map(img => this.postService.uploadImage(img.file));
+      const video = this.composerVideoFile();
+      const videoUpload = video ? this.postService.uploadImage(video) : of(null);
+
+      forkJoin({
+        images: imageUploads.length ? forkJoin(imageUploads) : of([] as { url: string }[]),
+        video: videoUpload,
+      }).subscribe({
+        next: ({ images, video }) => {
+          this.postService.createPost({
+            caption,
+            images: images.map(i => i.url),
+            video_url: video?.url,
+            is_reel: !!video,
+          }).subscribe({
+            next: (post) => {
+              this.composerSubmitting.set(false);
+              this.onPostCreated(post);
+              this.closeFeedComposer();
+            },
+            error: (err) => {
+              this.composerSubmitting.set(false);
+              this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.CREATE_FAILED')));
+            },
+          });
+        },
+        error: () => {
+          this.composerSubmitting.set(false);
+          this.showToast(this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED'));
+        },
+      });
+      return;
+    }
+
+    this.postService.createPost({ caption, images: [] }).subscribe({
+      next: (post) => {
+        this.composerSubmitting.set(false);
+        this.onPostCreated(post);
+        this.closeFeedComposer();
+      },
+      error: (err) => {
+        this.composerSubmitting.set(false);
+        this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.CREATE_FAILED')));
+      },
+    });
   }
 
   setFeedMode(mode: string) {
