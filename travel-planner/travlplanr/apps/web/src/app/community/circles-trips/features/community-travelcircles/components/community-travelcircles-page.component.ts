@@ -152,7 +152,10 @@ export class CommunityTravelCirclesComponent {
         onlineCount: Math.min(card.members.length, 4),
         endsInDays: PARIS_CREW_CHAT_MOCK.endsInDays,
         members: card.members,
-        messages: PARIS_CREW_CHAT_MOCK.messages,
+        // Real messages are fetched by the crew chat modal itself (see
+        // CommunitySpaceMessagesService) — this is only ever read as a
+        // fallback before that fetch resolves.
+        messages: [],
       })),
   );
 

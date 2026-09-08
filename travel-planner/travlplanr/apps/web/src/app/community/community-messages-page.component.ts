@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommunityMessagesService, Conversation, DirectMessage } from './services/community-messages.service';
+import { CommunityMessagesUnreadService } from './services/community-messages-unread.service';
 import { CommunityProfileService, User } from './services/community-profile.service';
 import { AuthService } from '../auth/auth.service';
 import { ToastService } from '../shared/utils/toast.service';
@@ -193,6 +194,7 @@ import { apiErrorMessage } from '../shared/utils/api-error.util';
 export class CommunityMessagesPageComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   private messagesService = inject(CommunityMessagesService);
+  private messagesUnread = inject(CommunityMessagesUnreadService);
   private profileService = inject(CommunityProfileService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
@@ -283,6 +285,9 @@ export class CommunityMessagesPageComponent implements OnInit, OnDestroy, AfterV
       next: (res) => {
         this.messages.set(res);
         this.scrollToBottom();
+        // The GET above marks this conversation's messages read server-side —
+        // sync the navbar badge to match.
+        this.messagesUnread.refresh();
       },
       error: () => {
         this.messages.set([]);

@@ -207,6 +207,62 @@ async def add_collection_item(collection_id: UUID, data: AddCollectionItemReques
         await session.commit()
         return {"status": "success"}
 
+@router.get("/trips/templates")
+async def list_trip_templates(request: Request, auth: dict = Depends(require_customer)):
+    """Real, browsable sample itineraries shown on the community "Trips" page
+    ("Real itineraries you can clone"). Backed by real `trips` rows flagged
+    `is_template=True` (see alembic 0034_trip_templates) rather than the
+    frontend's old hardcoded mock array.
+    """
+    customer_id = UUID(auth["customer_id"])
+    from app.models.trips import Trip
+
+    async with request.app.state.session_factory() as session:
+        trips = (await session.execute(
+            select(Trip).where(Trip.is_template == True).order_by(desc(Trip.updated_at))
+        )).scalars().all()
+
+        saved_ids: set[UUID] = set()
+        if trips:
+            default_collection_id = (await session.execute(
+                select(CommunityCollection.id).where(
+                    CommunityCollection.customer_id == customer_id,
+                    CommunityCollection.is_default == True,
+                )
+            )).scalar_one_or_none()
+            if default_collection_id:
+                saved_ids = set((await session.execute(
+                    select(CommunityCollectionItem.item_id).where(
+                        CommunityCollectionItem.collection_id == default_collection_id,
+                        CommunityCollectionItem.item_type == "itinerary",
+                        CommunityCollectionItem.item_id.in_([t.id for t in trips]),
+                    )
+                )).scalars().all())
+
+        items = []
+        for t in trips:
+            meta = t.template_meta or {}
+            city_days = t.city_days or []
+            total_days = sum(max(int(c.get("nights", 1)), 1) for c in city_days) + 1 if city_days else 0
+            items.append({
+                "id": str(t.id),
+                "title": t.title,
+                "subtitle": meta.get("subtitle", ""),
+                "tier": meta.get("tier", "Mid-range"),
+                "savesLabel": meta.get("saves_label", "0 saves"),
+                "perPerson": meta.get("per_person", ""),
+                "updatedLabel": meta.get("updated_label", ""),
+                "image": t.image,
+                "author": t.customer_name,
+                "authorId": str(t.customer_id),
+                "days": total_days,
+                "cities": len(city_days),
+                "activities": sum(1 for s in (t.segments or []) if s.get("type") == "activity"),
+                "isSaved": t.id in saved_ids,
+            })
+        return {"items": items}
+
+
 @router.post("/trips/{trip_id}/clone")
 async def clone_trip(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
     customer_id = UUID(auth["customer_id"]); customer_name = auth.get("customer_name", "Unknown"); tenant_id = UUID(auth["tenant_id"])
@@ -249,7 +305,10 @@ async def clone_trip(trip_id: UUID, request: Request, auth: dict = Depends(requi
                 CommunityPost,
                 (CommunityPost.itinerary_id == Trip.id) & (CommunityPost.customer_id == customer_id)
             )
-            .where(Trip.id == trip_id, Trip.tenant_id == tenant_id, or_(Trip.customer_id == customer_id, CommunityPost.id != None))
+            .where(
+                Trip.id == trip_id, Trip.tenant_id == tenant_id,
+                or_(Trip.customer_id == customer_id, CommunityPost.id != None, Trip.is_template == True),
+            )
         )).scalar_one_or_none()
 
         if not orig: raise HTTPException(status_code=404, detail="Original trip not found or not accessible")

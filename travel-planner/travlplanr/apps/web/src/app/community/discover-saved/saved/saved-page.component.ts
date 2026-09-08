@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { DiscoverSavedStore } from '../discover-saved.store';
 import { SavedCollectionCard, SavedCollectionItem } from '../discover-saved.models';
@@ -33,6 +33,7 @@ export class SavedPageComponent {
 
   private readonly auth = inject(AuthService);
   private readonly profileService = inject(CommunityProfileService);
+  private readonly router = inject(Router);
   readonly user = this.auth.user;
   readonly myProfile = signal<MyCommunityProfile | null>(null);
 
@@ -47,6 +48,12 @@ export class SavedPageComponent {
   }
 
   onOpen(item: SavedCollectionCard): void {
+    if (item.kind === 'Trip') {
+      // A saved itinerary — open the real itinerary page instead of the
+      // generic "spot" detail modal, which has no notion of a full trip.
+      this.router.navigate(['/itinerary', item.item_id]);
+      return;
+    }
     this.store.openSavedItem(item);
   }
 

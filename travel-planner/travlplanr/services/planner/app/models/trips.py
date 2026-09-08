@@ -96,6 +96,14 @@ class Trip(Base):
         String(16), nullable=False, server_default="full", default="full"
     )
 
+    # Public, clonable sample itinerary shown on the community "Trips" browse
+    # page (see services/planner/app/routers/community_templates.py). Never
+    # set by customer-facing trip creation/wizard flows.
+    is_template: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false", default=False
+    )
+    template_meta: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
 
 class TripVersion(Base):
     """

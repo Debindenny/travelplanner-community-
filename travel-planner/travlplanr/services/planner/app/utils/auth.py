@@ -49,6 +49,12 @@ async def get_trip_collaborator_and_role(
         # Pre-migration fallback: implicitly treat owner as active collaborator
         return None, "owner"
 
+    if trip.is_template:
+        # Public sample itinerary on the community "Trips" browse page —
+        # any authenticated customer can view it read-only; cloning (see
+        # community_misc.py::clone_trip) is how they get an editable copy.
+        return None, "viewer"
+
     return None, None
 
 def require_trip_role_model(min_role: str):

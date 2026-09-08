@@ -42,6 +42,8 @@ export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
 export interface SavedCollectionItem {
   id: string;
+  /** The underlying trip/post/tip/destination id (not the collection-item id above). */
+  item_id: string;
   kind: SavedCollectionKind;
   title: string;
   meta: string;

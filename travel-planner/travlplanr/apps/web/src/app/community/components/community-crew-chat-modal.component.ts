@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, computed, effect, untracked, inject, afterNextRender, input } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ElementRef, signal, computed, effect, untracked, inject, afterNextRender, input, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,42 @@ import {
 } from '../circles-trips/features/community-travelcircles/data/travel-circle-cards.data';
 import { ToastService } from '../../shared/utils/toast.service';
 import { CommunityProfileService } from '../services/community-profile.service';
+import { CommunitySpaceMessagesService, SpaceMessage } from '../services/community-space-messages.service';
+import { WebsocketService } from '../../core/services/websocket.service';
+
+/** Fallback id used when no real circle is active (the Community Home crew
+ * widget's decorative "Paris Crew" demo, which has no backing space to
+ * persist against — see the `groupName`/`members`/`circles` inputs below). */
+const DEMO_CIRCLE_ID = '__default__';
+
+/** Maps a persisted space message (services/planner/app/routers/community_space_messages.py)
+ * onto the same shape the demo mock messages use, so the existing message-bubble
+ * template needs no changes to render real content. */
+function toCrewMessage(m: SpaceMessage): CrewMessage {
+  const time = new Date(m.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const base = { id: m.id, author: m.sender_name, customer_id: m.sender_id, time };
+  switch (m.kind) {
+    case 'poll':
+      return { ...base, kind: 'poll', question: m.question ?? '', options: m.options ?? [] };
+    case 'meetup':
+      return { ...base, kind: 'meetup', title: m.title ?? '', meta: m.meta ?? '' };
+    case 'expense':
+      return {
+        ...base,
+        kind: 'expense',
+        title: m.title ?? '',
+        meta: m.meta ?? '',
+        totalAmount: m.total_amount ?? 0,
+        participantCount: m.participant_count ?? 0,
+        splitType: 'equal',
+      };
+    case 'place':
+      return { ...base, kind: 'place', image: m.image ?? '', title: m.title ?? '', meta: m.meta ?? '', ctaLabel: m.cta_label ?? 'Add to my trip' };
+    case 'text':
+    default:
+      return { ...base, kind: 'text', text: m.text ?? '' };
+  }
+}
 
 /**
  * Crew group-chat preview. UI-only: every interaction below (poll votes, RSVPs,
@@ -838,7 +874,7 @@ import { CommunityProfileService } from '../services/community-profile.service';
     .chat-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
   `],
 })
-export class CommunityCrewChatModalComponent {
+export class CommunityCrewChatModalComponent implements OnDestroy {
   @Output() close = new EventEmitter<void>();
   /** Emitted when the current user exits the active circle/group, carrying the
    * exited circle's id (empty for the standalone crew chat). */
@@ -851,6 +887,8 @@ export class CommunityCrewChatModalComponent {
 
   private readonly toast = inject(ToastService);
   private readonly profileService = inject(CommunityProfileService);
+  private readonly spaceMessagesService = inject(CommunitySpaceMessagesService);
+  private readonly wsService = inject(WebsocketService);
   private readonly hostRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly document = inject(DOCUMENT);
 
@@ -886,10 +924,17 @@ export class CommunityCrewChatModalComponent {
   readonly circleMenuOpen = signal(false);
 
   /** Per-circle messages so sending a message only mutates the active circle's
-   * feed (falling back to each context's seeded messages). */
+   * feed (falling back to each context's seeded messages). For a real circle
+   * (any id other than DEMO_CIRCLE_ID) this is populated from the persisted
+   * space-messages API rather than local-only mock content. */
   readonly messagesByCircle = signal<Record<string, CrewMessage[]>>({});
   /** Per-circle People "following" state, so it never leaks across circles. */
   readonly followingByCircle = signal<Record<string, Set<string>>>({});
+  /** Real circle ids whose message history has already been fetched (or is
+   * being fetched), so switching back to a previously-viewed circle doesn't
+   * re-fetch, and so incoming websocket messages know which circles to apply to. */
+  private readonly loadedCircleIds = signal<Set<string>>(new Set());
+  private wsSubscription: Subscription | null = null;
 
   draft = '';
 
@@ -954,7 +999,7 @@ export class CommunityCrewChatModalComponent {
       return selected ?? list[0];
     }
     return {
-      id: '__default__',
+      id: DEMO_CIRCLE_ID,
       title: this.groupName(),
       dateRange: this.chat.dateRange,
       memberCount: this.chat.memberCount,
@@ -1040,22 +1085,152 @@ export class CommunityCrewChatModalComponent {
         this.followingByCircle.update(map => ({ ...map, [circleId]: followed }));
       });
     });
+
+    /* Fetch a real circle's persisted message history the first time it
+     * becomes active (switching circles via the header dropdown re-triggers
+     * this for whichever one hasn't been loaded yet). The demo circle has no
+     * backing space, so it keeps its seeded mock messages untouched. */
+    effect(() => {
+      const circleId = this.activeCircle().id;
+      if (circleId === DEMO_CIRCLE_ID) return;
+      if (untracked(() => this.loadedCircleIds().has(circleId))) return;
+      this.loadedCircleIds.update(set => new Set(set).add(circleId));
+      this.spaceMessagesService.getMessages(circleId).subscribe({
+        next: (messages) => {
+          this.messagesByCircle.update(map => ({ ...map, [circleId]: messages.map(toCrewMessage) }));
+          this.seedMyMessageState(messages);
+        },
+        error: () => {
+          this.loadedCircleIds.update(set => {
+            const next = new Set(set);
+            next.delete(circleId);
+            return next;
+          });
+          this.toast.error('Could not load this circle’s chat — please try again');
+        },
+      });
+    });
+
+    /* Real-time: new messages other members send land here immediately.
+     * Only applied to circles we've actually loaded (i.e. the user has
+     * opened them in this session), and de-duplicated against the sender's
+     * own optimistic append from the POST response below. */
+    this.wsSubscription = this.wsService.getMessages().subscribe((msg) => {
+      if (msg.type !== 'space_message') return;
+      const payload = msg.payload as SpaceMessage;
+      if (!this.loadedCircleIds().has(payload.space_id)) return;
+      this.appendRealMessage(payload.space_id, payload);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.wsSubscription?.unsubscribe();
+  }
+
+  /** Seeds this user's own poll vote / RSVP / settled / added-to-trip state
+   * from a freshly-fetched or newly-created message, so the UI reflects what
+   * they've already done on a message without a separate round trip. */
+  private seedMyMessageState(messages: SpaceMessage[]): void {
+    const votes: Record<string, string> = {};
+    const rsvps: Record<string, 'in' | 'out'> = {};
+    const settled: string[] = [];
+    const added: string[] = [];
+    for (const m of messages) {
+      if (m.kind === 'poll' && m.my_vote) votes[m.id] = m.my_vote;
+      if (m.kind === 'meetup' && m.my_rsvp) rsvps[m.id] = m.my_rsvp;
+      if (m.kind === 'expense' && m.is_settled_by_me) settled.push(m.id);
+      if (m.kind === 'place' && m.is_added_by_me) added.push(m.id);
+    }
+    if (Object.keys(votes).length) this.pollVotes.update(v => ({ ...v, ...votes }));
+    if (Object.keys(rsvps).length) this.meetupRsvp.update(v => ({ ...v, ...rsvps }));
+    if (settled.length) this.settledExpenses.update(set => new Set([...set, ...settled]));
+    if (added.length) this.addedPlaces.update(set => new Set([...set, ...added]));
+  }
+
+  /** Appends a persisted message to a real circle's feed, skipping it if
+   * already present — the sender sees it via the POST response, then again
+   * via their own broadcast over the websocket. */
+  private appendRealMessage(circleId: string, message: SpaceMessage): void {
+    const crewMessage = toCrewMessage(message);
+    this.messagesByCircle.update(map => {
+      const existing = map[circleId] ?? [];
+      if (existing.some(m => m.id === crewMessage.id)) return map;
+      return { ...map, [circleId]: [...existing, crewMessage] };
+    });
   }
 
   votePoll(messageId: string, option: string): void {
+    const circleId = this.activeCircle().id;
+    const previous = this.pollVotes()[messageId];
     this.pollVotes.update(votes => ({ ...votes, [messageId]: option }));
+    if (circleId === DEMO_CIRCLE_ID) return;
+
+    this.spaceMessagesService.votePoll(circleId, messageId, option).subscribe({
+      error: () => {
+        this.pollVotes.update(votes => {
+          const next = { ...votes };
+          if (previous) next[messageId] = previous;
+          else delete next[messageId];
+          return next;
+        });
+        this.toast.error('Could not save your vote — please try again');
+      },
+    });
   }
 
   rsvpMeetup(messageId: string, status: 'in' | 'out'): void {
+    const circleId = this.activeCircle().id;
+    const previous = this.meetupRsvp()[messageId];
     this.meetupRsvp.update(rsvps => ({ ...rsvps, [messageId]: status }));
+    if (circleId === DEMO_CIRCLE_ID) return;
+
+    this.spaceMessagesService.rsvpMeetup(circleId, messageId, status).subscribe({
+      error: () => {
+        this.meetupRsvp.update(rsvps => {
+          const next = { ...rsvps };
+          if (previous) next[messageId] = previous;
+          else delete next[messageId];
+          return next;
+        });
+        this.toast.error('Could not save your RSVP — please try again');
+      },
+    });
   }
 
   settleExpense(messageId: string): void {
+    if (this.settledExpenses().has(messageId)) return;
+    const circleId = this.activeCircle().id;
     this.settledExpenses.update(set => new Set(set).add(messageId));
+    if (circleId === DEMO_CIRCLE_ID) return;
+
+    this.spaceMessagesService.settleExpense(circleId, messageId).subscribe({
+      error: () => {
+        this.settledExpenses.update(set => {
+          const next = new Set(set);
+          next.delete(messageId);
+          return next;
+        });
+        this.toast.error('Could not settle — please try again');
+      },
+    });
   }
 
   addPlaceToTrip(messageId: string): void {
+    if (this.addedPlaces().has(messageId)) return;
+    const circleId = this.activeCircle().id;
     this.addedPlaces.update(set => new Set(set).add(messageId));
+    if (circleId === DEMO_CIRCLE_ID) return;
+
+    this.spaceMessagesService.addPlaceToTrip(circleId, messageId).subscribe({
+      error: () => {
+        this.addedPlaces.update(set => {
+          const next = new Set(set);
+          next.delete(messageId);
+          return next;
+        });
+        this.toast.error('Could not add to your trip — please try again');
+      },
+    });
   }
 
   /** Hides a place-card photo that failed to load, leaving its slate-100
@@ -1072,15 +1247,25 @@ export class CommunityCrewChatModalComponent {
   sendMessage(): void {
     const text = this.draft.trim();
     if (!text) return;
-    this.pushMessage({
-      id: `local-${Date.now()}`,
-      author: this.currentUserName() || 'You',
-      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'text',
-      text,
-    });
+    const circleId = this.activeCircle().id;
     this.draft = '';
+
+    if (circleId === DEMO_CIRCLE_ID) {
+      this.pushMessage({
+        id: `local-${Date.now()}`,
+        author: this.currentUserName() || 'You',
+        customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        kind: 'text',
+        text,
+      });
+      return;
+    }
+
+    this.spaceMessagesService.sendMessage(circleId, { kind: 'text', text }).subscribe({
+      next: (msg) => this.appendRealMessage(circleId, msg),
+      error: () => this.toast.error('Could not send — please try again'),
+    });
   }
 
   private pushMessage(msg: CrewMessage): void {
@@ -1157,16 +1342,26 @@ export class CommunityCrewChatModalComponent {
     if (!this.canSavePoll()) return;
     const question = this.pollQuestion().trim();
     const options = this.pollOptions().map(o => o.trim()).filter(o => o.length > 0);
-    this.pushMessage({
-      id: `poll-${Date.now()}`,
-      author: this.currentUserName() || 'You',
-      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'poll' as const,
-      question,
-      options,
-    });
+    const circleId = this.activeCircle().id;
     this.closePollModal();
+
+    if (circleId === DEMO_CIRCLE_ID) {
+      this.pushMessage({
+        id: `poll-${Date.now()}`,
+        author: this.currentUserName() || 'You',
+        customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        kind: 'poll' as const,
+        question,
+        options,
+      });
+      return;
+    }
+
+    this.spaceMessagesService.sendMessage(circleId, { kind: 'poll', question, options }).subscribe({
+      next: (msg) => this.appendRealMessage(circleId, msg),
+      error: () => this.toast.error('Could not post poll — please try again'),
+    });
   }
 
   openMeetupModal(): void {
@@ -1200,16 +1395,28 @@ export class CommunityCrewChatModalComponent {
     const [year, month, day] = this.meetupDate().split('-').map(Number);
     const when = new Date(year, month - 1, day);
     const weekday = when.toLocaleDateString('en-US', { weekday: 'short' });
-    this.pushMessage({
-      id: `meetup-${Date.now()}`,
-      author: this.currentUserName() || 'You',
-      customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      kind: 'meetup' as const,
-      title: `Meetup at ${location.name}`,
-      meta: `${weekday} ${this.meetupTime()} \u00b7 ${location.name}`,
-    });
+    const title = `Meetup at ${location.name}`;
+    const meta = `${weekday} ${this.meetupTime()} \u00b7 ${location.name}`;
+    const circleId = this.activeCircle().id;
     this.closeMeetupModal();
+
+    if (circleId === DEMO_CIRCLE_ID) {
+      this.pushMessage({
+        id: `meetup-${Date.now()}`,
+        author: this.currentUserName() || 'You',
+        customer_id: '1627e255-8a3c-4dbb-a553-fb797f6b0244',
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        kind: 'meetup' as const,
+        title,
+        meta,
+      });
+      return;
+    }
+
+    this.spaceMessagesService.sendMessage(circleId, { kind: 'meetup', title, meta }).subscribe({
+      next: (msg) => this.appendRealMessage(circleId, msg),
+      error: () => this.toast.error('Could not propose the meet-up \u2014 please try again'),
+    });
   }
 
   openExpenseModal(): void {

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
-import { COMMUNITY_TRIPS, CommunityTrip } from '../data/community-trips.data';
+import { CommunityPostService } from '../../../../services/community-post.service';
+import { CommunityTrip } from '../data/community-trips.data';
 import { CloneTripModalComponent, CloneTripPayload } from './clone-trip-modal/clone-trip-modal.component';
 
 type TripFilter = 'Popular' | 'Recent' | 'Budget' | 'Luxury';
@@ -33,6 +34,8 @@ function recencyRank(trip: CommunityTrip): number {
 })
 export class CommunityTripsComponent {
   readonly store = inject(CommunityHomeStore);
+  private readonly communityPostService = inject(CommunityPostService);
+  private readonly router = inject(Router);
 
   readonly goHome = output<void>();
 
@@ -41,17 +44,43 @@ export class CommunityTripsComponent {
 
   readonly cloningTrip = signal<CommunityTrip | null>(null);
 
-  private readonly _savedTripIds = signal<ReadonlySet<string>>(new Set());
+  private readonly trips = signal<CommunityTrip[]>([]);
+
+  constructor() {
+    this.communityPostService.getTripTemplates().subscribe({
+      next: ({ items }) =>
+        this.trips.set(
+          items.map((t) => ({
+            id: t.id,
+            title: t.title,
+            subtitle: t.subtitle,
+            tier: t.tier as CommunityTrip['tier'],
+            saves: t.savesLabel,
+            image: t.image,
+            author: t.author,
+            customer_id: t.authorId,
+            updated: t.updatedLabel,
+            days: t.days,
+            cities: t.cities,
+            activities: t.activities,
+            perPerson: t.perPerson,
+            isSaved: t.isSaved,
+          })),
+        ),
+      error: () => this.store.showToast('Could not load trips right now'),
+    });
+  }
 
   readonly filteredTrips = computed(() => {
     const filter = this.filter();
+    const trips = this.trips();
     if (filter === 'Budget' || filter === 'Luxury') {
-      return COMMUNITY_TRIPS.filter((trip) => trip.tier === filter);
+      return trips.filter((trip) => trip.tier === filter);
     }
     if (filter === 'Recent') {
-      return [...COMMUNITY_TRIPS].sort((a, b) => recencyRank(a) - recencyRank(b));
+      return [...trips].sort((a, b) => recencyRank(a) - recencyRank(b));
     }
-    return COMMUNITY_TRIPS;
+    return trips;
   });
 
   onShareTrip(): void {
@@ -59,23 +88,21 @@ export class CommunityTripsComponent {
   }
 
   onViewItinerary(trip: CommunityTrip): void {
-    this.store.showToast(`Opening "${trip.title}"`);
+    this.router.navigate(['/itinerary', trip.id]);
   }
 
   isSaved(trip: CommunityTrip): boolean {
-    return this._savedTripIds().has(trip.id);
+    return trip.isSaved;
   }
 
   onToggleSave(trip: CommunityTrip): void {
-    const next = new Set(this._savedTripIds());
-    if (next.has(trip.id)) {
-      next.delete(trip.id);
-      this.store.showToast(`Removed "${trip.title}" from saved`);
-    } else {
-      next.add(trip.id);
-      this.store.showToast(`Saved "${trip.title}"`);
-    }
-    this._savedTripIds.set(next);
+    this.communityPostService.toggleSaveItinerary(trip.id).subscribe({
+      next: ({ saved }) => {
+        this.trips.update((all) => all.map((t) => (t.id === trip.id ? { ...t, isSaved: saved } : t)));
+        this.store.showToast(saved ? `Saved "${trip.title}"` : `Removed "${trip.title}" from saved`);
+      },
+      error: () => this.store.showToast('Could not update saved status'),
+    });
   }
 
   onClone(trip: CommunityTrip): void {
@@ -92,6 +119,15 @@ export class CommunityTripsComponent {
       return;
     }
     this.cloningTrip.set(null);
-    this.store.showToast(`Building your version of "${trip.title}" for ${payload.dates}`);
+    this.communityPostService.cloneTrip(trip.id).subscribe({
+      next: ({ tripId }) => {
+        this.store.showToast(`Building your version of "${trip.title}" for ${payload.dates}`);
+        this.router.navigate(['/itinerary', tripId]);
+      },
+      error: (err) => {
+        const message = err?.error?.detail || `Could not clone "${trip.title}"`;
+        this.store.showToast(message);
+      },
+    });
   }
 }

@@ -10,6 +10,7 @@ import { PrimaryButtonComponent, ThemeService } from 'ui';
 import { LocaleSelectorComponent } from '../locale-selector/locale-selector.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChatContextService } from '../../services/chat-context.service';
+import { CommunityMessagesUnreadService } from '../../../community/services/community-messages-unread.service';
 
 export type SiteNavbarAppearance =
   | 'default'
@@ -317,6 +318,11 @@ export type SiteNavbarAppearance =
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
+                    @if (messagesUnread.unreadCount() > 0) {
+                      <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-red-500 text-2xs font-bold text-white">
+                        {{ messagesUnread.unreadCount() > 99 ? '99+' : messagesUnread.unreadCount() }}
+                      </span>
+                    }
                   </a>
                   <app-community-notifications-dropdown [class.text-white]="useLightChrome()" />
                 }
@@ -441,8 +447,13 @@ export type SiteNavbarAppearance =
                   <span class="block truncate py-1 text-sm" [ngClass]="useLightChrome() ? 'text-white/70' : 'text-text-secondary'">
                     {{ auth.user()?.email }}
                   </span>
-                  <a routerLink="/community/messages" class="block py-2 text-base font-medium no-underline" [ngClass]="mobileActionClass()" (click)="closeMenu()">
+                  <a routerLink="/community/messages" class="flex items-center gap-2 py-2 text-base font-medium no-underline" [ngClass]="mobileActionClass()" (click)="closeMenu()">
                     {{ 'NAV.MESSAGES' | translate }}
+                    @if (messagesUnread.unreadCount() > 0) {
+                      <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-2xs font-bold text-white">
+                        {{ messagesUnread.unreadCount() > 99 ? '99+' : messagesUnread.unreadCount() }}
+                      </span>
+                    }
                   </a>
                 }
                 <a routerLink="/profile" class="block py-2 text-base font-medium no-underline" [ngClass]="mobileActionClass()" (click)="closeMenu()">
@@ -480,6 +491,7 @@ export class SiteNavbarComponent {
   private readonly router = inject(Router);
   private readonly elRef = inject(ElementRef);
   readonly chatContext = inject(ChatContextService);
+  readonly messagesUnread = inject(CommunityMessagesUnreadService);
   protected theme = inject(ThemeService);
 
   get isLoginPage(): boolean {

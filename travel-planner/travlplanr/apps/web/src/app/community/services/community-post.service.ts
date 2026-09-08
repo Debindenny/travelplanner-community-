@@ -68,6 +68,23 @@ export interface CommunityPost {
   type?: string;
 }
 
+export interface CommunityTripTemplate {
+  id: string;
+  title: string;
+  subtitle: string;
+  tier: string;
+  savesLabel: string;
+  perPerson: string;
+  updatedLabel: string;
+  image: string;
+  author: string;
+  authorId: string;
+  days: number;
+  cities: number;
+  activities: number;
+  isSaved: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -139,6 +156,17 @@ export class CommunityPostService {
     return this.http.post<{ tripId: string }>(
       apiUrl(`/community/trips/${tripId}/clone`),
       {}
+    );
+  }
+
+  getTripTemplates(): Observable<{ items: CommunityTripTemplate[] }> {
+    return this.http.get<{ items: CommunityTripTemplate[] }>(apiUrl('/community/trips/templates'));
+  }
+
+  toggleSaveItinerary(tripId: string): Observable<{ saved: boolean }> {
+    return this.http.post<{ saved: boolean }>(
+      apiUrl('/community/saved/toggle'),
+      { item_type: 'itinerary', item_id: tripId }
     );
   }
 

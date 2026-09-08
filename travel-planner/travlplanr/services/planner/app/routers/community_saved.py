@@ -81,7 +81,8 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
         tip_ids = [i.item_id for i in saved_items if i.item_type == "tip"]
         post_ids = [i.item_id for i in saved_items if i.item_type == "post"]
         destination_ids = [i.item_id for i in saved_items if i.item_type == "destination"]
-        tips_map, posts_map, destinations_map = {}, {}, {}
+        itinerary_ids = [i.item_id for i in saved_items if i.item_type == "itinerary"]
+        tips_map, posts_map, destinations_map, trips_map = {}, {}, {}, {}
         if tip_ids:
             # "tip" saves point at a CommunityPost row that was curated as a
             # Discover tip (title IS NOT NULL) — same table as "post" saves.
@@ -93,6 +94,10 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
         if destination_ids:
             rows = (await session.execute(select(Destination).where(Destination.id.in_(destination_ids)))).scalars().all()
             destinations_map = {d.id: d for d in rows}
+        if itinerary_ids:
+            from app.models.trips import Trip
+            rows = (await session.execute(select(Trip).where(Trip.id.in_(itinerary_ids)))).scalars().all()
+            trips_map = {t.id: t for t in rows}
 
         result = []
         for item in saved_items:
@@ -128,8 +133,16 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
                     "meta": f"{dest.region} · saved {when}",
                     "image": dest.image_url,
                 })
-            # 'itinerary' saves resolve once that service exposes a lookup here —
-            # skipped for now rather than shown with missing data.
+            elif item.item_type == "itinerary" and item.item_id in trips_map:
+                trip = trips_map[item.item_id]
+                result.append({
+                    "id": str(item.id),
+                    "item_id": str(item.item_id),
+                    "kind": _KIND_BY_ITEM_TYPE["itinerary"],
+                    "title": trip.title,
+                    "meta": f"{trip.destination} · saved {when}",
+                    "image": trip.image,
+                })
 
         return {"items": result}
 
