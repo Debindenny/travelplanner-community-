@@ -9,15 +9,23 @@
  */
 const target = process.env.API_PROXY_TARGET || 'http://127.0.0.1:8080';
 
+// Shared proxy options for every forwarded prefix — same target, same TLS
+// handling, same logging, so /api and /static behave identically.
+const proxyOptions = {
+  target,
+  // Plain-HTTP local gateway: no TLS to validate. For https targets, verify
+  // certs unless API_PROXY_INSECURE=1 (self-signed staging).
+  secure: target.startsWith('https://')
+    ? process.env.API_PROXY_INSECURE !== '1'
+    : false,
+  changeOrigin: true,
+  logLevel: process.env.PROXY_LOG_LEVEL || 'warn',
+};
+
 module.exports = {
-  '/api': {
-    target,
-    // Plain-HTTP local gateway: no TLS to validate. For https targets, verify
-    // certs unless API_PROXY_INSECURE=1 (self-signed staging).
-    secure: target.startsWith('https://')
-      ? process.env.API_PROXY_INSECURE !== '1'
-      : false,
-    changeOrigin: true,
-    logLevel: process.env.PROXY_LOG_LEVEL || 'warn',
-  },
+  '/api': proxyOptions,
+  // Locally-stored uploads (the planner's fallback when S3/MinIO is
+  // unavailable) are served at a bare /static/... URL with no /api prefix —
+  // without this, ng serve 404s on them instead of forwarding to the gateway.
+  '/static': proxyOptions,
 };

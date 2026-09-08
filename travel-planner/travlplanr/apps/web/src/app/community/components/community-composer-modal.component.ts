@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, signal } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { CommunityCreatePostComponent } from './community-post-shared.component';
@@ -148,14 +148,22 @@ const TYPE_OPTIONS: ComposerTypeOption[] = [
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   `],
 })
-export class CommunityComposerModalComponent {
+export class CommunityComposerModalComponent implements OnInit {
   @Input() userAvatar?: string;
+  /** Post type to open directly on, skipping the type-picker list (e.g. 'tip', 'photo', 'trip_share', 'question', 'poll'). */
+  @Input() initialType?: string;
   @Output() postCreated = new EventEmitter<CommunityPost>();
   @Output() close = new EventEmitter<void>();
 
   readonly typeOptions = TYPE_OPTIONS;
   readonly selectedType = signal<string | null>(null);
   readonly selectedOption = computed(() => this.typeOptions.find(o => o.postType === this.selectedType()) ?? null);
+
+  ngOnInit(): void {
+    if (this.initialType && this.typeOptions.some(o => o.postType === this.initialType)) {
+      this.selectedType.set(this.initialType);
+    }
+  }
 
   selectType(option: ComposerTypeOption): void {
     this.selectedType.set(option.postType);

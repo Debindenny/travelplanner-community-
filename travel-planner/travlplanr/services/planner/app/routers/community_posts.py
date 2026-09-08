@@ -213,7 +213,6 @@ async def create_post(data: CreatePostRequest, request: Request, auth: dict = De
     customer_id = UUID(auth["customer_id"])
     if not data.caption or not data.caption.strip(): raise HTTPException(status_code=400, detail="Caption cannot be empty")
     if len(data.caption) > 2000: raise HTTPException(status_code=400, detail="Caption exceeds maximum length of 2000 characters")
-    if (not data.images or len(data.images) == 0) and not data.video_url: raise HTTPException(status_code=400, detail="At least one image or a video is required")
 
     async with request.app.state.session_factory() as session:
         dest_id_uuid = None
