@@ -1717,6 +1717,7 @@
       "CLASS_BUSINESS": "Business Class"
     },
     "HEADER": {
+      "BACK": "Back",
       "CALENDAR_LABEL": "Calendar",
       "DRAFT_BADGE": "Draft destination.",
       "DRAFT_DESCRIPTION": "This AI itinerary uses your requested place. Packages and live pricing are not available yet.",

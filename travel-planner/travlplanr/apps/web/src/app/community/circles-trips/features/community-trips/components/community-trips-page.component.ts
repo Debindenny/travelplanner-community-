@@ -88,7 +88,7 @@ export class CommunityTripsComponent {
   }
 
   onViewItinerary(trip: CommunityTrip): void {
-    this.router.navigate(['/itinerary', trip.id]);
+    this.router.navigate(['/community/trips', trip.id, 'preview']);
   }
 
   isSaved(trip: CommunityTrip): boolean {

@@ -184,6 +184,14 @@ export const routes: Routes = [
           import('./community/components/community-trips-page.component').then((m) => m.CommunityTripsPageComponent),
       },
       {
+        path: 'community/trips/:id/preview',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./community/circles-trips/features/community-trips/components/trip-template-preview/trip-template-preview.component').then(
+            (m) => m.TripTemplatePreviewComponent,
+          ),
+      },
+      {
         path: 'community/users/:id',
         loadComponent: () =>
           import('./community/components/community-profile.component').then((m) => m.CommunityProfileComponent),

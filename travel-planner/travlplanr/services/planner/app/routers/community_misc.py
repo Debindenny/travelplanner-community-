@@ -263,6 +263,95 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
         return {"items": items}
 
 
+def _city_for_day(city_days: list[dict], day: int, fallback: str) -> str:
+    """Which city a given day falls in, based on per-city night counts.
+
+    Mirrors the walk in `activity_suggestion_service._city_for_day`: days beyond
+    the last block's night count (e.g. the departure day) stay in the last city.
+    """
+    running = 0
+    last_city = fallback
+    for block in city_days:
+        nights = max(int(block.get("nights", 1)), 1)
+        city = block.get("city") or fallback
+        if day <= running + nights:
+            return city
+        running += nights
+        last_city = city
+    return last_city
+
+
+def _time_of_day(time_str: str | None) -> str:
+    """Bucket a 'HH:MM' segment time into a display label."""
+    if not time_str:
+        return ""
+    try:
+        hour = int(time_str.split(":")[0])
+    except (ValueError, IndexError):
+        return ""
+    if hour < 12:
+        return "Morning"
+    if hour < 17:
+        return "Afternoon"
+    return "Evening"
+
+
+@router.get("/trips/templates/{trip_id}")
+async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
+    """Read-only day-by-day summary for a trip template preview: the trip
+    length, which city each day is spent in, and the places visited that day
+    — title, image, and time of day only, no flights/hotels/prices/booking status.
+    """
+    from app.models.trips import Trip
+
+    async with request.app.state.session_factory() as session:
+        trip = (await session.execute(
+            select(Trip).where(Trip.id == trip_id, Trip.is_template == True)
+        )).scalar_one_or_none()
+        if not trip:
+            raise HTTPException(status_code=404, detail="Trip template not found")
+
+        meta = trip.template_meta or {}
+        city_days = trip.city_days or []
+        segments = trip.segments or []
+        total_days = sum(max(int(c.get("nights", 1)), 1) for c in city_days) + 1 if city_days else 0
+
+        def _places_for_day(day: int) -> list[dict]:
+            places = []
+            for s in segments:
+                if s.get("type") != "activity" or int(s.get("day") or 0) != day:
+                    continue
+                title = s.get("title") or s.get("location")
+                if not title:
+                    continue
+                places.append({
+                    "title": title,
+                    "image": s.get("image") or s.get("imageUrl"),
+                    "timeOfDay": _time_of_day(s.get("time")),
+                    "duration": s.get("duration"),
+                    "refundable": s.get("refundable"),
+                })
+            return places
+
+        day_cities = [
+            {
+                "day": day,
+                "city": _city_for_day(city_days, day, trip.destination),
+                "places": _places_for_day(day),
+            }
+            for day in range(1, total_days + 1)
+        ]
+
+        return {
+            "id": str(trip.id),
+            "title": trip.title,
+            "subtitle": meta.get("subtitle", ""),
+            "image": trip.image,
+            "days": total_days,
+            "dayCities": day_cities,
+        }
+
+
 @router.post("/trips/{trip_id}/clone")
 async def clone_trip(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
     customer_id = UUID(auth["customer_id"]); customer_name = auth.get("customer_name", "Unknown"); tenant_id = UUID(auth["tenant_id"])

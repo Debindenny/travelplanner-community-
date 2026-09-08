@@ -1,0 +1,75 @@
+<div class="preview">
+  <button type="button" class="preview__back" (click)="goBack()">
+    <app-icon name="arrow-left" [size]="16" />
+    Back
+  </button>
+
+  @if (loading()) {
+    <div class="preview__state">Loading itinerary…</div>
+  } @else if (error() || !trip()) {
+    <div class="preview__state">This trip itinerary couldn't be found.</div>
+  } @else {
+    @let t = trip()!;
+
+    <div class="preview__hero" [style.backgroundImage]="'url(' + t.image + ')'">
+      <div class="preview__hero-overlay">
+        <h1 class="preview__title">{{ t.title }}</h1>
+        @if (t.subtitle) {
+          <p class="preview__subtitle">{{ t.subtitle }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="preview__summary">
+      <app-icon name="calendar-check" [size]="18" />
+      <span>{{ t.days }} {{ t.days === 1 ? 'day' : 'days' }}</span>
+    </div>
+
+    <ol class="preview__days">
+      @for (entry of t.dayCities; track entry.day) {
+        <li class="preview__day">
+          <div class="preview__day-header">
+            <span class="preview__day-number">Day {{ entry.day }}</span>
+            <span class="preview__day-city">
+              <app-icon name="map-pin" [size]="14" />
+              {{ entry.city }}
+            </span>
+          </div>
+          @if (entry.places.length) {
+            <ul class="preview__day-places">
+              @for (place of entry.places; track place.title) {
+                <li class="preview__place">
+                  @if (place.image) {
+                    <img class="preview__place-image" [src]="place.image" [alt]="place.title" />
+                  }
+                  <div class="preview__place-info">
+                    @if (place.timeOfDay) {
+                      <span class="preview__place-time">{{ place.timeOfDay }}</span>
+                    }
+                    <h3 class="preview__place-title">{{ place.title }}</h3>
+                    @if (place.duration || place.refundable) {
+                      <div class="preview__place-meta">
+                        @if (place.duration) {
+                          <span class="preview__place-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                            {{ place.duration }}
+                          </span>
+                        }
+                        @if (place.refundable) {
+                          <span class="preview__place-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" /></svg>
+                            {{ place.refundable }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      }
+    </ol>
+  }
+</div>

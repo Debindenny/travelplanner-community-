@@ -71,6 +71,20 @@ def _image(photo_id: str) -> str:
     return f"https://images.unsplash.com/photo-{photo_id}?auto=format&fit=crop&w=900&q=80"
 
 
+def _with_images(segments: list[dict], image: str) -> list[dict]:
+    """Fill each segment's image field with the trip's hero image — the
+    itinerary page renders every activity card straight from `segment.image`
+    (and hotel/flight/train cards from `imageUrl`), so a segment missing it
+    renders a broken image.
+    """
+    for seg in segments:
+        if seg["type"] == "activity":
+            seg.setdefault("image", image)
+        else:
+            seg.setdefault("imageUrl", image)
+    return segments
+
+
 JAPAN_IMAGE = _image("1493976040374-85c8e12f0c0e")
 LISBON_IMAGE = _image("1503756234508-e32d1769ee16")
 EUROPE_IMAGE = _image("1467269204594-9661b134dd2b")
@@ -219,7 +233,7 @@ TEMPLATES = [
         "start_date": "2026-03-28", "end_date": "2026-04-03", "travelers": 2,
         "travel_style": "Cultural", "travel_method": "flight", "budget": "Mid-range",
         "interests": ["Culture", "Food", "History"], "food_preferences": ["Local cuisine"],
-        "image": JAPAN_IMAGE, "segments": JAPAN_SEGMENTS, "days": JAPAN_DAYS, "city_days": JAPAN_CITY_DAYS,
+        "image": JAPAN_IMAGE, "segments": _with_images(JAPAN_SEGMENTS, JAPAN_IMAGE), "days": JAPAN_DAYS, "city_days": JAPAN_CITY_DAYS,
         "template_meta": {
             "subtitle": "Cherry-blossom season · Mid-range · Couple", "tier": "Mid-range",
             "saves_label": "2.4K saves", "per_person": "₹1.4L", "updated_label": "Updated 2d ago",
@@ -236,7 +250,7 @@ TEMPLATES = [
         "start_date": "2026-05-04", "end_date": "2026-05-08", "travelers": 1,
         "travel_style": "Relaxed", "travel_method": "flight", "budget": "Budget",
         "interests": ["Culture", "History"], "food_preferences": ["Local cuisine"],
-        "image": LISBON_IMAGE, "segments": LISBON_SEGMENTS, "days": LISBON_DAYS, "city_days": LISBON_CITY_DAYS,
+        "image": LISBON_IMAGE, "segments": _with_images(LISBON_SEGMENTS, LISBON_IMAGE), "days": LISBON_DAYS, "city_days": LISBON_CITY_DAYS,
         "template_meta": {
             "subtitle": "Shoulder season · Budget · Solo", "tier": "Budget",
             "saves_label": "1.8K saves", "per_person": "€620", "updated_label": "Updated 5d ago",
@@ -253,7 +267,7 @@ TEMPLATES = [
         "start_date": "2026-06-01", "end_date": "2026-06-14", "travelers": 2,
         "travel_style": "Backpacking", "travel_method": "train", "budget": "Budget",
         "interests": ["Culture", "History", "Nightlife"], "food_preferences": ["Local cuisine"],
-        "image": EUROPE_IMAGE, "segments": EUROPE_SEGMENTS, "days": EUROPE_DAYS, "city_days": EUROPE_CITY_DAYS,
+        "image": EUROPE_IMAGE, "segments": _with_images(EUROPE_SEGMENTS, EUROPE_IMAGE), "days": EUROPE_DAYS, "city_days": EUROPE_CITY_DAYS,
         "template_meta": {
             "subtitle": "Summer · Budget · Couple", "tier": "Budget",
             "saves_label": "1.2K saves", "per_person": "€1.9K", "updated_label": "Updated 1w ago",
@@ -270,7 +284,7 @@ TEMPLATES = [
         "start_date": "2026-04-17", "end_date": "2026-04-20", "travelers": 1,
         "travel_style": "Cultural", "travel_method": "flight", "budget": "Mid-range",
         "interests": ["Culture", "Art", "Food"], "food_preferences": ["Local cuisine"],
-        "image": PARIS_IMAGE, "segments": PARIS_SEGMENTS, "days": PARIS_DAYS, "city_days": PARIS_CITY_DAYS,
+        "image": PARIS_IMAGE, "segments": _with_images(PARIS_SEGMENTS, PARIS_IMAGE), "days": PARIS_DAYS, "city_days": PARIS_CITY_DAYS,
         "template_meta": {
             "subtitle": "Spring · Mid-range · Solo", "tier": "Mid-range",
             "saves_label": "940 saves", "per_person": "£540", "updated_label": "Updated 3d ago",
