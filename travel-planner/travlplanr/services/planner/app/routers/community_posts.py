@@ -12,11 +12,12 @@ from sqlalchemy.exc import IntegrityError
 from shared.auth_dependencies import optional_customer, require_customer
 from shared.rate_limit import rate_limiter
 from app.models.community import (
-    CommunityPost, PostReaction, Notification, PostComment, CommunityProfile, Hashtag, PostHashtag
+    CommunityPost, PostReaction, Notification, PostComment, CommunityProfile, Hashtag, PostHashtag,
+    CommunityPoll, CommunityPollOption, CommunityPollVote
 )
 
 from .community_shared import (
-    CreatePostRequest, ReactRequest, CreateCommentRequest,
+    CreatePostRequest, ReactRequest, CreateCommentRequest, PollVoteRequest,
     CommentResponse, PaginatedCommentsResponse, _serialize_posts, _get_posts_reactions,
     ws_manager, should_notify, iso_utc
 )
@@ -214,6 +215,10 @@ async def create_post(data: CreatePostRequest, request: Request, auth: dict = De
     if not data.caption or not data.caption.strip(): raise HTTPException(status_code=400, detail="Caption cannot be empty")
     if len(data.caption) > 2000: raise HTTPException(status_code=400, detail="Caption exceeds maximum length of 2000 characters")
 
+    poll_option_texts = [o.strip() for o in data.poll_options if o and o.strip()] if data.poll_options is not None else None
+    if poll_option_texts is not None and len(poll_option_texts) < 2:
+        raise HTTPException(status_code=400, detail="A poll needs at least 2 options")
+
     async with request.app.state.session_factory() as session:
         dest_id_uuid = None
         if data.destination_id:
@@ -227,18 +232,32 @@ async def create_post(data: CreatePostRequest, request: Request, auth: dict = De
 
         customer_prof = (await session.execute(select(CommunityProfile).where(CommunityProfile.customer_id == customer_id))).scalar_one_or_none()
         if not customer_prof:
-            customer_prof = CommunityProfile(customer_id=customer_id, name="Traveler", avatar_url=None)
+            customer_prof = CommunityProfile(customer_id=customer_id, name=auth.get("customer_name") or "Traveler", avatar_url=None)
             session.add(customer_prof)
             await session.flush()
+        elif not customer_prof.name and auth.get("customer_name"):
+            # Backfill a profile row that was created before the name was ever
+            # set (e.g. via GET /me, which never persists it) — same real name
+            # the JWT already carries, so no reason to keep falling back to
+            # the literal "Traveler" placeholder on every future post.
+            customer_prof.name = auth.get("customer_name")
 
         new_post = CommunityPost(
-            customer_id=customer_id, author_name=customer_prof.name or "Traveler", author_avatar=customer_prof.avatar_url,
+            customer_id=customer_id, author_name=customer_prof.name or auth.get("customer_name") or "Traveler", author_avatar=customer_prof.avatar_url,
             location=data.location, destination_id=dest_id_uuid, images=data.images, caption=data.caption.strip(),
-            likes_count=0, comments_count=0, itinerary_id=itin_id_uuid, video_url=data.video_url, is_reel=data.is_reel or bool(data.video_url)
+            likes_count=0, comments_count=0, itinerary_id=itin_id_uuid, video_url=data.video_url, is_reel=data.is_reel or bool(data.video_url),
+            type='poll' if poll_option_texts else None,
         )
         session.add(new_post)
         await session.flush()
         await award_xp(session, customer_id, "post_created")
+
+        if poll_option_texts:
+            poll = CommunityPoll(post_id=new_post.id)
+            session.add(poll)
+            await session.flush()
+            for position, text in enumerate(poll_option_texts):
+                session.add(CommunityPollOption(poll_id=poll.id, text=text, position=position))
 
         tags = set(re.findall(r"#(\w+)", data.caption))
         for t in tags:
@@ -269,6 +288,51 @@ async def create_post(data: CreatePostRequest, request: Request, auth: dict = De
         await session.commit()
         serialized = await _serialize_posts(session, [new_post], customer_id)
         return serialized[0]
+
+@router.post("/{post_id}/poll/vote", dependencies=[Depends(rate_limiter("post-poll-vote", 30, 60))])
+async def vote_on_poll(post_id: UUID, data: PollVoteRequest, request: Request, auth: dict = Depends(require_customer)):
+    customer_id = UUID(auth["customer_id"])
+    try:
+        option_id = UUID(data.option_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid option id")
+
+    async with request.app.state.session_factory() as session:
+        post = (await session.execute(select(CommunityPost).where(CommunityPost.id == post_id))).scalar_one_or_none()
+        if not post: raise HTTPException(status_code=404, detail="Post not found")
+
+        poll = (await session.execute(select(CommunityPoll).where(CommunityPoll.post_id == post_id))).scalar_one_or_none()
+        if not poll: raise HTTPException(status_code=404, detail="This post has no poll")
+
+        option = (await session.execute(
+            select(CommunityPollOption).where(CommunityPollOption.id == option_id, CommunityPollOption.poll_id == poll.id)
+        )).scalar_one_or_none()
+        if not option: raise HTTPException(status_code=400, detail="Option does not belong to this poll")
+
+        existing_vote = (await session.execute(
+            select(CommunityPollVote).where(CommunityPollVote.poll_id == poll.id, CommunityPollVote.customer_id == customer_id)
+        )).scalar_one_or_none()
+        if existing_vote:
+            existing_vote.option_id = option.id
+        else:
+            try:
+                # Same SAVEPOINT-scoped insert as the hashtag race above: if two requests
+                # from the same customer race to cast the first vote, only one INSERT wins
+                # and the other rolls back just this savepoint, not the whole transaction.
+                async with session.begin_nested():
+                    session.add(CommunityPollVote(poll_id=poll.id, option_id=option.id, customer_id=customer_id))
+                    await session.flush()
+            except IntegrityError:
+                logger.warning("Concurrent first vote for customer %s on poll %s — switching to update", customer_id, poll.id, exc_info=True)
+                existing_vote = (await session.execute(
+                    select(CommunityPollVote).where(CommunityPollVote.poll_id == poll.id, CommunityPollVote.customer_id == customer_id)
+                )).scalar_one_or_none()
+                if existing_vote:
+                    existing_vote.option_id = option.id
+
+        await session.commit()
+        serialized = await _serialize_posts(session, [post], customer_id)
+        return serialized[0]["poll"]
 
 @router.get("/{post_id}")
 async def get_post_by_id(post_id: UUID, request: Request, auth: dict | None = Depends(optional_customer)):

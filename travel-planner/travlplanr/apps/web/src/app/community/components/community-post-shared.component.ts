@@ -339,18 +339,24 @@ export class CommunityPostCarouselComponent implements OnDestroy {
       <!-- Caption -->
       <div class="px-4 pb-3">
         @if (!isEditing) {
-          @if (captionHeadline()) {
-            <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
-          }
-          <p class="text-[13.5px] font-normal leading-[1.65] text-text-muted whitespace-pre-wrap">
-            @for (token of getCaptionTokens(captionRest()); track $index) {
-              @if (token.type === 'hashtag') {
-                <span (click)="filterByHashtag(token.value)" class="text-primary font-semibold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
-              } @else {
-                <span>{{ token.value }}</span>
-              }
+          @if (post.type === 'poll') {
+            <!-- The poll question IS the caption — shown once, as a heading, with no
+                 muted-body repeat below it (the options list takes that spot instead). -->
+            <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ post.caption }}</p>
+          } @else {
+            @if (captionHeadline()) {
+              <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
             }
-          </p>
+            <p class="text-[13.5px] font-normal leading-[1.65] text-text-muted whitespace-pre-wrap">
+              @for (token of getCaptionTokens(captionRest()); track $index) {
+                @if (token.type === 'hashtag') {
+                  <span (click)="filterByHashtag(token.value)" class="text-primary font-semibold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
+                } @else {
+                  <span>{{ token.value }}</span>
+                }
+              }
+            </p>
+          }
         }
         @if (isEditing) {
           <textarea [(ngModel)]="editCaption" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" rows="3"></textarea>
@@ -396,7 +402,7 @@ export class CommunityPostCarouselComponent implements OnDestroy {
       <!-- Poll -->
       @if (post.type === 'poll' && post.poll) {
         <div class="px-4 pb-3">
-          <app-community-poll [poll]="post.poll" />
+          <app-community-poll [poll]="post.poll" [voting]="pollVoting()" (onVote)="onPollVote($event)" />
         </div>
       }
 
@@ -759,6 +765,23 @@ export class CommunityPostCardComponent {
         this.post.saveCount = previousState.saveCount;
         this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_SAVE_ERROR'));
       }
+    });
+  }
+
+  pollVoting = signal(false);
+
+  onPollVote(event: { pollId: string; optionId: string }) {
+    if (!this.post?.poll || this.pollVoting()) return;
+    this.pollVoting.set(true);
+    this.postService.votePoll(this.post.id, event.optionId).subscribe({
+      next: (poll) => {
+        this.post.poll = poll;
+        this.pollVoting.set(false);
+      },
+      error: () => {
+        this.pollVoting.set(false);
+        this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_POLL_VOTE_ERROR'));
+      },
     });
   }
 

@@ -67,7 +67,14 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
           >
             <span class="block w-full h-full rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-slate-100 dark:bg-gray-700">
               @if (group.stories[0].media_url; as thumbUrl) {
-                <img [src]="thumbUrl" class="w-full h-full object-cover" alt="" />
+                @if (isVideoUrl(thumbUrl)) {
+                  <video [src]="thumbUrl" muted playsinline preload="metadata" class="w-full h-full object-cover"></video>
+                  <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <svg class="w-4 h-4 text-white drop-shadow" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </span>
+                } @else {
+                  <img [src]="thumbUrl" class="w-full h-full object-cover" alt="" />
+                }
               } @else {
                 <span class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-indigo-600 text-white text-[8px] font-bold text-center px-1 leading-tight">
                   {{ group.stories[0].caption }}
@@ -112,7 +119,7 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
     </div>
 
     @if (showStoryModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
            (click)="closeStoryModal()"
            (window:keydown.escape)="closeStoryModal()">
         <button
@@ -154,13 +161,36 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
           <!-- Media -->
           <div class="flex-1 relative flex items-center justify-center">
             @if (currentStory?.media_url; as storyMediaUrl) {
-              <img
-                [src]="storyMediaUrl"
-                class="w-full h-full object-contain"
-                (click)="handleTap($event)"
-              />
+              @if (mediaLoading()) {
+                <div class="absolute inset-0 flex items-center justify-center z-[5]">
+                  <div class="w-9 h-9 border-[3px] border-white/25 border-t-white rounded-full animate-spin"></div>
+                </div>
+              }
 
-              @if (currentStory?.caption) {
+              @if (isVideoUrl(storyMediaUrl)) {
+                <video
+                  [src]="storyMediaUrl"
+                  [hidden]="mediaLoading()"
+                  class="w-full h-full object-contain"
+                  autoplay
+                  muted
+                  playsinline
+                  (loadeddata)="onMediaLoaded()"
+                  (error)="onMediaLoaded()"
+                  (click)="handleTap($event)"
+                ></video>
+              } @else {
+                <img
+                  [src]="storyMediaUrl"
+                  [hidden]="mediaLoading()"
+                  class="w-full h-full object-contain"
+                  (load)="onMediaLoaded()"
+                  (error)="onMediaLoaded()"
+                  (click)="handleTap($event)"
+                />
+              }
+
+              @if (currentStory?.caption && !mediaLoading()) {
                 <div class="absolute bottom-10 inset-x-0 text-center px-6 z-10">
                   <p class="text-white bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl inline-block text-sm">
                     {{ currentStory?.caption }}
@@ -486,6 +516,9 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
   currentGroupIndex = 0;
   currentStoryIndex = 0;
   progress = 0; // 0 to 100
+  // True while the current story's image/video is still loading — the media
+  // element stays hidden and the progress timer stays paused until this flips.
+  mediaLoading = signal(true);
   private storyTimer: any;
   private readonly STORY_DURATION_MS = 5000;
   private readonly UPDATE_INTERVAL_MS = 50;
@@ -650,7 +683,7 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
     // (re)created by the @if block, which reset this state each time it opened.
     this.currentGroupIndex = index;
     this.currentStoryIndex = 0;
-    this.startTimer();
+    this.goToStory();
   }
 
   ringGradient(status: PreviewStoryDetail['status']): string {
@@ -700,6 +733,11 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
 
   // --- Story viewer modal (formerly CommunityStoryModalComponent) ---
 
+  /** Media type isn't stored separately — infer it from the uploaded file's extension. */
+  isVideoUrl(url: string): boolean {
+    return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url);
+  }
+
   get activeGroup(): StoryGroup | undefined {
     return this.feed()[this.currentGroupIndex];
   }
@@ -736,35 +774,60 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
 
   prevStory() {
     this.stopTimer();
-    this.progress = 0;
 
     if (this.currentStoryIndex > 0) {
       this.currentStoryIndex--;
-      this.startTimer();
+      this.goToStory();
     } else if (this.currentGroupIndex > 0) {
       this.currentGroupIndex--;
       this.currentStoryIndex = this.activeGroup!.stories.length - 1;
-      this.startTimer();
+      this.goToStory();
     } else {
-      // Loop or just stay at beginning, let's just restart
-      this.startTimer();
+      // Loop or just stay at beginning, let's just restart the same media.
+      this.goToStory(true);
     }
   }
 
   nextStory() {
     this.stopTimer();
-    this.progress = 0;
 
     if (this.activeGroup && this.currentStoryIndex < this.activeGroup.stories.length - 1) {
       this.currentStoryIndex++;
-      this.startTimer();
+      this.goToStory();
     } else if (this.currentGroupIndex < this.feed().length - 1) {
       this.currentGroupIndex++;
       this.currentStoryIndex = 0;
-      this.startTimer();
+      this.goToStory();
     } else {
       this.closeStoryModal();
     }
+  }
+
+  /**
+   * Advance to whatever `currentGroupIndex`/`currentStoryIndex` now point at.
+   * When the media element's src is actually changing, wait for it to finish
+   * loading (via onMediaLoaded()) before starting the progress timer — the
+   * element stays hidden behind a spinner until then. `sameStory` replays the
+   * current story from 0 (nothing to (re)load, so start the timer directly).
+   */
+  private goToStory(sameStory = false) {
+    this.progress = 0;
+    if (sameStory) {
+      this.startTimer();
+      return;
+    }
+    if (this.currentStory?.media_url) {
+      this.mediaLoading.set(true);
+    } else {
+      this.mediaLoading.set(false);
+      this.startTimer();
+    }
+  }
+
+  onMediaLoaded() {
+    if (!this.mediaLoading()) return;
+    this.mediaLoading.set(false);
+    this.startTimer();
   }
 
   private startTimer() {
