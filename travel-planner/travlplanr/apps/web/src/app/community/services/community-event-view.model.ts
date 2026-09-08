@@ -47,6 +47,44 @@ export interface CommunityEventCard {
   schedule: EventScheduleStep[];
   locationName: string;
   locationNote: string;
+  /** Multi-city route for a hosted journey, e.g. ['Paris', 'Barcelona', 'Madrid']. Falls back to `location` when absent. */
+  cities?: string[];
+  /** Pre-formatted trip window, e.g. "03 - 12 JUN". Falls back to `month`/`day` when absent. */
+  dateRangeLabel?: string;
+  /** Number of nights the journey runs, shown next to `dateRangeLabel`. */
+  nights?: number;
+  /** Whether travelers can join part of the journey rather than the whole thing. */
+  partialJoinAllowed?: boolean;
+  /** Host's avatar photo. Falls back to initials when absent. */
+  hostAvatarUrl?: string;
+  /** Total traveler capacity, shown as "{travelersGoing} / {travelersMax} Travelers". */
+  travelersMax?: number;
+  /** Interest/theme chips shown on the card, e.g. ['Culture', 'Food', 'Adventure']. */
+  interestTags?: string[];
+  /** Descriptive subheading on the detail page, e.g. "Paris, Barcelona And Madrid Theme Journey". */
+  subtitle?: string;
+  /** Average review rating out of 5, shown on the detail page. */
+  rating?: number;
+  /** Number of reviews backing `rating`. */
+  reviewCount?: number;
+  /** Avatar photos of a few travelers who joined, shown as an overlapping stack. */
+  travelerAvatars?: string[];
+  /** Day-by-day breakdown for a hosted journey, priced individually so travelers can join part of the trip. */
+  days?: JourneyDay[];
+  /** Fixed cost added on top of the selected days' subtotal — guiding, transfers, group logistics. */
+  baseFee?: number;
+  /** Fewest consecutive days a partial-join traveler must book. Defaults to 2 when `days` is set. */
+  minConsecutiveDays?: number;
+  /** Most consecutive days a partial-join traveler may book. Defaults to the full trip length when unset. */
+  maxConsecutiveDays?: number;
+}
+
+export interface JourneyDay {
+  day: number;
+  city: string;
+  dateLabel: string;
+  price: number;
+  activities: string[];
 }
 
 /** Mirrors the source design's unsplashUrl() helper — same crop/format params. */

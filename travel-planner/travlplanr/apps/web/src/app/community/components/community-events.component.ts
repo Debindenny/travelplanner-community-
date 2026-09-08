@@ -71,10 +71,39 @@ export class CommunityEventsComponent {
     return list.filter((ev) => this.matchesFilters(ev));
   }
 
-  /** Location + price chips shown at the bottom of an event card. */
+  /** Destination + price chips shown at the bottom of an event card — always exactly 2. */
   tagsFor(ev: CommunityEventCard): string[] {
     const parts = ev.location.split(',').map((p) => p.trim()).filter(Boolean);
-    return [...parts, ev.price];
+    const destination = parts[parts.length - 1] || ev.location;
+    return [destination, ev.price];
+  }
+
+  /** Multi-city route for a hosted journey card; falls back to the single `location`. */
+  citiesFor(ev: CommunityEventCard): string[] {
+    if (ev.cities?.length) return ev.cities;
+    const parts = ev.location.split(',').map((p) => p.trim()).filter(Boolean);
+    return parts.length ? [parts[parts.length - 1]] : [];
+  }
+
+  /** Trip-window label shown in blue at the top of the card, e.g. "03 - 12 JUN". */
+  dateRangeFor(ev: CommunityEventCard): string {
+    return ev.dateRangeLabel || `${ev.month} ${ev.day}`;
+  }
+
+  /** Interest/theme chips at the bottom of a journey card; falls back to destination + price. */
+  interestTagsFor(ev: CommunityEventCard): string[] {
+    return ev.interestTags?.length ? ev.interestTags : this.tagsFor(ev);
+  }
+
+  /** Initials shown when a host has no avatar photo. */
+  hostInitials(ev: CommunityEventCard): string {
+    return ev.hostName
+      .split(' ')
+      .map((part) => part[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
   }
 
   // ── Advanced filters ─────────────────────────────────────────────
