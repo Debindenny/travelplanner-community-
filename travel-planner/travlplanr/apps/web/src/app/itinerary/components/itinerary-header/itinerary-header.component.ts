@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SavedTrip } from '../../../trip/trip.service';
 import { TripViewer } from '../../../shared/services/trip-presence.service';
@@ -26,6 +26,14 @@ import { TripViewer } from '../../../shared/services/trip-presence.service';
             [alt]="trip.title"
             class="w-full h-full object-cover object-bottom"
           />
+          <button
+            type="button"
+            (click)="goBack()"
+            class="absolute left-4 lg:left-10 top-4 w-11 h-11 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-colors"
+            [attr.aria-label]="'ITINERARY.HEADER.BACK' | translate"
+          >
+            <svg class="w-5 h-5 text-text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+          </button>
           <button
             type="button"
             (click)="prevHeroSlide()"
@@ -188,6 +196,11 @@ export class ItineraryHeaderComponent {
   @Input() liveViewers: TripViewer[] = [];
 
   private translate = inject(TranslateService);
+  private location = inject(Location);
+
+  goBack(): void {
+    this.location.back();
+  }
 
   isLiveViewer(userId: string | null | undefined): boolean {
     return !!userId && this.liveViewers.some((v) => v.user_id === userId);

@@ -1613,6 +1613,7 @@
       "CLASS_BUSINESS": "Clase ejecutiva"
     },
     "HEADER": {
+      "BACK": "Atrás",
       "CALENDAR_LABEL": "Calendario",
       "DRAFT_BADGE": "Destino provisional.",
       "DRAFT_DESCRIPTION": "Este itinerario generado por IA usa el lugar que solicitaste. Los paquetes y los precios en tiempo real aún no están disponibles.",

@@ -4468,8 +4468,8 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   }
 
   private static readonly DEFAULT_HERO_IMAGES = [
-    'assets/images/packages/hero-main.png',
     'assets/images/packages/hero-extra.png',
+    'assets/images/packages/hero-main.png',
     'assets/images/packages/hero-ireland.png',
     'assets/images/packages/hero-bottom-left.png',
   ];

@@ -1613,6 +1613,7 @@
       "CLASS_BUSINESS": "Classe affaires"
     },
     "HEADER": {
+      "BACK": "Retour",
       "CALENDAR_LABEL": "Calendrier",
       "DRAFT_BADGE": "Destination provisoire.",
       "DRAFT_DESCRIPTION": "Cet itinéraire généré par l'IA utilise le lieu que vous avez demandé. Les forfaits et les tarifs en temps réel ne sont pas encore disponibles.",

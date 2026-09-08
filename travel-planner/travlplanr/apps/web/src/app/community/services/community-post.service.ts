@@ -103,6 +103,29 @@ export interface CommunityTripTemplate {
   isSaved: boolean;
 }
 
+export interface TripTemplatePlace {
+  title: string;
+  image: string | null;
+  timeOfDay: string;
+  duration: string | null;
+  refundable: string | null;
+}
+
+export interface TripTemplateDayCity {
+  day: number;
+  city: string;
+  places: TripTemplatePlace[];
+}
+
+export interface TripTemplateDetail {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  days: number;
+  dayCities: TripTemplateDayCity[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -186,6 +209,10 @@ export class CommunityPostService {
 
   getTripTemplates(): Observable<{ items: CommunityTripTemplate[] }> {
     return this.http.get<{ items: CommunityTripTemplate[] }>(apiUrl('/community/trips/templates'));
+  }
+
+  getTripTemplateDetail(tripId: string): Observable<TripTemplateDetail> {
+    return this.http.get<TripTemplateDetail>(apiUrl(`/community/trips/templates/${tripId}`));
   }
 
   toggleSaveItinerary(tripId: string): Observable<{ saved: boolean }> {
