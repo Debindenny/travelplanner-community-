@@ -47,17 +47,25 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
                   {{ profile()?.local_in }}
                 </span>
               }
-            </div>=
+            </div>
 
             <!-- ============ PROFILE HEADER: avatar + name + actions + stats ============ -->
             <div class="relative z-10 bg-white rounded-[24px] shadow-sm border border-gray-100/80 mx-4 sm:mx-10 -mt-12 sm:-mt-14 px-5 sm:px-8 pb-1">
               <div class="flex flex-wrap items-center gap-x-5">
                 <!-- Avatar -->
                 <div class="relative group -mt-20 sm:-mt-24 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden shrink-0">
-                  <img [src]="profile()?.avatar || '/assets/images/default-avatar.svg'" [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate" class="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  <img 
+                    [src]="getAvatarUrl(profile()?.avatar)" 
+                    [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate" 
+                    class="w-full h-full object-cover cursor-pointer"
+                    (click)="openImagePreview()"
+                  />
                   @if (isSelf()) {
-                    <label class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                    <label
+                      class="absolute bottom-0.5 right-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-gray-900/80 text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity shadow-md border-2 border-white"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
                       <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" [disabled]="uploadingAvatar()" />
                     </label>
                     @if (uploadingAvatar()) {
@@ -337,11 +345,24 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
                   <p class="text-xs text-gray-500 mt-1">{{ 'COMMUNITY.PROFILE.PHOTO_HELPER' | translate }}</p>
                 </div>
                 <div class="flex items-center gap-3 shrink-0">
-                  <img [src]="editForm.avatar || profile()?.avatar || '/assets/images/default-avatar.svg'" [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate" class="w-12 h-12 rounded-full object-cover border border-gray-200 bg-gray-100" />
+                  <img 
+                    [src]="avatarRemoved 
+                      ? '/assets/images/default-avatar.svg'
+                      : getAvatarUrl(editForm.avatar || profile()?.avatar)"
+                    [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate"
+                    class="w-12 h-12 rounded-full object-cover border border-gray-200 bg-gray-100"
+                  />
                   <label class="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
                     {{ 'COMMUNITY.PROFILE.CHANGE' | translate }}
                     <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onEditAvatarSelected($event)" [disabled]="editAvatarUploading()" />
                   </label>
+                  <button
+                    type="button"
+                    (click)="removeAvatar()"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-red-300 bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
               @if (editAvatarUploading()) {
@@ -465,6 +486,20 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
         </div>
       } 
 
+      @if (showImagePreview) {
+  <div
+    class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+    (click)="closeImagePreview()">
+
+    <img
+      [src]="getAvatarUrl(profile()?.avatar)"
+      class="max-w-[90vw] max-h-[90vh] rounded-xl shadow-2xl"
+      (click)="$event.stopPropagation()"
+    />
+
+  </div>
+  }
+
       <!-- ============ FOLLOWERS / FOLLOWING MODAL ============ -->
       @if (followersModalOpen()) {
         <app-community-followers-modal
@@ -490,6 +525,9 @@ export class CommunityProfileComponent implements OnInit {
   private readonly profileService = inject(CommunityProfileService);
 
   showEditModal = false;
+  avatarRemoved = false;
+  showImagePreview = false;
+
   readonly followersModalOpen = signal(false);
   readonly followersModalMode = signal<FollowersModalMode>('followers');
   readonly uploadingAvatar = signal(false);
@@ -532,8 +570,20 @@ export class CommunityProfileComponent implements OnInit {
   ];
 
   get interestsAtMax(): boolean {
-    return this.editForm.interests.length >= this.MAX_INTERESTS;
+  return this.editForm.interests.length >= this.MAX_INTERESTS;
+}
+
+getAvatarUrl(url: string | null | undefined): string {
+  if (!url) {
+    return '/assets/images/default-avatar.svg';
+ }
+
+  if (url.startsWith('http')) {
+    return url;
   }
+
+  return `http://localhost:8080${url}`;
+}
 
   ngOnInit() {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -563,6 +613,14 @@ export class CommunityProfileComponent implements OnInit {
   closeFollowersModal() {
     this.followersModalOpen.set(false);
   }
+
+  openImagePreview() {
+  this.showImagePreview = true;
+}
+
+  closeImagePreview() {
+  this.showImagePreview = false;
+}
 
   interests(): string[] {
     return (this.profile()?.interests ?? []).filter(Boolean);
@@ -693,6 +751,8 @@ export class CommunityProfileComponent implements OnInit {
   openEditModal() {
     const p = this.profile();
     if (!p) return;
+    console.log('Avatar URL:', p.avatar);
+    this.avatarRemoved = false;
     this.editForm = {
       name: p.name ?? '',
       about: p.about ?? p.bio ?? '',
@@ -710,6 +770,7 @@ export class CommunityProfileComponent implements OnInit {
 
   closeEditModal() {
     this.showEditModal = false;
+    this.showImagePreview = false;
   }
 
   resetNameError() {
@@ -721,15 +782,32 @@ export class CommunityProfileComponent implements OnInit {
   }
 
   onEditAvatarSelected(event: any) {
-    const file = event?.target?.files?.[0];
-    if (!file) return;
+  const file = event?.target?.files?.[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.editForm.avatar = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  }
+  this.editAvatarUploading.set(true);
+
+  this.profileService
+    .uploadImage(file)
+    .pipe(
+      finalize(() => this.editAvatarUploading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe({
+      next: (res) => {
+        this.editForm.avatar = res.url;
+        this.avatarRemoved = false;
+      },
+      error: () => {
+        this.toast.error('Image upload failed');
+      }
+    });
+}
+    
+
+
+
+    
 
   onInterestQuery() {
     if (this.interestsAtMax) {
@@ -772,6 +850,10 @@ export class CommunityProfileComponent implements OnInit {
   removeInterest(interest: string) {
     this.editForm.interests = this.editForm.interests.filter(i => i !== interest);
   }
+  removeAvatar(): void {
+    this.editForm.avatar = '';
+    this.avatarRemoved = true;
+  }
 
   saveProfile() {
     if (!this.editForm.name.trim()) {
@@ -783,7 +865,7 @@ export class CommunityProfileComponent implements OnInit {
     const updates: {
       name?: string;
       bio?: string;
-      avatar?: string;
+      avatar?: string | null;
       local_in?: string;
       cover?: string;
       about?: string;
@@ -796,7 +878,7 @@ export class CommunityProfileComponent implements OnInit {
       interests: [...this.editForm.interests],
       local_in: this.editForm.local_in,
       countries_visited: Number(this.editForm.countries_visited) || 0,
-      avatar: this.editForm.avatar,
+      avatar: this.editForm.avatar || null,
       post_visibility: this.editForm.post_visibility === 'followers' ? 'followers' : 'everyone',
     };
     this.profileService

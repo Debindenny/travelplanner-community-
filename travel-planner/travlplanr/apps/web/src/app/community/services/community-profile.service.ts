@@ -139,7 +139,7 @@ export class CommunityProfileService {
     return this.http.get<CommunityNews[]>(apiUrl('/community/news'));
   }
 
-  updateProfile(data: { name?: string; bio?: string; avatar?: string; local_in?: string; cover?: string; about?: string; interests?: string[]; countries_visited?: number; post_visibility?: string }): Observable<UserProfile> {
+  updateProfile(data: { name?: string; bio?: string; avatar?: string | null; local_in?: string; cover?: string; about?: string; interests?: string[]; countries_visited?: number; post_visibility?: string }): Observable<UserProfile> {
     return this.http.put<UserProfile>(apiUrl('/community/profile/me'), data);
   }
 
