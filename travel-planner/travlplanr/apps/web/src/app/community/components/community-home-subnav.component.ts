@@ -56,7 +56,7 @@ interface SubnavItem {
     class="mt-40 flex items-center gap-3 px-3 py-3 ..."
   >
     <img
-      [src]="profile.avatar || '/assets/images/default-avatar.svg'"
+      [src]="getAvatarUrl(profile.avatar)"
       class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-100"
       alt=""
     />
@@ -100,6 +100,16 @@ export class CommunityHomeSubnavComponent implements OnInit {
     { label: 'COMMUNITY.HOME_SUBNAV.SAVED', route: '/community/saved', exact: false, icon: ['m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'], count: () => this.store.savedItemCount() || null },
   ];
  
+  getAvatarUrl(url: string | null | undefined): string {
+    if (!url) {
+      return '/assets/images/default-avatar.svg';
+    }
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return `http://localhost:8080${url}`;
+  }
+
   ngOnInit(): void {
     if (!this.auth.user()) {
       return;
