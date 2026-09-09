@@ -18,21 +18,13 @@ import { CommunityQaThreadComponent } from './components/community-qa-thread.com
 import { CommunityHomeSubnavComponent } from './components/community-home-subnav.component';
 import { CommunityCrewWidgetComponent } from './components/community-crew-widget.component';
 import { CommunityTravelersRailComponent } from './components/community-travelers-rail.component';
-import { CommunityDestinationTrendingComponent } from './components/community-destination-trending.component';
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
-import { HttpClient } from '@angular/common/http';
 import { SavedTrip, TripService } from '../trip/trip.service';
 import { CommunityCollectionService } from './services/community-collection.service';
-import { apiUrl } from '../shared/utils/api-url';
-import { catchError,of,forkJoin } from 'rxjs';
+import { of,forkJoin } from 'rxjs';
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
-
-interface HeroDestination {
-  name: string;
-  image: string;
-}
 
 interface FeedComposerTypeMeta {
   labelKey: string;
@@ -68,7 +60,18 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
     placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_POLL',
     icon: 'M3 3v18h18M8 17V9m4 8V5m4 12v-6',
   },
+
 };
+
+/** Static suggestion list for the feed composer's location field — filtered client-side as the
+    user types. Free text is always allowed too; this never blocks a custom location. */
+const FEED_LOCATION_SUGGESTIONS: string[] = [
+  'Singapore',
+  'Dubai, UAE',
+  'Paris, France',
+  'Tokyo, Japan',
+  'London, UK',
+];
 
 @Component({
     selector: 'app-community-page',
@@ -85,7 +88,6 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
       CommunityHomeSubnavComponent,
       CommunityCrewWidgetComponent,
       CommunityTravelersRailComponent,
-      CommunityDestinationTrendingComponent,
       CommunityUpcomingEventsWidgetComponent,
       CommunitySimilarTravelersComponent,
       CommunityJoinRequestsComponent,
@@ -168,40 +170,10 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
         </div>
       </div>
     } @else {
-      <!-- Hero for signed-out users / users without an upcoming trip. Shows a rotating
-           photo carousel once real destinations load from the API; the card, heading
-           and buttons below always render regardless — only the photo layer and the
-           place-name badge are conditional on real data being available, so there is
-           no fake photo/name shown while loading or if that API call fails. -->
+      <!-- Hero for signed-out users / users without an upcoming trip. -->
       <div class="relative rounded-[22px] overflow-hidden mb-5 select-none font-[inherit]">
-        @if (destinations().length > 0) {
-          <div
-            class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
-            [style.backgroundImage]="'url(' + destinations()[currentIndex()].image + ')'"
-            [class.opacity-100]="!transitioning()"
-            [class.opacity-0]="transitioning()"
-          ></div>
-        }
         <div class="absolute inset-0 community-hero-overlay"></div>
-        @if (destinations().length > 0) {
-          <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
-            @for (d of destinations(); track d.name; let i = $index) {
-              <button
-                (click)="goTo(i)"
-                class="w-1.5 h-1.5 rounded-full transition-all focus:outline-none bg-white"
-                [class.opacity-40]="i !== currentIndex()"
-              ></button>
-            }
-          </div>
-        }
         <div class="relative flex flex-col justify-end min-h-[210px] sm:min-h-64 p-5 sm:p-7 max-w-[650px]">
-
-          @if (destinations().length > 0) {
-            <div class="flex items-center gap-[9px] mb-3">
-              <span class="w-[7px] h-[7px] rounded-full community-badge-dot"></span>
-              <p class="text-[10.5px] font-semibold text-white/70 uppercase tracking-[0.14em]">📍 {{ destinations()[currentIndex()].name }}</p>
-            </div>
-          }
 
           <h2 class="text-[28px] sm:text-[34px] font-bold text-white leading-[1.08] tracking-[-0.025em] mb-[22px] max-w-lg"> <br class="sm:hidden" /> {{ 'COMMUNITY.HERO.TITLE_LINE2' | translate }}</h2>
           <div class="flex items-center gap-2 flex-wrap">
@@ -257,6 +229,46 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                     maxlength="500"
                     class="w-full h-16 sm:h-20 px-4 py-3 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary resize-none mb-3"
                   ></textarea>
+
+                  <!-- Location: free text with a filtered suggestion list — selecting a suggestion
+                       just fills the same field, it isn't a separate structured value. -->
+                  <div class="relative mb-3">
+                    <div class="relative">
+                      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      <input
+                        type="text"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        [attr.aria-expanded]="composerShowLocationSuggestions()"
+                        aria-controls="feed-composer-location-listbox"
+                        [value]="composerLocation()"
+                        (input)="onComposerLocationInput($any($event.target).value)"
+                        (focus)="composerShowLocationSuggestions.set(true)"
+                        (blur)="composerShowLocationSuggestions.set(false)"
+                        [attr.placeholder]="'COMMUNITY.FEED_COMPOSER_LOCATION_PLACEHOLDER' | translate"
+                        maxlength="120"
+                        class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary"
+                      />
+                    </div>
+                    @if (composerShowLocationSuggestions() && composerLocationSuggestions().length > 0) {
+                      <ul
+                        id="feed-composer-location-listbox"
+                        role="listbox"
+                        class="absolute z-50 w-full mt-1.5 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-h-56 overflow-auto divide-y divide-slate-50 dark:divide-gray-700"
+                      >
+                        @for (loc of composerLocationSuggestions(); track loc) {
+                          <li role="option">
+                            <button
+                              type="button"
+                              (mousedown)="$event.preventDefault()"
+                              (click)="selectComposerLocation(loc)"
+                              class="w-full text-left px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-primary-50/60 dark:hover:bg-gray-700 transition-colors"
+                            >{{ loc }}</button>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
 
                   @if (composerType() === 'poll') {
                     <!-- Poll needs at least 2 filled options alongside the question; Post stays
@@ -388,7 +400,7 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                       <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                       {{ 'COMMUNITY.FEED_COMPOSER_TRIP' | translate }}
                     </button>
-                                     </div>
+                    </div>
                 }
               </div>
 
@@ -460,8 +472,7 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
             <app-community-crew-widget />
             <app-community-join-requests />
             <app-community-travelers-rail />
-            <app-community-destination-trending />
-            <app-community-upcoming-events-widget />           
+            <app-community-upcoming-events-widget />
           </div>
         </div>
       </main>
@@ -500,6 +511,8 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   // 'trip_share' | 'question' | 'poll') or null while the type-picker row is shown.
   composerType = signal<string | null>(null);
   composerText = signal('');
+  composerLocation = signal('');
+  composerShowLocationSuggestions = signal(false);
   composerSubmitting = signal(false);
   // Media state: only the 'photo' type uses these — Tip/Trip/Question/Poll never read them.
   composerImages = signal<{ file: File; url: string }[]>([]);
@@ -513,6 +526,11 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     return type ? FEED_COMPOSER_TYPE_META[type] ?? null : null;
   });
   readonly composerHasMedia = computed(() => this.composerImages().length > 0 || !!this.composerVideoFile());
+  readonly composerLocationSuggestions = computed(() => {
+    const query = this.composerLocation().trim().toLowerCase();
+    if (!query) return FEED_LOCATION_SUGGESTIONS;
+    return FEED_LOCATION_SUGGESTIONS.filter(loc => loc.toLowerCase().includes(query));
+  });
   readonly composerPollFilledOptionCount = computed(() => this.composerPollOptions().filter(o => o.trim().length > 0).length);
   readonly canSubmitComposer = computed(() => {
     if (this.composerSubmitting() || this.composerText().trim().length === 0) return false;
@@ -551,7 +569,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private observer: IntersectionObserver | null = null;
   nextCursor?: string;
   hasMorePosts = true;
-  private http = inject(HttpClient);
   private tripService = inject(TripService);
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
@@ -579,11 +596,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private readonly translate = inject(TranslateService);
 
-   destinations = signal<HeroDestination[]>([]);
-  currentIndex = signal(0);
-  transitioning = signal(false);
-  private rotateInterval?: ReturnType<typeof setInterval>;
-
   constructor(
     private postService: CommunityPostService,
     private analytics: CommunityAnalyticsService
@@ -591,8 +603,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit() {
 
-     this.loadDestinations();
-    this.startRotation();
     if (this.auth.user()) {
       this.collectionService.getCollections().subscribe({
         next: (collections) => this.savedSpots.set(collections.reduce((sum, c) => sum + (c.item_count || 0), 0)),
@@ -637,43 +647,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     if (this.wsSub) {
       this.wsSub.unsubscribe();
     }
-     if (this.rotateInterval) clearInterval(this.rotateInterval);
-  }
-
-  private loadDestinations() {
-    this.http.get<any[]>(apiUrl('/destinations?limit=6&has_image=true')).pipe(
-      catchError(() => of(null))
-    ).subscribe(data => {
-      if (data?.length) {
-        const mapped = data
-          .filter((d: any) => d.image || d.images?.[0])
-          .slice(0, 5)
-          .map((d: any) => ({ name: d.name, image: d.image || d.images[0] }));
-        if (mapped.length >= 2) {
-          this.destinations.set(mapped);
-        }
-      }
-    });
-  }
-
-  private startRotation() {
-    this.rotateInterval = setInterval(() => {
-      if (this.destinations().length < 2) return;
-      this.transitioning.set(true);
-      setTimeout(() => {
-        this.currentIndex.update(i => (i + 1) % this.destinations().length);
-        this.transitioning.set(false);
-      }, 500);
-    }, 5000);
-  }
-
-  goTo(i: number) {
-    if (i === this.currentIndex()) return;
-    this.transitioning.set(true);
-    setTimeout(() => {
-      this.currentIndex.set(i);
-      this.transitioning.set(false);
-    }, 300);
   }
 
   daysAway(trip: SavedTrip): number {
@@ -716,6 +689,8 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   openFeedComposer(type: string) {
     this.composerType.set(type);
     this.composerText.set('');
+    this.composerLocation.set('');
+    this.composerShowLocationSuggestions.set(false);
     this.composerPollOptions.set(['', '']);
     this.clearComposerMedia();
   }
@@ -723,12 +698,24 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   closeFeedComposer() {
     this.composerType.set(null);
     this.composerText.set('');
+    this.composerLocation.set('');
+    this.composerShowLocationSuggestions.set(false);
     this.composerPollOptions.set(['', '']);
     this.clearComposerMedia();
   }
 
   insertComposerEmoji(emoji: string) {
     this.composerText.update(text => text + emoji);
+  }
+
+  onComposerLocationInput(value: string) {
+    this.composerLocation.set(value);
+    this.composerShowLocationSuggestions.set(true);
+  }
+
+  selectComposerLocation(location: string) {
+    this.composerLocation.set(location);
+    this.composerShowLocationSuggestions.set(false);
   }
 
   updateComposerPollOption(index: number, value: string) {
@@ -789,11 +776,12 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!this.canSubmitComposer()) return;
 
     const caption = this.composerText().trim();
+    const location = this.composerLocation().trim() || undefined;
     this.composerSubmitting.set(true);
 
     if (this.composerType() === 'poll') {
       const pollOptions = this.composerPollOptions().map(o => o.trim()).filter(o => o.length > 0);
-      this.postService.createPost({ caption, images: [], poll_options: pollOptions }).subscribe({
+      this.postService.createPost({ caption, location, images: [], poll_options: pollOptions }).subscribe({
         next: (post) => {
           this.composerSubmitting.set(false);
           this.onPostCreated(post);
@@ -819,6 +807,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
         next: ({ images, video }) => {
           this.postService.createPost({
             caption,
+            location,
             images: images.map(i => i.url),
             video_url: video?.url,
             is_reel: !!video,
@@ -842,7 +831,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
       return;
     }
 
-    this.postService.createPost({ caption, images: [] }).subscribe({
+    this.postService.createPost({ caption, location, images: [] }).subscribe({
       next: (post) => {
         this.composerSubmitting.set(false);
         this.onPostCreated(post);
