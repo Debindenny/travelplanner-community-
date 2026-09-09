@@ -1,48 +1,56 @@
 <div class="ctm__body">
-  <div class="ctm__callout">
-    <strong class="ctm__callout-title">We won't copy {{ authorFirstName() }}'s trip.</strong>
-    <p class="ctm__callout-copy">
-      TRAVL AI rebuilds the route around your dates, budget, pace and interests — keeping the parts travelers rated most useful.
-    </p>
-  </div>
+  <p class="ctm__intro">Answer four things and TRAVL AI rebuilds this route around your trip.</p>
+
+  <label class="ctm__field">
+    <span class="ctm__label">Starting from <span class="ctm__required">*</span></span>
+    <input class="ctm__input" type="text" [value]="startingFrom()" (input)="startingFrom.set($any($event.target).value)" placeholder="e.g. Chennai" />
+  </label>
+
+  <label class="ctm__field">
+    <span class="ctm__label">Arrival destination <span class="ctm__required">*</span></span>
+    <input
+      class="ctm__input"
+      type="text"
+      [value]="arrivalDestination()"
+      (input)="arrivalDestination.set($any($event.target).value)"
+      [placeholder]="destinationPlaceholder()"
+    />
+  </label>
 
   <div class="ctm__row">
     <label class="ctm__field">
-      <span class="ctm__label">Your dates</span>
-      <input class="ctm__input" type="text" [value]="dates()" (input)="dates.set($any($event.target).value)" placeholder="e.g. Oct 12 - Oct 19" />
+      <span class="ctm__label">Start date <span class="ctm__required">*</span></span>
+      <input class="ctm__input" type="date" [value]="startDate()" (input)="startDate.set($any($event.target).value)" placeholder="dd-mm-yyyy" />
     </label>
     <label class="ctm__field">
-      <span class="ctm__label">Travelers</span>
-      <input class="ctm__input" type="text" [value]="travelers()" (input)="travelers.set($any($event.target).value)" placeholder="e.g. 2 adults" />
+      <span class="ctm__label">End date <span class="ctm__required">*</span></span>
+      <input class="ctm__input" type="date" [value]="endDate()" (input)="endDate.set($any($event.target).value)" placeholder="dd-mm-yyyy" />
     </label>
   </div>
 
   <div class="ctm__field">
-    <span class="ctm__label">Pace</span>
-    <div class="ctm__pills">
-      @for (option of paceOptions; track option) {
-        <button type="button" class="ctm__pill" [class.is-active]="pace() === option" (click)="pace.set(option)">{{ option }}</button>
-      }
-    </div>
-  </div>
-
-  <div class="ctm__field">
-    <span class="ctm__label">Interests</span>
-    <div class="ctm__pills">
-      @for (option of interestOptions; track option) {
-        <button type="button" class="ctm__pill" [class.is-active]="interests().has(option)" (click)="toggleInterest(option)">
-          {{ option }}
-        </button>
-      }
+    <span class="ctm__label">Travelers</span>
+    <div class="ctm__stepper">
+      <button type="button" class="ctm__stepper-btn" (click)="decrementTravelers()" aria-label="Fewer travelers">
+        <app-icon name="minus" [size]="14" />
+      </button>
+      <span class="ctm__stepper-value">{{ travelers() }} traveler{{ travelers() === 1 ? '' : 's' }}</span>
+      <button type="button" class="ctm__stepper-btn" (click)="incrementTravelers()" aria-label="More travelers">
+        <app-icon name="plus" [size]="14" />
+      </button>
     </div>
   </div>
 </div>
 
 <div class="ctm__footer">
-  <span class="ctm__spacer"></span>
+  @if (missingFieldHint(); as hint) {
+    <span class="ctm__hint">{{ hint }}</span>
+  } @else {
+    <span class="ctm__spacer"></span>
+  }
   <button type="button" class="ctm__cancel" (click)="cancel.emit()">Cancel</button>
-  <button type="button" class="ctm__build" (click)="onBuild()">
+  <button type="button" class="ctm__build" [disabled]="!canGenerate()" (click)="onBuild()">
     <app-icon name="sparkles" [size]="14" />
-    Build my version
+    Generate itinerary
   </button>
 </div>

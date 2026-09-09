@@ -57,74 +57,63 @@
   line-height: 1.5;
 }
 
-.ccm__option-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.ccm__option-card {
+.ccm__radio-list {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.ccm__radio-row {
+  display: flex;
   align-items: flex-start;
-  gap: 6px;
-  width: 100%;
-  padding: 10px;
-  border-radius: 14px;
-  border: 1.5px solid var(--border);
-  background: #fff;
+  gap: 10px;
+  border: 0;
+  background: none;
+  padding: 0;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
 
-  &:hover {
-    border-color: var(--border-hover);
-  }
+.ccm__radio-dot {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  transition: border-color 0.15s ease;
 
   &.is-active {
     border-color: var(--accent);
-    background: rgba(0, 96, 234, 0.05);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
   }
 }
 
-.ccm__option-icon {
-  position: relative;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.ccm__radio-text {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
 }
 
-.ccm__option-check {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ccm__option-title {
-  font-size: 12.5px;
+.ccm__radio-title {
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.ccm__option-desc {
-  margin-top: -4px;
-  font-size: 11px;
+.ccm__radio-desc {
+  margin-top: 1px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 1.35;
   color: var(--text-faint);
 }
 

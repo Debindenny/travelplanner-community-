@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
 
-import { IconComponent, IconName } from '../../../../shared/components/icon/icon.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 export type CircleVisibility = 'Public' | 'Invite only' | 'Friends';
 export type CircleAudience = 'Everyone' | 'Women only' | 'Men only';
@@ -17,18 +17,12 @@ interface AudienceOption {
   value: CircleAudience;
   label: string;
   description: string;
-  icon: IconName;
-  iconBg: string;
-  iconColor: string;
 }
 
 interface VisibilityOption {
   value: CircleVisibility;
   label: string;
   description: string;
-  icon: IconName;
-  iconBg: string;
-  iconColor: string;
 }
 
 const VISIBILITY_HINTS: Record<CircleVisibility, string> = {
@@ -38,15 +32,15 @@ const VISIBILITY_HINTS: Record<CircleVisibility, string> = {
 };
 
 const AUDIENCE_OPTIONS: AudienceOption[] = [
-  { value: 'Everyone', label: 'Open to everyone', description: 'Any traveler can join', icon: 'users', iconBg: '#e9f1ff', iconColor: '#2563eb' },
-  { value: 'Women only', label: 'Women only', description: 'Verified women', icon: 'shield', iconBg: '#fdecf1', iconColor: '#d1497a' },
-  { value: 'Men only', label: 'Men only', description: 'Verified men', icon: 'shield', iconBg: '#eaf3f6', iconColor: '#3f7c93' },
+  { value: 'Everyone', label: 'Open to everyone', description: 'Any traveler can join' },
+  { value: 'Women only', label: 'Women only', description: 'Verified women' },
+  { value: 'Men only', label: 'Men only', description: 'Verified men' },
 ];
 
 const VISIBILITY_OPTIONS: VisibilityOption[] = [
-  { value: 'Public', label: 'Public', description: 'Anyone can join instantly', icon: 'compass', iconBg: '#f1f3f6', iconColor: '#5a6472' },
-  { value: 'Invite only', label: 'Invite only', description: 'Request, then you approve', icon: 'user-plus', iconBg: '#e9f1ff', iconColor: '#2563eb' },
-  { value: 'Friends', label: 'Friends', description: 'Mutual followers only', icon: 'users', iconBg: '#f1f3f6', iconColor: '#5a6472' },
+  { value: 'Public', label: 'Public', description: 'Anyone can join instantly' },
+  { value: 'Invite only', label: 'Invite only', description: 'Request, then you approve' },
+  { value: 'Friends', label: 'Friends', description: 'Mutual followers only' },
 ];
 
 const MIN_GROUP_SIZE = 2;

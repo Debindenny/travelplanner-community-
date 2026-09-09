@@ -85,7 +85,8 @@ export class ChatContextService {
       !this.heroSearchInView() &&
       !this.heroDockPinned() &&
       !this.currentPath().startsWith('/login') &&
-      !this.currentPath().startsWith('/chatbot'),
+      !this.currentPath().startsWith('/chatbot') &&
+      !this.currentPath().startsWith('/community/events/host'),
   );
 
   /** True when a chat composer scrim/backdrop is dimming the page behind the dock. */
