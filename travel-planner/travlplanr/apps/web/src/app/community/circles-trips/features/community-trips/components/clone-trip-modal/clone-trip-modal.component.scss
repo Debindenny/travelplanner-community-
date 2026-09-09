@@ -9,23 +9,9 @@
   gap: 16px;
 }
 
-.ctm__callout {
-  padding: 14px 16px;
-  border-radius: 13px;
-  background: var(--accent-soft);
-  border: 1px solid #dde6fb;
-}
-
-.ctm__callout-title {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.ctm__callout-copy {
-  margin: 5px 0 0;
-  font-size: 12.5px;
+.ctm__intro {
+  margin: 0;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.55;
   color: var(--text-muted);
@@ -55,6 +41,10 @@
   color: var(--text-muted);
 }
 
+.ctm__required {
+  color: #ef4444;
+}
+
 .ctm__input {
   height: 42px;
   border: 1px solid var(--border);
@@ -62,6 +52,7 @@
   padding: 0 13px;
   font-size: 13.5px;
   font-family: inherit;
+  color: var(--text-primary);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
@@ -71,35 +62,41 @@
   }
 }
 
-.ctm__pills {
+.ctm__stepper {
+  height: 46px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0 8px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.ctm__pill {
-  height: 36px;
-  padding: 0 15px;
-  flex: none;
-  white-space: nowrap;
-  border-radius: 10px;
-  font-size: 12.5px;
+.ctm__stepper-value {
+  font-size: 13.5px;
   font-weight: 700;
-  cursor: pointer;
+}
+
+.ctm__stepper-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text-secondary);
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 
   &:hover {
     border-color: var(--border-hover);
     transform: translateY(-1px);
   }
 
-  &.is-active {
-    border-color: var(--accent);
-    background: #f2f7ff;
-    color: var(--accent);
+  &:active {
+    transform: translateY(0) scale(0.94);
   }
 }
 
@@ -111,6 +108,14 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.ctm__hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
 }
 
 .ctm__spacer {
@@ -152,14 +157,20 @@
   color: #fff;
   background: linear-gradient(135deg, var(--accent), #7c3aed);
   box-shadow: 0 8px 18px rgba(0, 96, 234, 0.24);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
     filter: brightness(1.06);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0) scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }

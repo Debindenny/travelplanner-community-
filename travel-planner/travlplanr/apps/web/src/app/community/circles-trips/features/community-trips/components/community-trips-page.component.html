@@ -74,10 +74,6 @@
 
           <div class="trip-card__actions">
             <button type="button" class="trip-card__ghost" (click)="onViewItinerary(trip)">View itinerary</button>
-            <button type="button" class="trip-card__clone" (click)="onClone(trip)">
-              <app-icon name="sparkles" [size]="14" />
-              Clone
-            </button>
           </div>
         </div>
       </article>
@@ -86,7 +82,13 @@
 }
 
 @if (cloningTrip(); as trip) {
-  <app-modal-shell heading="Use as inspiration" subtitle="TRAVL AI · personalised from a community trip" backdrop="light" (close)="onCancelClone()">
+  <app-modal-shell heading="Plan your version" subtitle="Tell us your route and dates — TRAVL AI builds the itinerary." backdrop="light" (close)="onCancelClone()">
     <app-clone-trip-modal [trip]="trip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
+  </app-modal-shell>
+}
+
+@if (previewingTrip(); as trip) {
+  <app-modal-shell [showHeader]="false" width="620px" maxHeight="760px" backdrop="light" (close)="onClosePreview()">
+    <app-itinerary-preview-modal [trip]="trip" (makeVersion)="onMakeVersionFromPreview()" />
   </app-modal-shell>
 }

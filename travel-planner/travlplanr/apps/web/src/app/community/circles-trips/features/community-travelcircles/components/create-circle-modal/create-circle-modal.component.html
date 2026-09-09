@@ -23,24 +23,19 @@
 
   <div class="ccm__field">
     <span class="ccm__label">Who is it for</span>
-    <div class="ccm__option-grid">
+    <div class="ccm__radio-list">
       @for (option of audienceOptions; track option.value) {
         <button
           type="button"
-          class="ccm__option-card"
+          class="ccm__radio-row"
           [class.is-active]="audience() === option.value"
           (click)="audience.set(option.value)"
         >
-          <span class="ccm__option-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
-            <app-icon [name]="option.icon" [size]="16" />
-            @if (audience() === option.value) {
-              <span class="ccm__option-check">
-                <app-icon name="check" [size]="10" />
-              </span>
-            }
+          <span class="ccm__radio-dot" [class.is-active]="audience() === option.value"></span>
+          <span class="ccm__radio-text">
+            <span class="ccm__radio-title">{{ option.label }}</span>
+            <span class="ccm__radio-desc">{{ option.description }}</span>
           </span>
-          <span class="ccm__option-title">{{ option.label }}</span>
-          <span class="ccm__option-desc">{{ option.description }}</span>
         </button>
       }
     </div>
@@ -49,24 +44,19 @@
 
   <div class="ccm__field">
     <span class="ccm__label">Who can join</span>
-    <div class="ccm__option-grid">
+    <div class="ccm__radio-list">
       @for (option of visibilityOptions; track option.value) {
         <button
           type="button"
-          class="ccm__option-card"
+          class="ccm__radio-row"
           [class.is-active]="visibility() === option.value"
           (click)="visibility.set(option.value)"
         >
-          <span class="ccm__option-icon" [style.background]="option.iconBg" [style.color]="option.iconColor">
-            <app-icon [name]="option.icon" [size]="16" />
-            @if (visibility() === option.value) {
-              <span class="ccm__option-check">
-                <app-icon name="check" [size]="10" />
-              </span>
-            }
+          <span class="ccm__radio-dot" [class.is-active]="visibility() === option.value"></span>
+          <span class="ccm__radio-text">
+            <span class="ccm__radio-title">{{ option.label }}</span>
+            <span class="ccm__radio-desc">{{ option.description }}</span>
           </span>
-          <span class="ccm__option-title">{{ option.label }}</span>
-          <span class="ccm__option-desc">{{ option.description }}</span>
         </button>
       }
     </div>

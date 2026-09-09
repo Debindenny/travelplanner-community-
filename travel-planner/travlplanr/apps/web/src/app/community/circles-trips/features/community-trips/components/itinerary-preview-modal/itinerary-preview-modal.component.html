@@ -1,0 +1,57 @@
+<div class="ipm__hero" [style.backgroundImage]="'url(' + trip().image + ')'">
+  <div class="ipm__hero-overlay">
+    <h2 class="ipm__title">{{ trip().title }}</h2>
+    <p class="ipm__subtitle">{{ trip().subtitle }}</p>
+  </div>
+</div>
+
+<div class="ipm__summary-row">
+  <div class="ipm__author-row">
+    <span class="ipm__author-avatar">{{ authorInitial() }}</span>
+    <span class="ipm__author">By {{ trip().author }}</span>
+  </div>
+  <div class="ipm__stats">
+    <div class="ipm__stat">
+      <span class="ipm__stat-value">{{ trip().days }}</span>
+      <span class="ipm__stat-label">Days</span>
+    </div>
+    <div class="ipm__stat">
+      <span class="ipm__stat-value">{{ trip().cities }}</span>
+      <span class="ipm__stat-label">Cities</span>
+    </div>
+    <div class="ipm__stat">
+      <span class="ipm__stat-value">{{ trip().activities }}</span>
+      <span class="ipm__stat-label">Activities</span>
+    </div>
+    <div class="ipm__stat">
+      <span class="ipm__stat-value">{{ trip().perPerson }}</span>
+      <span class="ipm__stat-label">Per person</span>
+    </div>
+  </div>
+</div>
+
+<div class="ipm__body">
+  @if (loading()) {
+    <div class="ipm__state">Loading day-by-day plan…</div>
+  } @else if (error()) {
+    <div class="ipm__state">Couldn't load the day-by-day plan.</div>
+  } @else {
+    <div class="ipm__days">
+      @for (group of dayGroups(); track group.startDay) {
+        <div class="ipm__day">
+          <div class="ipm__day-header">{{ dayLabel(group) }} · {{ group.city }}</div>
+          @for (item of group.highlights; track item) {
+            <div class="ipm__day-item">{{ item }}</div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<div class="ipm__footer">
+  <button type="button" class="ipm__clone-btn" (click)="onMakeVersion()">
+    <app-icon name="sparkles" [size]="14" />
+    Clone this itinerary
+  </button>
+</div>

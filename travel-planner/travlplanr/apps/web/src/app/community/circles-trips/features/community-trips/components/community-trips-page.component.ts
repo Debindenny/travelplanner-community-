@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { CommunityPostService } from '../../../../services/community-post.service';
+import { HostWizardPrefillService } from '../../../../services/host-wizard-prefill.service';
 import { CommunityTrip } from '../data/community-trips.data';
 import { CloneTripModalComponent, CloneTripPayload } from './clone-trip-modal/clone-trip-modal.component';
+import { ItineraryPreviewModalComponent } from './itinerary-preview-modal/itinerary-preview-modal.component';
 
 type TripFilter = 'Popular' | 'Recent' | 'Budget' | 'Luxury';
 
@@ -27,7 +28,7 @@ function recencyRank(trip: CommunityTrip): number {
 
 @Component({
   selector: 'app-community-trips',
-  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, RouterLink],
+  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, ItineraryPreviewModalComponent, RouterLink],
   templateUrl: './community-trips-page.component.html',
   styleUrl: './community-trips-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +36,7 @@ function recencyRank(trip: CommunityTrip): number {
 export class CommunityTripsComponent {
   readonly store = inject(CommunityHomeStore);
   private readonly communityPostService = inject(CommunityPostService);
+  private readonly wizardPrefill = inject(HostWizardPrefillService);
   private readonly router = inject(Router);
 
   readonly goHome = output<void>();
@@ -43,6 +45,7 @@ export class CommunityTripsComponent {
   readonly filter = signal<TripFilter>('Popular');
 
   readonly cloningTrip = signal<CommunityTrip | null>(null);
+  readonly previewingTrip = signal<CommunityTrip | null>(null);
 
   private readonly trips = signal<CommunityTrip[]>([]);
 
@@ -88,7 +91,20 @@ export class CommunityTripsComponent {
   }
 
   onViewItinerary(trip: CommunityTrip): void {
-    this.router.navigate(['/community/trips', trip.id, 'preview']);
+    this.previewingTrip.set(trip);
+  }
+
+  onClosePreview(): void {
+    this.previewingTrip.set(null);
+  }
+
+  onMakeVersionFromPreview(): void {
+    const trip = this.previewingTrip();
+    if (!trip) {
+      return;
+    }
+    this.previewingTrip.set(null);
+    this.cloningTrip.set(trip);
   }
 
   isSaved(trip: CommunityTrip): boolean {
@@ -105,10 +121,6 @@ export class CommunityTripsComponent {
     });
   }
 
-  onClone(trip: CommunityTrip): void {
-    this.cloningTrip.set(trip);
-  }
-
   onCancelClone(): void {
     this.cloningTrip.set(null);
   }
@@ -119,15 +131,15 @@ export class CommunityTripsComponent {
       return;
     }
     this.cloningTrip.set(null);
-    this.communityPostService.cloneTrip(trip.id).subscribe({
-      next: ({ tripId }) => {
-        this.store.showToast(`Building your version of "${trip.title}" for ${payload.dates}`);
-        this.router.navigate(['/itinerary', tripId]);
-      },
-      error: (err) => {
-        const message = err?.error?.detail || `Could not clone "${trip.title}"`;
-        this.store.showToast(message);
-      },
+    this.wizardPrefill.set({
+      route: [payload.arrivalDestination || trip.title],
+      startLocation: payload.startingFrom,
+      startDate: payload.startDate,
+      endDate: payload.endDate,
+      maxTravelers: payload.travelers,
+      journeyName: trip.title,
+      cloneTripId: trip.id,
     });
+    this.router.navigate(['/community/events/host']);
   }
 }
