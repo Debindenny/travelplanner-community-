@@ -87,6 +87,10 @@ export class AppComponent implements OnInit {
   ];
   // The main community feed has its own composer — exact match only.
   private static readonly HIDE_FLOATING_CHAT_EXACT = ['/community'];
+  // Review → Payment → Confirmation each have their own single focused CTA (Proceed to
+  // Payment / Pay Now) that the floating dock would otherwise sit on top of. Event Detail
+  // and Event Summary (the planning/browsing stages before this) deliberately keep it.
+  private static readonly HIDE_FLOATING_CHAT_PATTERN = /^\/community\/events\/[^/]+\/(review|payment|success)(\/|$)/;
   readonly hideFloatingChat = signal(false);
 
   constructor(private router: Router, private ws: WebsocketService) {
@@ -97,7 +101,8 @@ export class AppComponent implements OnInit {
       const path = event.urlAfterRedirects.split('?')[0].split('#')[0];
       this.hideFloatingChat.set(
         AppComponent.HIDE_FLOATING_CHAT_EXACT.includes(path) ||
-        AppComponent.HIDE_FLOATING_CHAT_ON.some((route) => path.startsWith(route))
+        AppComponent.HIDE_FLOATING_CHAT_ON.some((route) => path.startsWith(route)) ||
+        AppComponent.HIDE_FLOATING_CHAT_PATTERN.test(path)
       );
       if (path === this.lastFocusedPath) return;
       this.lastFocusedPath = path;

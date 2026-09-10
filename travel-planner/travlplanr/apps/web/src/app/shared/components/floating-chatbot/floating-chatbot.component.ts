@@ -1,7 +1,5 @@
 import {
-  AfterViewInit,
   Component,
-  DestroyRef,
   ElementRef,
   HostListener,
   computed,
@@ -11,9 +9,7 @@ import {
   viewChild,
   OnDestroy
 } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter } from 'rxjs';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DestinationTypeaheadComponent } from '../destination-typeahead/destination-typeahead.component';
 import { SearchPlanAssistComponent } from '../search-plan-assist/search-plan-assist.component';
@@ -53,7 +49,6 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
         #dockEl
         class="global-dock-wrap"
         [class.chat-active]="showChatThread()"
-        [class.dock-hidden]="dockHidden()"
         (mousedown)="$event.stopPropagation()"
       >
         <div class="chat-thread" [class.visible]="showChatThread()">
@@ -251,14 +246,6 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
         width: min(800px, calc(100vw - 2rem));
         max-width: min(800px, calc(100vw - 2rem));
       }
-      /* Soft-hidden near a page's own footer/payment section (see
-         observePageBoundaryProximity) — visibility-only, the dock instance
-         and its chat session/history are never destroyed. */
-      .global-dock-wrap.dock-hidden {
-        opacity: 0;
-        pointer-events: none;
-        transform: translateX(-50%) translateY(110%);
-      }
 
       .chat-thread {
         width: 100%;
@@ -441,7 +428,7 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
     `,
     ]
 })
-export class FloatingChatbotComponent implements AfterViewInit, OnDestroy {
+export class FloatingChatbotComponent implements OnDestroy {
   private readonly dockEl = viewChild<ElementRef<HTMLElement>>('dockEl');
   private readonly dockInput = viewChild<ElementRef<HTMLInputElement>>('dockInput');
   readonly dockTypeahead = viewChild(DestinationTypeaheadComponent);
@@ -453,69 +440,6 @@ export class FloatingChatbotComponent implements AfterViewInit, OnDestroy {
     if (this.chat.sending()) {
       this.chat.stopGenerating();
     }
-    this.boundaryObserver?.disconnect();
-    this.boundaryObserver = null;
-    if (this.boundaryHideTimer) {
-      clearTimeout(this.boundaryHideTimer);
-      this.boundaryHideTimer = null;
-    }
-  }
-
-  /** Soft-hidden (visibility only — same dock instance, chat session and
-   * history stay alive) whenever the current page marks a "near the payment
-   * area / footer" boundary with `[data-chat-hide-boundary]`. Mirrors
-   * HeroSectionComponent's observeFooterProximity() 1:1. */
-  readonly dockHidden = signal(false);
-  private boundaryObserver: IntersectionObserver | null = null;
-  private boundaryHideTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly destroyRef = inject(DestroyRef);
-
-  ngAfterViewInit(): void {
-    if (typeof window === 'undefined') return;
-    queueMicrotask(() => this.observePageBoundaryProximity());
-    this.router.events.pipe(
-      filter((e) => e instanceof NavigationEnd),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => {
-      this.dockHidden.set(false);
-      queueMicrotask(() => this.observePageBoundaryProximity());
-    });
-  }
-
-  private observePageBoundaryProximity(): void {
-    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
-    this.boundaryObserver?.disconnect();
-    this.boundaryObserver = null;
-
-    const boundary = document.querySelector('[data-chat-hide-boundary]');
-    if (!boundary) {
-      this.dockHidden.set(false);
-      return;
-    }
-
-    // Shrink the effective viewport by the dock's own reserved bottom space —
-    // hide as soon as the boundary enters that zone, not once some fixed
-    // fraction of it is covered. A percentage-of-target threshold (like the
-    // hero footer's 0.35) only works for a target roughly as tall as the
-    // dock's danger zone; a compact section like a cost-summary/payment
-    // block never reaches it before the dock is already sitting on top of it.
-    this.boundaryObserver = new IntersectionObserver(
-      ([entry]) => {
-        // Soften only — never fully hide/show the dock on threshold chatter
-        // (that read as a scroll glitch). Keep it usable while chatting.
-        const overlapping = entry.isIntersecting && !this.showChatThread();
-        if (this.boundaryHideTimer) {
-          clearTimeout(this.boundaryHideTimer);
-          this.boundaryHideTimer = null;
-        }
-        this.boundaryHideTimer = setTimeout(() => {
-          this.boundaryHideTimer = null;
-          this.dockHidden.set(overlapping);
-        }, overlapping ? 200 : 280);
-      },
-      { threshold: 0, rootMargin: '0px 0px -110px 0px' },
-    );
-    this.boundaryObserver.observe(boundary);
   }
 
   readonly chatContext = inject(ChatContextService);

@@ -609,6 +609,8 @@
       "PHOTO_LABEL": "Foto de perfil",
       "PHOTO_HELPER": "Aparece en tus publicaciones y círculos",
       "CHANGE": "Cambiar",
+      "REMOVE_PHOTO": "Eliminar foto",
+      "EDIT_PHOTO_ARIA_LABEL": "Editar foto de perfil",
       "DISPLAY_NAME": "Nombre para mostrar",
       "ABOUT_YOU": "Acerca de ti",
       "ABOUT_COUNTER": "{{count}} / 180",

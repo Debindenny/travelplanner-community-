@@ -4,6 +4,7 @@ import { ToastService } from 'ui';
 
 import { AuthService } from '../../auth/auth.service';
 import { apiUrl } from '../../shared/utils/api-url';
+import { CommunityEventsMockStore } from '../services/community-events-mock.store';
 import { TRIP_ITINERARIES, TRIP_PICK_OPTIONS } from './discover-saved.data';
 import {
   AddToTripPayload,
@@ -46,6 +47,7 @@ export class DiscoverSavedStore {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
   private readonly auth = inject(AuthService);
+  private readonly eventsMockStore = inject(CommunityEventsMockStore);
   private lastCustomerId: string | null = this.auth.user()?.id ?? null;
 
   constructor() {
@@ -227,7 +229,7 @@ export class DiscoverSavedStore {
     this._savedLoading.set(true);
     this.http.get<{ items: SavedCollectionCard[] }>(apiUrl('/community/saved')).subscribe({
       next: ({ items }) => {
-        this._savedItems.set(items);
+        this._savedItems.set(items.map((item) => this.enrichSavedEventCard(item)));
         this._savedLoading.set(false);
       },
       error: () => {
@@ -235,6 +237,18 @@ export class DiscoverSavedStore {
         this.toast.info('Could not load your saved items');
       },
     });
+  }
+
+  /** Hosted-journey "events" saved from the Community Events list are only ever real
+   * rows in the frontend's mock store — the backend has no events table to resolve a
+   * title/image for them, so it returns a generic "Saved event" placeholder. Fill in
+   * the real title/image/location here from the same store the event cards use. */
+  private enrichSavedEventCard(item: SavedCollectionCard): SavedCollectionCard {
+    if (item.kind !== 'Event' || !item.item_id) return item;
+    const ev = this.eventsMockStore.getById(item.item_id);
+    if (!ev) return item;
+    const savedSuffix = item.meta.includes('·') ? item.meta.split('·').pop()!.trim() : item.meta;
+    return { ...item, title: ev.title, image: ev.imageUrl, meta: `${ev.location} · ${savedSuffix}` };
   }
 
   private fetchDiscoverList(): void {

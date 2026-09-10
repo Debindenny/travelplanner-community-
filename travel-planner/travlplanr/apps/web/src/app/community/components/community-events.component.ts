@@ -1,10 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Router, RouterLink } from '@angular/router';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
 import { CommunityEventCard } from '../services/community-event-view.model';
 import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
+import { AuthService } from '../../auth/auth.service';
+import { apiUrl } from '../../shared/utils/api-url';
 
 export type EventsTab = 'all' | 'hosted' | 'joined';
 
@@ -38,6 +41,9 @@ const FILTER_DEFS: FilterDef[] = [
 })
 export class CommunityEventsComponent {
   private readonly store = inject(CommunityEventsMockStore);
+  private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly showComposerModal = signal(false);
   readonly currentUserId = CURRENT_USER_ID;
@@ -45,10 +51,61 @@ export class CommunityEventsComponent {
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
+  /** event ids currently in the customer's Saved collection — reused from the same
+   * generic Save/Bookmark mechanism posts/tips/destinations already use. */
+  savedEventIds = new Set<string>();
+  savePendingIds = new Set<string>();
+
   constructor() {
     // Set by the host wizard right before it navigates back here.
     const pending = this.store.consumePendingToast();
     if (pending) this.showToast(pending);
+
+    // Anonymous visitors can still browse the list freely — only check saved
+    // state (an authenticated call) once we know someone's actually logged in.
+    if (this.auth.isLoggedIn()) {
+      this.loadSavedEvents();
+    }
+  }
+
+  private loadSavedEvents(): void {
+    this.http.get<{ items: { item_type: string; item_id: string }[] }>(apiUrl('/community/saved')).subscribe({
+      next: ({ items }) => {
+        this.savedEventIds = new Set(items.filter((i) => i.item_type === 'event').map((i) => i.item_id));
+      },
+      error: (err) => console.error('Failed to load saved events', err),
+    });
+  }
+
+  isEventSaved(ev: CommunityEventCard): boolean {
+    return this.savedEventIds.has(ev.id);
+  }
+
+  /** Toggles this event's Save/Bookmark state — persisted server-side via the same
+   * /community/saved/toggle endpoint (CommunityCollectionItem, item_type 'event') used
+   * for posts/tips/destinations, so it survives refresh, login/logout and device changes. */
+  toggleSaveEvent(ev: CommunityEventCard, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.savePendingIds.has(ev.id)) return;
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.savePendingIds.add(ev.id);
+    this.http.post<{ saved: boolean }>(apiUrl('/community/saved/toggle'), { item_type: 'event', item_id: ev.id }).subscribe({
+      next: ({ saved }) => {
+        this.savePendingIds.delete(ev.id);
+        if (saved) this.savedEventIds.add(ev.id);
+        else this.savedEventIds.delete(ev.id);
+        this.showToast(saved ? 'Saved to your collection' : 'Removed from saved');
+      },
+      error: (err) => {
+        this.savePendingIds.delete(ev.id);
+        console.error('Save toggle failed', err);
+        this.showToast('Could not update saved status — please try again.');
+      },
+    });
   }
 
   get events(): CommunityEventCard[] {
