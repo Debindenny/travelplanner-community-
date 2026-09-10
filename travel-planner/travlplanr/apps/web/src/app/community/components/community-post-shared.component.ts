@@ -58,15 +58,19 @@ export function getFollowButtonState(post: { is_following?: boolean; followed_at
     template: `
     @if (images.length > 0) {
       <div
-        class="relative w-full aspect-[4/5] bg-gray-900 group"
+        [class]="containerClass()"
         (touchstart)="onTouchStart($event)"
         (touchend)="onTouchEnd($event)"
         >
-        <!-- Main Image -->
+        <!-- Main Image: non-clickable. When matchTripImageSize is set (the feed post
+             card), sized identically to a Trip post's cover image (w-full max-h-[420px]
+             object-cover, see the @else if (post.itinerary?.image) branch in
+             CommunityPostCardComponent) so uploaded-photo posts and trip posts share the
+             same image footprint in the feed. The post-detail page keeps its original
+             fixed-aspect sizing (matchTripImageSize defaults to false). -->
         <img
           [src]="images[currentIndex()]"
-          class="w-full h-full object-cover transition-opacity duration-300 cursor-pointer"
-          (click)="openLightbox()"
+          [class]="imageClass()"
           loading="lazy"
           decoding="async"
           [attr.alt]="'COMMUNITY.CAROUSEL.IMAGE_ALT' | translate"
@@ -107,90 +111,31 @@ export function getFollowButtonState(post: { is_following?: boolean; followed_at
         }
       </div>
     }
-
-    <!-- Lightbox -->
-    @if (isLightboxOpen()) {
-      <div
-        class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-sm"
-        (click)="closeLightbox()"
-        (touchstart)="onTouchStart($event)"
-        (touchend)="onTouchEnd($event)"
-        >
-        <!-- Close Button -->
-        <button
-          class="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors focus:outline-none"
-          (click)="closeLightbox()"
-          [attr.aria-label]="'COMMUNITY.CAROUSEL.CLOSE_LIGHTBOX' | translate"
-          >
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <img
-          [src]="images[currentIndex()]"
-          class="max-w-full max-h-[90vh] object-contain"
-          (click)="$event.stopPropagation()"
-          loading="lazy"
-          decoding="async"
-          [attr.alt]="'COMMUNITY.CAROUSEL.IMAGE_FULL_ALT' | translate"
-          />
-
-        @if (images.length > 1) {
-          @if (currentIndex() > 0) {
-            <button
-              (click)="prev($event)"
-              class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors focus:outline-none"
-              [attr.aria-label]="'COMMUNITY.CAROUSEL.PREVIOUS' | translate"
-              >
-              <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          }
-
-          @if (currentIndex() < images.length - 1) {
-            <button
-              (click)="next($event)"
-              class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors focus:outline-none"
-              [attr.aria-label]="'COMMUNITY.CAROUSEL.NEXT' | translate"
-              >
-              <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          }
-        }
-      </div>
-    }
     `,
     styles: []
 })
-export class CommunityPostCarouselComponent implements OnDestroy {
+export class CommunityPostCarouselComponent {
   @Input({ required: true }) images: string[] = [];
+  /** When true, matches the Trip post cover image's sizing (w-full max-h-[420px]
+      object-cover) instead of the original fixed aspect-[4/5] box. Used by the feed
+      post card; the post-detail page leaves this false to keep its own layout. */
+  @Input() matchTripImageSize = false;
 
   currentIndex = signal<number>(0);
-  isLightboxOpen = signal<boolean>(false);
 
   private touchStartX = 0;
   private touchEndX = 0;
 
-  private keydownListener = (event: KeyboardEvent) => {
-    if (!this.isLightboxOpen()) return;
+  containerClass(): string {
+    return this.matchTripImageSize
+      ? 'relative w-full group'
+      : 'relative w-full aspect-[4/5] bg-gray-900 group';
+  }
 
-    if (event.key === 'Escape') {
-      this.closeLightbox();
-    } else if (event.key === 'ArrowRight') {
-      this.next();
-    } else if (event.key === 'ArrowLeft') {
-      this.prev();
-    }
-  };
-
-  ngOnDestroy() {
-    if (this.isLightboxOpen()) {
-      this.closeLightbox();
-    }
+  imageClass(): string {
+    return this.matchTripImageSize
+      ? 'w-full max-h-[420px] object-cover transition-opacity duration-300 pointer-events-none'
+      : 'w-full h-full object-cover transition-opacity duration-300 pointer-events-none';
   }
 
   next(event?: Event) {
@@ -214,18 +159,6 @@ export class CommunityPostCarouselComponent implements OnDestroy {
   goTo(index: number, event: Event) {
     event.stopPropagation();
     this.currentIndex.set(index);
-  }
-
-  openLightbox() {
-    this.isLightboxOpen.set(true);
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', this.keydownListener);
-  }
-
-  closeLightbox() {
-    this.isLightboxOpen.set(false);
-    document.body.style.overflow = '';
-    document.removeEventListener('keydown', this.keydownListener);
   }
 
   onTouchStart(event: TouchEvent) {
@@ -403,10 +336,13 @@ export class CommunityPostCarouselComponent implements OnDestroy {
         </div>
       }
 
-      <!-- Post Images -->
+      <!-- Post Images (uploaded photos) — or, when there are none but a trip is attached,
+           the shared trip's own cover image, so a Trip post always shows a real hero image
+           instead of nothing. Reuses the same itinerary.image the "Attached Itinerary" card
+           below already gets from the backend (CommunityPost.itinerary.image). -->
       @if (post.images?.length) {
         <div class="relative border-y border-slate-100 dark:border-gray-700/70">
-          <app-community-post-carousel [images]="post.images" />
+          <app-community-post-carousel [images]="post.images" [matchTripImageSize]="true" />
           @if (post.destination && !isEditing) {
             <a
               [routerLink]="['/destinations', post.destination.id]"
@@ -417,18 +353,22 @@ export class CommunityPostCarouselComponent implements OnDestroy {
             </a>
           }
         </div>
+      } @else if (post.itinerary?.image && !itineraryImageFailed) {
+        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
+          <img
+            [src]="post.itinerary.image"
+            [alt]="post.itinerary.title"
+            class="w-full max-h-[420px] object-cover"
+            loading="lazy"
+            decoding="async"
+            (error)="itineraryImageFailed = true"
+          />
+        </div>
       }
 
       <!-- Attached Itinerary -->
       @if (post.itinerary) {
         <div class="mx-4 my-4 border border-slate-100 dark:border-gray-700 bg-slate-50/60 dark:bg-gray-900/30 rounded-2xl p-3.5 flex items-center gap-3.5">
-          <img
-            [src]="post.itinerary.image || 'assets/images/landing/journey-thailand.jpg'"
-            [alt]="'COMMUNITY.POST_CARD.ITINERARY_THUMBNAIL_ALT' | translate"
-            class="w-14 h-14 rounded-xl object-cover bg-slate-200 shrink-0"
-            loading="lazy"
-            decoding="async"
-            />
           <div class="flex-1 min-w-0">
             <h4 class="font-semibold text-sm text-text-primary truncate">{{ post.itinerary.title }}</h4>
             <p class="text-xs text-text-secondary truncate mt-0.5">{{ post.itinerary.destination }}</p>
@@ -601,6 +541,9 @@ export class CommunityPostCardComponent {
   isEditing = false;
   editCaption = '';
   editLocation = '';
+  /** Set once the trip's cover image URL fails to actually load (broken/unreachable host,
+      not just missing) — falls back to no hero image instead of a blank collapsed box. */
+  itineraryImageFailed = false;
 
   readonly postToDelete = signal<any | null>(null);
   showReportModal = signal(false);

@@ -23,7 +23,12 @@ import { CommunitySimilarTravelersComponent } from './components/community-simil
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
 import { SavedTrip, TripService } from '../trip/trip.service';
 import { CommunityCollectionService } from './services/community-collection.service';
-import { of,forkJoin } from 'rxjs';
+import { apiUrl } from '../shared/utils/api-url';
+import { catchError,of,forkJoin,Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { DestinationSearchService } from '../shared/services/destination-search.service';
+import { DestinationListItem } from '../shared/utils/destination.util';
+import { HttpClient } from '@angular/common/http';
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
 
 interface FeedComposerTypeMeta {
@@ -51,16 +56,6 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
     icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
 };
-
-/** Static suggestion list for the feed composer's location field — filtered client-side as the
-    user types. Free text is always allowed too; this never blocks a custom location. */
-const FEED_LOCATION_SUGGESTIONS: string[] = [
-  'Singapore',
-  'Dubai, UAE',
-  'Paris, France',
-  'Tokyo, Japan',
-  'London, UK',
-];
 
 @Component({
     selector: 'app-community-page',
@@ -245,14 +240,19 @@ const FEED_LOCATION_SUGGESTIONS: string[] = [
                         role="listbox"
                         class="absolute z-50 w-full mt-1.5 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-h-56 overflow-auto divide-y divide-slate-50 dark:divide-gray-700"
                       >
-                        @for (loc of composerLocationSuggestions(); track loc) {
+                        @for (item of composerLocationSuggestions(); track item.placeId ?? item.id ?? item.name) {
                           <li role="option">
                             <button
                               type="button"
                               (mousedown)="$event.preventDefault()"
-                              (click)="selectComposerLocation(loc)"
+                              (click)="selectComposerLocation(item)"
                               class="w-full text-left px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-primary-50/60 dark:hover:bg-gray-700 transition-colors"
-                            >{{ loc }}</button>
+                            >
+                              {{ item.name }}
+                              @if (item.region || item.country) {
+                                <span class="text-text-faint font-normal">, {{ item.region || item.country }}</span>
+                              }
+                            </button>
                           </li>
                         }
                       </ul>
@@ -586,11 +586,11 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     return type ? FEED_COMPOSER_TYPE_META[type] ?? null : null;
   });
   readonly composerHasMedia = computed(() => this.composerImages().length > 0 || !!this.composerVideoFile());
-  readonly composerLocationSuggestions = computed(() => {
-    const query = this.composerLocation().trim().toLowerCase();
-    if (!query) return FEED_LOCATION_SUGGESTIONS;
-    return FEED_LOCATION_SUGGESTIONS.filter(loc => loc.toLowerCase().includes(query));
-  });
+  // Dynamic worldwide location autocomplete (destinations catalog + Google Places, via the
+  // same DestinationSearchService the post composer's own destination picker already uses) —
+  // replaces the old hardcoded 5-city list. Manual free-text entry still always works.
+  composerLocationSuggestions = signal<DestinationListItem[]>([]);
+  private composerLocationQuery$ = new Subject<string>();
   readonly canSubmitComposer = computed(() => {
     if (this.composerSubmitting() || this.composerText().trim().length === 0) return false;
     const type = this.composerType();
@@ -630,6 +630,8 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   tripService = inject(TripService);
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
+  private http = inject(HttpClient);
+  private destinationSearch = inject(DestinationSearchService);
   readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
@@ -661,6 +663,12 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit() {
 
+    this.composerLocationQuery$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => query.trim().length >= 2 ? this.destinationSearch.search(query, 6) : of([])),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(results => this.composerLocationSuggestions.set(results));
     if (this.auth.user()) {
       this.collectionService.getCollections().subscribe({
         next: (collections) => this.savedSpots.set(collections.reduce((sum, c) => sum + (c.item_count || 0), 0)),
@@ -783,6 +791,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerText.set('');
     this.composerLocation.set('');
     this.composerShowLocationSuggestions.set(false);
+    this.composerLocationSuggestions.set([]);
     this.clearComposerMedia();
   }
 
@@ -791,6 +800,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerText.set('');
     this.composerLocation.set('');
     this.composerShowLocationSuggestions.set(false);
+    this.composerLocationSuggestions.set([]);
     this.clearComposerMedia();
   }
 
@@ -801,11 +811,15 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   onComposerLocationInput(value: string) {
     this.composerLocation.set(value);
     this.composerShowLocationSuggestions.set(true);
+    if (!value.trim()) this.composerLocationSuggestions.set([]);
+    this.composerLocationQuery$.next(value);
   }
 
-  selectComposerLocation(location: string) {
-    this.composerLocation.set(location);
+  selectComposerLocation(item: DestinationListItem) {
+    const place = item.region || item.country;
+    this.composerLocation.set(place ? `${item.name}, ${place}` : item.name);
     this.composerShowLocationSuggestions.set(false);
+    this.composerLocationSuggestions.set([]);
   }
 
   onComposerFileSelect(event: Event): void {
@@ -1050,24 +1064,36 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   toggleFollow(post: CommunityPostType) {
-    if (!post.author?.id) return;
+    const authorId = post.author?.id;
+    if (!authorId) return;
 
     const prevFollowing = post.is_following;
     const prevFollowedAt = post.followed_at;
-    post.is_following = !prevFollowing;
-    post.followed_at = post.is_following ? new Date().toISOString() : null;
+    const nextFollowing = !prevFollowing;
+    const nextFollowedAt = nextFollowing ? new Date().toISOString() : null;
 
-    this.profileService.toggleFollow(post.author.id).subscribe({
+    // Follow status is per-author, not per-post: apply it to every loaded post
+    // by this author so they all flip between Follow/Following together.
+    this.applyFollowStateToAuthorPosts(authorId, nextFollowing, nextFollowedAt);
+
+    this.profileService.toggleFollow(authorId).subscribe({
       next: (res) => {
-        post.is_following = res.is_following;
-        post.followed_at = res.followed_at ?? null;
+        this.applyFollowStateToAuthorPosts(authorId, res.is_following, res.followed_at ?? null);
       },
       error: () => {
-        post.is_following = prevFollowing;
-        post.followed_at = prevFollowedAt;
+        this.applyFollowStateToAuthorPosts(authorId, prevFollowing, prevFollowedAt);
         this.showToast(this.translate.instant('COMMUNITY.TOAST_FOLLOW_ERROR'));
       }
     });
+  }
+
+  private applyFollowStateToAuthorPosts(authorId: string, isFollowing: boolean | undefined, followedAt: string | null | undefined): void {
+    for (const p of this.posts) {
+      if (p.author?.id === authorId) {
+        p.is_following = isFollowing;
+        p.followed_at = followedAt;
+      }
+    }
   }
 
   // Code migrated to CommunityPostCardComponent
