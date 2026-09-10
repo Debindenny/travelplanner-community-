@@ -1,4 +1,5 @@
 import logging
+from datetime import date, datetime, timedelta
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy import select, desc, or_, func, text
@@ -247,6 +248,7 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
             items.append({
                 "id": str(t.id),
                 "title": t.title,
+                "destination": t.destination,
                 "subtitle": meta.get("subtitle", ""),
                 "tier": meta.get("tier", "Mid-range"),
                 "savesLabel": meta.get("saves_label", "0 saves"),
@@ -296,6 +298,19 @@ def _time_of_day(time_str: str | None) -> str:
     return "Evening"
 
 
+def _format_time_12h(time_str: str | None) -> str:
+    """Format a 'HH:MM' segment time as '9:00 AM' for display."""
+    if not time_str:
+        return ""
+    try:
+        hour, minute = (int(p) for p in time_str.split(":")[:2])
+    except (ValueError, IndexError):
+        return ""
+    period = "AM" if hour < 12 else "PM"
+    hour_12 = hour % 12 or 12
+    return f"{hour_12}:{minute:02d} {period}"
+
+
 @router.get("/trips/templates/{trip_id}")
 async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
     """Read-only day-by-day summary for a trip template preview: the trip
@@ -327,6 +342,7 @@ async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict =
                 places.append({
                     "title": title,
                     "image": s.get("image") or s.get("imageUrl"),
+                    "time": _format_time_12h(s.get("time")),
                     "timeOfDay": _time_of_day(s.get("time")),
                     "duration": s.get("duration"),
                     "refundable": s.get("refundable"),
@@ -352,8 +368,15 @@ async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict =
         }
 
 
+class CloneTripRequest(BaseModel):
+    destination: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    travelers: int | None = None
+
+
 @router.post("/trips/{trip_id}/clone")
-async def clone_trip(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
+async def clone_trip(trip_id: UUID, request: Request, body: CloneTripRequest = CloneTripRequest(), auth: dict = Depends(require_customer)):
     customer_id = UUID(auth["customer_id"]); customer_name = auth.get("customer_name", "Unknown"); tenant_id = UUID(auth["tenant_id"])
     import httpx
 
@@ -422,11 +445,35 @@ async def clone_trip(trip_id: UUID, request: Request, auth: dict = Depends(requi
             except Exception:
                 plan_valid = False  # best-effort; proceed without second check
 
+        today_iso = date.today().isoformat()
+        start_date, end_date = body.start_date, body.end_date
+
+        if start_date and start_date < today_iso:
+            raise HTTPException(status_code=422, detail="Start date must not be in the past")
+        if end_date and end_date < today_iso:
+            raise HTTPException(status_code=422, detail="End date must not be in the past")
+        if start_date and end_date and end_date < start_date:
+            raise HTTPException(status_code=422, detail="End date must be on or after the start date")
+
+        if not start_date or not end_date:
+            # The template/original trip is often already-completed, so its own dates
+            # would put the clone in the past. Fall back to today onward, preserving
+            # the original trip's length when we can determine it.
+            try:
+                orig_start = datetime.strptime(orig.start_date, "%Y-%m-%d").date()
+                orig_end = datetime.strptime(orig.end_date, "%Y-%m-%d").date()
+                duration_days = max((orig_end - orig_start).days, 0)
+            except (TypeError, ValueError):
+                duration_days = 0
+            fallback_start = date.today()
+            start_date = start_date or fallback_start.isoformat()
+            end_date = end_date or (fallback_start + timedelta(days=duration_days)).isoformat()
+
         count_res = await session.execute(select(func.count()).select_from(Trip))
         cloned = Trip(
             tenant_id=tenant_id, customer_id=customer_id, customer_name=customer_name, display_code=f"ITIN-{(count_res.scalar() or 0) + 1:04d}",
-            title=f"Clone of {orig.title}", destination=orig.destination, start_date=orig.start_date, end_date=orig.end_date,
-            travelers=orig.travelers, travel_style=orig.travel_style, travel_method=orig.travel_method, budget=orig.budget,
+            title=f"Clone of {orig.title}", destination=body.destination or orig.destination, start_date=start_date, end_date=end_date,
+            travelers=body.travelers or orig.travelers, travel_style=orig.travel_style, travel_method=orig.travel_method, budget=orig.budget,
             interests=orig.interests, food_preferences=orig.food_preferences, status=TripStatus.READY, image=orig.image,
             days=orig.days, city_days=orig.city_days, segments=orig.segments, customizations=orig.customizations
         )

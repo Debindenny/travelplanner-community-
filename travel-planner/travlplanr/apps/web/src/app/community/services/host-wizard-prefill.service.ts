@@ -8,9 +8,16 @@ export interface HostWizardPrefill {
   startLocation?: string;
   startDate?: string;
   endDate?: string;
+  /** Length (in days) of the cloned trip's own route — used to keep the
+   * wizard's end date locked to `startDate + (days - 1)` since a cloned
+   * itinerary's length isn't independently editable. */
+  days?: number;
   maxTravelers?: number;
   journeyName?: string;
   cloneTripId?: string;
+  /** The cloned trip's own hero image, used for the published event card
+   * instead of a generic default so it actually shows the destination. */
+  image?: string;
 }
 
 /**

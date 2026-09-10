@@ -3,30 +3,61 @@
 
   <label class="ctm__field">
     <span class="ctm__label">Starting from <span class="ctm__required">*</span></span>
-    <input class="ctm__input" type="text" [value]="startingFrom()" (input)="startingFrom.set($any($event.target).value)" placeholder="e.g. Chennai" />
+    <div class="ctm__field-shell" #startShell>
+      <input
+        class="ctm__input"
+        type="text"
+        [value]="startingFrom()"
+        (input)="onStartingFromInput($any($event.target).value)"
+        (focus)="onStartingFromFocus()"
+        (blur)="onStartingFromBlur()"
+        (keydown)="onStartingFromKeydown($event)"
+        placeholder="e.g. Chennai"
+        autocomplete="off"
+      />
+      <app-destination-typeahead
+        #startTypeahead
+        listboxId="ctm-start-listbox"
+        [query]="startingFrom()"
+        presentation="dropdown"
+        variant="surface"
+        [open]="startDropdownOpen()"
+        (picked)="onStartingFromPicked($event)"
+        (dismissed)="startDropdownOpen.set(false)"
+      />
+    </div>
   </label>
 
   <label class="ctm__field">
     <span class="ctm__label">Arrival destination <span class="ctm__required">*</span></span>
-    <input
-      class="ctm__input"
-      type="text"
-      [value]="arrivalDestination()"
-      (input)="arrivalDestination.set($any($event.target).value)"
-      [placeholder]="destinationPlaceholder()"
-    />
+    <div class="ctm__input ctm__input--locked">
+      <app-icon name="lock" [size]="13" />
+      <span>{{ arrivalDestination() }}</span>
+    </div>
+    <span class="ctm__field-hint">Fixed to this itinerary's route</span>
   </label>
 
   <div class="ctm__row">
     <label class="ctm__field">
       <span class="ctm__label">Start date <span class="ctm__required">*</span></span>
-      <input class="ctm__input" type="date" [value]="startDate()" (input)="startDate.set($any($event.target).value)" placeholder="dd-mm-yyyy" />
+      <input
+        class="ctm__input"
+        type="date"
+        [value]="startDate()"
+        [attr.min]="todayIso"
+        (input)="startDate.set($any($event.target).value)"
+        placeholder="dd-mm-yyyy"
+      />
     </label>
     <label class="ctm__field">
       <span class="ctm__label">End date <span class="ctm__required">*</span></span>
-      <input class="ctm__input" type="date" [value]="endDate()" (input)="endDate.set($any($event.target).value)" placeholder="dd-mm-yyyy" />
+      <div class="ctm__input ctm__input--locked">
+        <app-icon name="lock" [size]="13" />
+        <span>{{ endDateDisplay() || 'Pick a start date first' }}</span>
+      </div>
     </label>
   </div>
+  <p class="ctm__field-hint">This itinerary runs {{ trip().days }} day{{ trip().days === 1 ? '' : 's' }} — end date is calculated for you.</p>
 
   <div class="ctm__field">
     <span class="ctm__label">Travelers</span>

@@ -8,6 +8,7 @@ export type TripTier = 'Budget' | 'Mid-range' | 'Luxury';
 export interface CommunityTrip {
   id: string;
   title: string;
+  destination: string;
   subtitle: string;
   tier: TripTier;
   saves: string;

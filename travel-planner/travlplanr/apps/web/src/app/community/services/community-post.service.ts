@@ -71,6 +71,7 @@ export interface CommunityPost {
 export interface CommunityTripTemplate {
   id: string;
   title: string;
+  destination: string;
   subtitle: string;
   tier: string;
   savesLabel: string;
@@ -88,6 +89,7 @@ export interface CommunityTripTemplate {
 export interface TripTemplatePlace {
   title: string;
   image: string | null;
+  time: string;
   timeOfDay: string;
   duration: string | null;
   refundable: string | null;
@@ -175,10 +177,20 @@ export class CommunityPostService {
     return this.http.patch<CommunityPost>(apiUrl(`/community/${postId}`), data);
   }
 
-  cloneTrip(tripId: string): Observable<{ tripId: string }> {
+  cloneTrip(
+    tripId: string,
+    overrides?: { destination?: string; startDate?: string; endDate?: string; travelers?: number },
+  ): Observable<{ tripId: string }> {
     return this.http.post<{ tripId: string }>(
       apiUrl(`/community/trips/${tripId}/clone`),
-      {}
+      overrides
+        ? {
+            destination: overrides.destination || undefined,
+            start_date: overrides.startDate || undefined,
+            end_date: overrides.endDate || undefined,
+            travelers: overrides.travelers || undefined,
+          }
+        : {},
     );
   }
 

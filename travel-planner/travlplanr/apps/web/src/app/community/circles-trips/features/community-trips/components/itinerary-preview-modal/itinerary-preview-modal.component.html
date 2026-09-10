@@ -1,3 +1,8 @@
+<button type="button" class="ipm__back" (click)="onBack()">
+  <app-icon name="arrow-left" [size]="14" />
+  Back to trips
+</button>
+
 <div class="ipm__hero" [style.backgroundImage]="'url(' + trip().image + ')'">
   <div class="ipm__hero-overlay">
     <h2 class="ipm__title">{{ trip().title }}</h2>
@@ -31,17 +36,61 @@
 </div>
 
 <div class="ipm__body">
+  <div class="ipm__section-header">
+    <h3 class="ipm__section-title">Your detailed itinerary</h3>
+    <p class="ipm__section-subtitle">Tap a day to see its stops</p>
+  </div>
+
   @if (loading()) {
     <div class="ipm__state">Loading day-by-day plan…</div>
   } @else if (error()) {
     <div class="ipm__state">Couldn't load the day-by-day plan.</div>
   } @else {
     <div class="ipm__days">
-      @for (group of dayGroups(); track group.startDay) {
-        <div class="ipm__day">
-          <div class="ipm__day-header">{{ dayLabel(group) }} · {{ group.city }}</div>
-          @for (item of group.highlights; track item) {
-            <div class="ipm__day-item">{{ item }}</div>
+      @for (day of days(); track day.day) {
+        <div class="ipm__day" [class.ipm__day--open]="isExpanded(day.day)">
+          <button
+            type="button"
+            class="ipm__day-toggle"
+            (click)="toggleDay(day.day)"
+            [attr.aria-expanded]="isExpanded(day.day)"
+          >
+            <span class="ipm__day-heading">
+              <span class="ipm__day-name">Day {{ day.day }} — {{ day.city }}</span>
+              @if (isExpanded(day.day)) {
+                <span class="ipm__day-highlights">{{ day.highlights.join(' · ') }}</span>
+              } @else if (day.places.length) {
+                <span class="ipm__day-summary">{{ stopCount(day) }} · {{ day.highlights.join(', ') }}</span>
+              } @else {
+                <span class="ipm__day-summary">{{ day.highlights[0] }}</span>
+              }
+            </span>
+            <span class="ipm__day-chevron">
+              <app-icon name="chevron-down" [size]="14" />
+            </span>
+          </button>
+
+          @if (isExpanded(day.day)) {
+            @if (day.places.length) {
+              <div class="ipm__timeline">
+                @for (place of day.places; track place.title) {
+                  <div class="ipm__stop">
+                    <div class="ipm__stop-row">
+                      <span class="ipm__stop-time">{{ place.time || place.timeOfDay }}</span>
+                      @if (place.duration) {
+                        <span class="ipm__stop-tag">{{ place.duration }}</span>
+                      }
+                    </div>
+                    <h4 class="ipm__stop-title">{{ place.title }}</h4>
+                    @if (place.refundable) {
+                      <p class="ipm__stop-desc">{{ place.refundable }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="ipm__day-empty">Free day to explore {{ day.city }}.</p>
+            }
           }
         </div>
       }
