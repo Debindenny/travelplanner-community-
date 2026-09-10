@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment } fro
 import { EventItineraryService } from '../services/event-itinerary.service';
 import { AuthService } from '../../auth/auth.service';
 import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary-timeline/itinerary-timeline.component';
+import { EventDayTab, EventDayTabsComponent } from './event-day-tabs.component';
 import type { DetailDay, DetailItem } from '../../itinerary/itinerary-page.component';
 import type { DetailActivity } from '../../trip/trip.service';
 
@@ -14,7 +15,7 @@ type JoinMode = 'full' | 'partial';
 
 @Component({
   selector: 'app-community-event-view',
-  imports: [CommonModule, RouterLink, FormsModule, ItineraryTimelineComponent],
+  imports: [CommonModule, RouterLink, FormsModule, ItineraryTimelineComponent, EventDayTabsComponent],
   styles: [
     `
     .trip-slider {
@@ -147,9 +148,8 @@ type JoinMode = 'full' | 'partial';
         </div>
 
         <!-- Below hero -->
-        <!-- Extra bottom padding (pb-28) keeps the last itinerary/summary buttons clear of the floating chat dock (~75px fixed at the viewport bottom on every page — see floating-chatbot.component.ts's .global-dock-wrap), which otherwise sits on top of and swallows clicks on whatever content scrolls to rest behind it. -->
-        <div class="page-container mx-auto px-5 xl:px-20 pt-6 pb-28">
-          <!-- Title row -->
+        <div class="page-container mx-auto px-5 xl:px-20 pt-6">
+          <!-- Title row (Save/Share/Join actions live on the Event Summary page instead — see community-event-summary.component.ts) -->
           <div class="flex items-start justify-between flex-wrap gap-4 pb-6 mb-6 border-b border-slate-100 dark:border-gray-700">
             <div>
               <h2 class="font-manrope text-xl font-extrabold text-eventText-deep dark:text-white">
@@ -163,43 +163,19 @@ type JoinMode = 'full' | 'partial';
                 <span class="text-xs font-semibold text-eventText-soft" *ngIf="event.reviewCount">({{ event.reviewCount }} reviews)</span>
               </div>
             </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                (click)="toggleFollow()"
-                class="w-9 h-9 rounded-full border border-slate-200 dark:border-gray-700 flex items-center justify-center text-eventText-mid dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
-                aria-label="Save"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" [attr.fill]="event.followed ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="w-9 h-9 rounded-full border border-slate-200 dark:border-gray-700 flex items-center justify-center text-eventText-mid dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
-                aria-label="Share"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                  <path d="M8.6 10.5 15.4 6.5M8.6 13.5l6.8 4" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                (click)="toggleJoin()"
-                class="h-9 px-5 rounded-lg text-xs font-extrabold transition-colors"
-                [class.bg-primary]="!event.joined"
-                [class.hover:bg-primary-hover]="!event.joined"
-                [class.text-white]="!event.joined"
-                [class.bg-primary-50]="event.joined"
-                [class.text-primary]="event.joined"
-              >
-                {{ event.joined ? "You're going" : 'Join a Circle' }}
-              </button>
-            </div>
           </div>
+        </div>
 
+        <!-- Same sticky Summary/Day tab bar as the Event Summary page (app-event-day-tabs).
+             "Summary" navigates to that page; "Day N" jumps to that day's section below,
+             since this page keeps every day visible at once (Partial-join day picking needs
+             them all on screen) rather than swapping content panels. -->
+        @if (event.days?.length) {
+          <app-event-day-tabs [days]="event.days || []" [activeTab]="activeDayTab" (tabSelect)="onDayTabSelect($event)"></app-event-day-tabs>
+        }
+
+        <!-- Extra bottom padding (pb-28) keeps the last itinerary/summary buttons clear of the floating chat dock (~75px fixed at the viewport bottom on every page — see floating-chatbot.component.ts's .global-dock-wrap), which otherwise sits on top of and swallows clicks on whatever content scrolls to rest behind it. -->
+        <div class="page-container mx-auto px-5 xl:px-20 pt-6 pb-28">
           @if (event.days?.length) {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <!-- Itinerary Timeline -->
@@ -333,7 +309,7 @@ type JoinMode = 'full' | 'partial';
                     [class.bg-primary-50]="event.joined"
                     [class.text-primary]="event.joined"
                   >
-                    {{ event.joined ? "You're going" : 'Continue' }}
+                    {{ event.joined ? "You're going" : 'Book Full Itinerary' }}
                   </button>
                 } @else {
                   <!-- Day rows -->
@@ -430,7 +406,7 @@ type JoinMode = 'full' | 'partial';
                     (click)="continuePartial()"
                     class="w-full h-11 rounded-xl text-sm font-extrabold text-white bg-primary hover:bg-primary-hover transition-colors disabled:bg-slate-300 disabled:dark:bg-gray-600 disabled:text-white/80 disabled:cursor-not-allowed disabled:hover:bg-slate-300"
                   >
-                    {{ event.joined ? "You're going" : 'Continue' }}
+                    {{ event.joined ? "You're going" : 'Book Partial Itinerary' }}
                   </button>
                   <p *ngIf="!canContinuePartial()" class="text-[11px] font-bold text-red-500 text-center mt-2">
                     {{ validationMessage() }}
@@ -703,6 +679,46 @@ export class CommunityEventDetailViewComponent {
   event: CommunityEventCard | null = null;
 
   readonly stars = [0, 1, 2, 3, 4];
+
+  /** Drives the shared sticky Summary/Day tab bar (app-event-day-tabs). This page keeps
+   * every day rendered at once (see the itinerary-timeline usage below), so "Day N" jumps
+   * to that day's existing #day-N anchor rather than swapping content panels — clicking a
+   * tab scrolls, and scrolling updates the active tab (same idea as the tab-set already
+   * used on the Event Summary page, and the day scroll-spy itinerary-page.component.ts uses). */
+  activeDayTab: EventDayTab = 'summary';
+  private suppressScrollSpyUntil = 0;
+
+  onDayTabSelect(tab: EventDayTab): void {
+    const ev = this.event;
+    if (!ev) return;
+    if (tab === 'summary') {
+      this.router.navigate(['/community/events', ev.id, 'summary']);
+      return;
+    }
+    this.activeDayTab = tab;
+    const target = document.getElementById(`day-${tab}`);
+    if (target) {
+      // Ignore scroll-spy updates while the smooth-scroll animation is still in flight,
+      // so the tab that was just clicked doesn't flicker to a neighboring day mid-scroll.
+      this.suppressScrollSpyUntil = Date.now() + 700;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  @HostListener('window:scroll')
+  onWindowScrollForDayTabs(): void {
+    const ev = this.event;
+    if (!ev?.days?.length || Date.now() < this.suppressScrollSpyUntil) return;
+    const threshold = 140; // roughly the sticky header + tab bar height
+    let current: EventDayTab = 'summary';
+    for (const day of ev.days) {
+      const el = document.getElementById(`day-${day.day}`);
+      if (el && el.getBoundingClientRect().top <= threshold) {
+        current = day.day;
+      }
+    }
+    if (current !== this.activeDayTab) this.activeDayTab = current;
+  }
 
   joinMode: JoinMode = 'full';
   /** Inclusive day-number range currently picked in Partial mode — always contiguous, no gaps. */
@@ -1176,13 +1192,6 @@ export class CommunityEventDetailViewComponent {
     const joined = this.store.toggleJoin(ev.id);
     this.event = this.store.getById(ev.id);
     this.showToast(joined ? "You're going!" : `Spot released · ${ev.title}`);
-  }
-
-  toggleFollow(): void {
-    const ev = this.event;
-    if (!ev) return;
-    this.store.toggleFollow(ev.id);
-    this.event = this.store.getById(ev.id);
   }
 
   private showToast(message: string): void {

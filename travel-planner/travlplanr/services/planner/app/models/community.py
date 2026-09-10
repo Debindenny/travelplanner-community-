@@ -249,8 +249,12 @@ class CommunityCollectionItem(Base):
     __tablename__ = "community_collection_items"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     collection_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_collections.id", ondelete="CASCADE"), index=True)
-    item_type: Mapped[str] = mapped_column(String(50)) # 'post', 'destination', 'itinerary', 'tip'
-    item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    item_type: Mapped[str] = mapped_column(String(50)) # 'post', 'destination', 'itinerary', 'tip', 'event'
+    # Plain string rather than UUID — hosted-journey events use opaque string ids
+    # (e.g. "evt-1", matching EventJourneyParticipation.event_id) alongside the
+    # UUID-based ids of every other saveable type, which still round-trip fine
+    # as their string form.
+    item_id: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (

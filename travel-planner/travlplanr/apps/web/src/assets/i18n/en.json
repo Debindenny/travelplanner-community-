@@ -710,6 +710,8 @@
       "PHOTO_LABEL": "Profile photo",
       "PHOTO_HELPER": "Shown on your posts and in circles",
       "CHANGE": "Change",
+      "REMOVE_PHOTO": "Remove photo",
+      "EDIT_PHOTO_ARIA_LABEL": "Edit profile photo",
       "DISPLAY_NAME": "Display Name",
       "ABOUT_YOU": "About You",
       "ABOUT_COUNTER": "{{count}} / 180",

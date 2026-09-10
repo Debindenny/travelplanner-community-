@@ -37,13 +37,15 @@ export interface DiscoverFilters {
   sorts: string[];
 }
 
-export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot';
+export type SavedCollectionKind = 'Tip' | 'Trip' | 'Spot' | 'Event';
 export type SavedCollectionTab = 'All' | 'Tips' | 'Trips' | 'Spots';
 
 export interface SavedCollectionItem {
   id: string;
-  /** The underlying trip/post/tip/destination id (not the collection-item id above). */
-  item_id: string;
+  /** The underlying saved entity's own id (e.g. the event id) — distinct from `id`,
+   * which is the collection-item row's id. Used to enrich event cards with data the
+   * backend can't resolve for hosted-journey demo events (see DiscoverSavedStore). */
+  item_id?: string;
   kind: SavedCollectionKind;
   title: string;
   meta: string;

@@ -94,9 +94,7 @@ import { BookingSelection, BookingSummary, buildBookingSummary } from '../servic
             </div>
           </div>
 
-          <!-- Cost summary + payment CTA — marks where the floating AI chatbot should
-               tuck itself away (see FloatingChatbotComponent.observePageBoundaryProximity). -->
-          <div data-chat-hide-boundary>
+          <!-- Cost summary -->
           <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-5 mb-4">
             <p class="text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-3">Cost Summary</p>
             <div class="flex flex-col divide-y divide-slate-100 dark:divide-gray-700 mb-3">
@@ -142,7 +140,6 @@ import { BookingSelection, BookingSummary, buildBookingSummary } from '../servic
             >
               Proceed to payment
             </button>
-          </div>
           </div>
         </div>
       </div>

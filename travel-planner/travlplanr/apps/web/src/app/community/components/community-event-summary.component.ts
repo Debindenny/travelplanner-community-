@@ -12,6 +12,7 @@ import {
 import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary-timeline/itinerary-timeline.component';
 import type { DetailDay, DetailItem } from '../../itinerary/itinerary-page.component';
 import type { DetailActivity } from '../../trip/trip.service';
+import { EventDayTab, EventDayTabsComponent } from './event-day-tabs.component';
 
 /**
  * Intermediary informational recap between the Event Detail page and the existing
@@ -21,7 +22,7 @@ import type { DetailActivity } from '../../trip/trip.service';
  */
 @Component({
   selector: 'app-community-event-summary',
-  imports: [CommonModule, RouterLink, ItineraryTimelineComponent],
+  imports: [CommonModule, RouterLink, ItineraryTimelineComponent, EventDayTabsComponent],
   template: `
     @if (!event) {
       <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 font-manrope">
@@ -97,37 +98,9 @@ import type { DetailActivity } from '../../trip/trip.service';
         </div>
 
         <!-- Tabs + content + sidebar -->
-        <div class="page-container mx-auto px-5 xl:px-20 pt-6 pb-28">
-          <nav class="flex items-center gap-2 overflow-x-auto pb-1 mb-6 -mx-1 px-1">
-            <button
-              type="button"
-              (click)="activeTab = 'summary'"
-              class="shrink-0 px-4 py-2 rounded-lg text-xs font-extrabold transition-colors"
-              [class.bg-primary]="activeTab === 'summary'"
-              [class.text-white]="activeTab === 'summary'"
-              [class.bg-white]="activeTab !== 'summary'"
-              [class.text-eventText-mid]="activeTab !== 'summary'"
-              [class.border]="activeTab !== 'summary'"
-              [class.border-slate-200]="activeTab !== 'summary'"
-            >
-              Summary
-            </button>
-            <button
-              *ngFor="let day of selectedDays"
-              type="button"
-              (click)="activeTab = day.day"
-              class="shrink-0 px-4 py-2 rounded-lg text-xs font-extrabold transition-colors"
-              [class.bg-primary]="activeTab === day.day"
-              [class.text-white]="activeTab === day.day"
-              [class.bg-white]="activeTab !== day.day"
-              [class.text-eventText-mid]="activeTab !== day.day"
-              [class.border]="activeTab !== day.day"
-              [class.border-slate-200]="activeTab !== day.day"
-            >
-              Day {{ day.day }}
-            </button>
-          </nav>
+        <app-event-day-tabs [days]="selectedDays" [activeTab]="activeTab" (tabSelect)="activeTab = $event"></app-event-day-tabs>
 
+        <div class="page-container mx-auto px-5 xl:px-20 pt-6 pb-28">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <!-- Left column: tab content -->
             <div class="lg:col-span-2 flex flex-col gap-5">
@@ -227,7 +200,7 @@ export class CommunityEventSummaryComponent {
   selection: BookingSelection = { mode: 'full', rangeStart: null, rangeEnd: null };
   selectedDays: JourneyDay[] = [];
   costs: EventCostBreakdown = { accommodation: 0, activities: 0, food: 0, transport: 0, serviceCharges: 0, estimatedTotal: 0 };
-  activeTab: 'summary' | number = 'summary';
+  activeTab: EventDayTab = 'summary';
 
   readonly inclusions = ['Accommodation', 'Activities', 'Meals', 'Local Transport', 'Event Access'];
   readonly exclusions = ['Personal Expenses', 'Optional Activities', 'Insurance', 'Additional Purchases'];
@@ -312,7 +285,6 @@ export class CommunityEventSummaryComponent {
     return activity.id || activity.title;
   };
 
-  /** Hands off to the existing booking/review page, unchanged, with the same day selection the traveler already made. */
   /** Hands off to the event's full Detail page, where the traveler picks Full/Partial join and
    * continues into the existing booking/review flow. */
   bookFullItinerary(): void {

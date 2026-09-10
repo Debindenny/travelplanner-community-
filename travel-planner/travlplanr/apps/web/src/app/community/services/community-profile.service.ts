@@ -1,7 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { apiUrl } from '../../shared/utils/api-url';
+
+/** Backend returns the avatar under `avatar`; normalize it to the `avatarUrl` field these models expose. */
+function withAvatarUrl<T extends { avatarUrl?: string | null }>(res: T): T {
+  const raw = res as T & { avatar?: string | null };
+  return { ...res, avatarUrl: raw.avatar ?? raw.avatarUrl ?? null };
+}
 
 export interface UserProfile {
   customer_id: string;
@@ -103,7 +110,7 @@ export class CommunityProfileService {
   private readonly http = inject(HttpClient);
 
   getUserProfile(customerId: string): Observable<UserProfile> {
-    return this.http.get<UserProfile>(apiUrl(`/community/users/${customerId}`));
+    return this.http.get<UserProfile>(apiUrl(`/community/users/${customerId}`)).pipe(map(withAvatarUrl));
   }
 
   getUserPosts(customerId: string, limit: number = 20, offset: number = 0): Observable<any[]> {
@@ -115,21 +122,25 @@ export class CommunityProfileService {
   }
 
   getFollowers(customerId: string, limit: number = 20, offset: number = 0): Observable<User[]> {
-    return this.http.get<User[]>(apiUrl(`/community/users/${customerId}/followers?limit=${limit}&offset=${offset}`));
+    return this.http
+      .get<User[]>(apiUrl(`/community/users/${customerId}/followers?limit=${limit}&offset=${offset}`))
+      .pipe(map(users => users.map(withAvatarUrl)));
   }
 
   getFollowing(customerId: string, limit: number = 20, offset: number = 0): Observable<User[]> {
-    return this.http.get<User[]>(apiUrl(`/community/users/${customerId}/following?limit=${limit}&offset=${offset}`));
+    return this.http
+      .get<User[]>(apiUrl(`/community/users/${customerId}/following?limit=${limit}&offset=${offset}`))
+      .pipe(map(users => users.map(withAvatarUrl)));
   }
 
   searchUsers(query: string, limit: number = 20, offset: number = 0): Observable<User[]> {
-    return this.http.get<User[]>(
-      apiUrl(`/community/users/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`)
-    );
+    return this.http
+      .get<User[]>(apiUrl(`/community/users/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`))
+      .pipe(map(users => users.map(withAvatarUrl)));
   }
 
   getMyProfile(): Observable<MyCommunityProfile> {
-    return this.http.get<MyCommunityProfile>(apiUrl('/community/profile/me'));
+    return this.http.get<MyCommunityProfile>(apiUrl('/community/profile/me')).pipe(map(withAvatarUrl));
   }
 
   getShortcuts(): Observable<CommunityShortcut[]> {
@@ -141,7 +152,7 @@ export class CommunityProfileService {
   }
 
   updateProfile(data: { name?: string; bio?: string; avatar?: string | null; local_in?: string; cover?: string; about?: string; interests?: string[]; countries_visited?: number; post_visibility?: string }): Observable<UserProfile> {
-    return this.http.put<UserProfile>(apiUrl('/community/profile/me'), data);
+    return this.http.put<UserProfile>(apiUrl('/community/profile/me'), data).pipe(map(withAvatarUrl));
   }
 
   uploadImage(file: File): Observable<{url: string; thumbnailUrl?: string}> {

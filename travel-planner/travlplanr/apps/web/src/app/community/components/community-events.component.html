@@ -186,6 +186,19 @@
         Upcoming
       </span>
 
+      <!-- Save/bookmark toggle — persisted via the same generic Saved collection used for posts/tips/destinations -->
+      <button
+        type="button"
+        (click)="toggleSaveEvent(ev, $event)"
+        [disabled]="savePendingIds.has(ev.id)"
+        class="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 flex items-center justify-center text-eventText-mid dark:text-gray-300 hover:text-primary hover:border-primary transition-colors disabled:opacity-50"
+        [attr.aria-label]="isEventSaved(ev) ? 'Unsave event' : 'Save event'"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" [attr.fill]="isEventSaved(ev) ? 'currentColor' : 'none'" [class.text-primary]="isEventSaved(ev)" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 3.5a1.5 1.5 0 0 0-1.5 1.5v15.2a.5.5 0 0 0 .77.42L12 16.6l6.73 4.02a.5.5 0 0 0 .77-.42V5A1.5 1.5 0 0 0 18 3.5H6Z" />
+        </svg>
+      </button>
+
       <!-- Banner: links to the Event Summary page (informational recap before the traveler reaches the full detail/booking flow) -->
       <a
         [routerLink]="['/community/events', ev.id, 'summary']"

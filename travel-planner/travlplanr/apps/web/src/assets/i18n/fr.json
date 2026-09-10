@@ -606,6 +606,8 @@
       "PHOTO_LABEL": "Photo de profil",
       "PHOTO_HELPER": "Visible sur vos publications et dans les cercles",
       "CHANGE": "Modifier",
+      "REMOVE_PHOTO": "Supprimer la photo",
+      "EDIT_PHOTO_ARIA_LABEL": "Modifier la photo de profil",
       "DISPLAY_NAME": "Nom affiché",
       "ABOUT_YOU": "À propos de vous",
       "ABOUT_COUNTER": "{{count}} / 180",

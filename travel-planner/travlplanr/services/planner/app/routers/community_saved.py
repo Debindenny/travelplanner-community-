@@ -7,16 +7,16 @@ from pydantic import BaseModel
 from sqlalchemy import desc, select
 
 from shared.auth_dependencies import require_customer
-from app.models.community import CommunityCollection, CommunityCollectionItem, CommunityPost
+from app.models.community import CommunityCollection, CommunityCollectionItem, CommunityMeetup, CommunityPost
 from app.models.destinations import Destination
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-ITEM_TYPES = {"tip", "post", "destination", "itinerary"}
+ITEM_TYPES = {"tip", "post", "destination", "itinerary", "event"}
 
-_KIND_BY_ITEM_TYPE = {"tip": "Tip", "itinerary": "Trip", "post": "Spot", "destination": "Destination"}
+_KIND_BY_ITEM_TYPE = {"tip": "Tip", "itinerary": "Trip", "post": "Spot", "destination": "Destination", "event": "Event"}
 
 
 def _relative_time(when: datetime) -> str:
@@ -81,23 +81,33 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
         tip_ids = [i.item_id for i in saved_items if i.item_type == "tip"]
         post_ids = [i.item_id for i in saved_items if i.item_type == "post"]
         destination_ids = [i.item_id for i in saved_items if i.item_type == "destination"]
+        # Real, DB-backed meetups have UUID ids and resolve here; hosted-journey
+        # demo events (opaque ids like "evt-1") have no matching row and fall
+        # through to the generic fallback below, same as an unresolved 'itinerary'.
+        event_ids = []
+        for i in saved_items:
+            if i.item_type != "event":
+                continue
+            try:
+                event_ids.append(UUID(i.item_id))
+            except ValueError:
+                continue
         itinerary_ids = [i.item_id for i in saved_items if i.item_type == "itinerary"]
         tips_map, posts_map, destinations_map, trips_map = {}, {}, {}, {}
         if tip_ids:
             # "tip" saves point at a CommunityPost row that was curated as a
             # Discover tip (title IS NOT NULL) — same table as "post" saves.
             rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(tip_ids)))).scalars().all()
-            tips_map = {t.id: t for t in rows}
+            tips_map = {str(t.id): t for t in rows}
         if post_ids:
             rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(post_ids)))).scalars().all()
-            posts_map = {p.id: p for p in rows}
+            posts_map = {str(p.id): p for p in rows}
         if destination_ids:
             rows = (await session.execute(select(Destination).where(Destination.id.in_(destination_ids)))).scalars().all()
-            destinations_map = {d.id: d for d in rows}
-        if itinerary_ids:
-            from app.models.trips import Trip
-            rows = (await session.execute(select(Trip).where(Trip.id.in_(itinerary_ids)))).scalars().all()
-            trips_map = {t.id: t for t in rows}
+            destinations_map = {str(d.id): d for d in rows}
+        if event_ids:
+            rows = (await session.execute(select(CommunityMeetup).where(CommunityMeetup.id.in_(event_ids)))).scalars().all()
+            events_map = {str(e.id): e for e in rows}
 
         result = []
         for item in saved_items:
@@ -133,16 +143,18 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
                     "meta": f"{dest.region} · saved {when}",
                     "image": dest.image_url,
                 })
-            elif item.item_type == "itinerary" and item.item_id in trips_map:
-                trip = trips_map[item.item_id]
+            elif item.item_type == "event":
+                event = events_map.get(item.item_id)
                 result.append({
                     "id": str(item.id),
                     "item_id": str(item.item_id),
-                    "kind": _KIND_BY_ITEM_TYPE["itinerary"],
-                    "title": trip.title,
-                    "meta": f"{trip.destination} · saved {when}",
-                    "image": trip.image,
+                    "kind": _KIND_BY_ITEM_TYPE["event"],
+                    "title": event.title if event else "Saved event",
+                    "meta": f"{event.location} · saved {when}" if event and event.location else f"saved {when}",
+                    "image": event.image_url if event else "",
                 })
+            # 'itinerary' saves resolve once that service exposes a lookup here —
+            # skipped for now rather than shown with missing data.
 
         return {"items": result}
 
@@ -151,10 +163,13 @@ async def list_saved(request: Request, auth: dict = Depends(require_customer)):
 async def toggle_saved(data: ToggleSavedRequest, request: Request, auth: dict = Depends(require_customer)):
     if data.item_type not in ITEM_TYPES:
         raise HTTPException(status_code=400, detail=f"Unknown item_type '{data.item_type}'")
-    try:
-        item_uuid = UUID(data.item_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid item_id")
+    if data.item_type != "event":
+        # Every other item type is still backed by a real UUID-keyed table —
+        # validate the format even though the column itself now just stores text.
+        try:
+            UUID(data.item_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid item_id")
 
     customer_id = UUID(auth["customer_id"])
     async with request.app.state.session_factory() as session:
@@ -165,7 +180,7 @@ async def toggle_saved(data: ToggleSavedRequest, request: Request, auth: dict = 
                 select(CommunityCollectionItem).where(
                     CommunityCollectionItem.collection_id == collection.id,
                     CommunityCollectionItem.item_type == data.item_type,
-                    CommunityCollectionItem.item_id == item_uuid,
+                    CommunityCollectionItem.item_id == data.item_id,
                 )
             )
         ).scalar_one_or_none()
@@ -174,11 +189,11 @@ async def toggle_saved(data: ToggleSavedRequest, request: Request, auth: dict = 
             await session.delete(existing)
             saved = False
         else:
-            session.add(CommunityCollectionItem(collection_id=collection.id, item_type=data.item_type, item_id=item_uuid))
+            session.add(CommunityCollectionItem(collection_id=collection.id, item_type=data.item_type, item_id=data.item_id))
             saved = True
 
         if data.item_type == "tip":
-            tip = await session.get(CommunityPost, item_uuid)
+            tip = await session.get(CommunityPost, UUID(data.item_id))
             if tip:
                 tip.save_count = max(0, tip.save_count + (1 if saved else -1))
 
@@ -204,7 +219,7 @@ async def remove_saved_item(collection_item_id: UUID, request: Request, auth: di
             raise HTTPException(status_code=404, detail="Saved item not found")
 
         if item.item_type == "tip":
-            tip = await session.get(CommunityPost, item.item_id)
+            tip = await session.get(CommunityPost, UUID(item.item_id))
             if tip:
                 tip.save_count = max(0, tip.save_count - 1)
 
