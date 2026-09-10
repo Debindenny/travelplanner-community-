@@ -225,6 +225,23 @@ async def create_post(data: CreatePostRequest, request: Request, auth: dict = De
             try: itin_id_uuid = UUID(data.itinerary_id)
             except ValueError: pass
 
+        # Trip posts don't ask the user to pick a destination — derive destination_id
+        # from the selected trip's own destination name instead. Trips don't store a
+        # destination_id themselves (just a free-text `destination` name), so this
+        # matches that name against the curated destinations catalog; no match just
+        # leaves destination_id unset, same as today. Only runs when the client didn't
+        # already send an explicit destination_id, so every other post type is untouched.
+        if itin_id_uuid and not dest_id_uuid:
+            from app.models.trips import Trip
+            trip_destination = (await session.execute(
+                select(Trip.destination).where(Trip.id == itin_id_uuid)
+            )).scalar_one_or_none()
+            if trip_destination:
+                from app.models.destinations import Destination
+                dest_id_uuid = (await session.execute(
+                    select(Destination.id).where(func.lower(Destination.name) == trip_destination.strip().lower())
+                )).scalar_one_or_none()
+
         customer_prof = (await session.execute(select(CommunityProfile).where(CommunityProfile.customer_id == customer_id))).scalar_one_or_none()
         if not customer_prof:
             customer_prof = CommunityProfile(customer_id=customer_id, name=auth.get("customer_name") or "Traveler", avatar_url=None)
