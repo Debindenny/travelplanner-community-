@@ -26,6 +26,17 @@ function recencyRank(trip: CommunityTrip): number {
   return Number(amount) * (RECENCY_UNIT_HOURS[unit] ?? 24);
 }
 
+/** Ascending/descending by converted price, with trips lacking one (no
+ * structured amount/currency on the template) always sorted to the end. */
+function comparePrice(a: CommunityTrip, b: CommunityTrip, direction: 'asc' | 'desc'): number {
+  const priceA = a.perPersonAmountInr;
+  const priceB = b.perPersonAmountInr;
+  if (priceA == null && priceB == null) return 0;
+  if (priceA == null) return 1;
+  if (priceB == null) return -1;
+  return direction === 'asc' ? priceA - priceB : priceB - priceA;
+}
+
 @Component({
   selector: 'app-community-trips',
   imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, ItineraryPreviewModalComponent, RouterLink],
@@ -60,6 +71,7 @@ export class CommunityTripsComponent {
             subtitle: t.subtitle,
             tier: t.tier as CommunityTrip['tier'],
             saves: t.savesLabel,
+            savesCount: t.savesCount,
             image: t.image,
             author: t.author,
             customer_id: t.authorId,
@@ -68,6 +80,7 @@ export class CommunityTripsComponent {
             cities: t.cities,
             activities: t.activities,
             perPerson: t.perPerson,
+            perPersonAmountInr: t.perPersonAmountInr,
             isSaved: t.isSaved,
           })),
         ),
@@ -75,16 +88,25 @@ export class CommunityTripsComponent {
     });
   }
 
+  // All four pills SORT the full list rather than hiding trips — every trip
+  // stays visible in every tab, just reordered. Budget/Luxury compare prices
+  // via `perPersonAmountInr` (already converted server-side to a common
+  // currency), not the trip's display `tier`, so a trip is ranked by what it
+  // actually costs rather than a coarse category label.
   readonly filteredTrips = computed(() => {
     const filter = this.filter();
-    const trips = this.trips();
-    if (filter === 'Budget' || filter === 'Luxury') {
-      return trips.filter((trip) => trip.tier === filter);
+    const trips = [...this.trips()];
+    switch (filter) {
+      case 'Recent':
+        return trips.sort((a, b) => recencyRank(a) - recencyRank(b));
+      case 'Budget':
+        return trips.sort((a, b) => comparePrice(a, b, 'asc'));
+      case 'Luxury':
+        return trips.sort((a, b) => comparePrice(a, b, 'desc'));
+      case 'Popular':
+      default:
+        return trips.sort((a, b) => b.savesCount - a.savesCount);
     }
-    if (filter === 'Recent') {
-      return [...trips].sort((a, b) => recencyRank(a) - recencyRank(b));
-    }
-    return trips;
   });
 
   onShareTrip(): void {

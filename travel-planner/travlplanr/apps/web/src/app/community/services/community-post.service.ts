@@ -75,7 +75,11 @@ export interface CommunityTripTemplate {
   subtitle: string;
   tier: string;
   savesLabel: string;
+  savesCount: number;
   perPerson: string;
+  /** `perPerson` converted to INR (at a static rate) for cross-currency
+   * sorting; null if the amount/currency weren't set on the template. */
+  perPersonAmountInr: number | null;
   updatedLabel: string;
   image: string;
   author: string;

@@ -18,6 +18,24 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Static, approximate rates to INR — used only to make cross-currency trip
+# prices comparable for the Trips page's Budget/Luxury sort. There is no live
+# FX rate source wired into this service; update these by hand if they drift
+# too far from reality.
+_CURRENCY_TO_INR = {
+    "INR": 1.0,
+    "USD": 83.0,
+    "EUR": 90.0,
+    "GBP": 105.0,
+}
+
+
+def _to_inr(amount: float | int | None, currency: str | None) -> float | None:
+    if amount is None or not currency:
+        return None
+    rate = _CURRENCY_TO_INR.get(currency.upper())
+    return amount * rate if rate else None
+
 @router.get("/shortcuts")
 async def get_community_shortcuts(request: Request, auth: dict | None = Depends(optional_customer)):
     customer_id = UUID(auth["customer_id"]) if auth and "customer_id" in auth else None
@@ -252,7 +270,9 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
                 "subtitle": meta.get("subtitle", ""),
                 "tier": meta.get("tier", "Mid-range"),
                 "savesLabel": meta.get("saves_label", "0 saves"),
+                "savesCount": meta.get("saves_count", 0),
                 "perPerson": meta.get("per_person", ""),
+                "perPersonAmountInr": _to_inr(meta.get("per_person_amount"), meta.get("per_person_currency")),
                 "updatedLabel": meta.get("updated_label", ""),
                 "image": t.image,
                 "author": t.customer_name,
