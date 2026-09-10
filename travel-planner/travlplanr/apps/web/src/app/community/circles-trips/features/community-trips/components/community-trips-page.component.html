@@ -89,6 +89,6 @@
 
 @if (previewingTrip(); as trip) {
   <app-modal-shell [showHeader]="false" width="620px" maxHeight="760px" backdrop="light" (close)="onClosePreview()">
-    <app-itinerary-preview-modal [trip]="trip" (makeVersion)="onMakeVersionFromPreview()" />
+    <app-itinerary-preview-modal [trip]="trip" (back)="onClosePreview()" (makeVersion)="onMakeVersionFromPreview()" />
   </app-modal-shell>
 }

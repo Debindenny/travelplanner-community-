@@ -56,6 +56,7 @@ export class CommunityTripsComponent {
           items.map((t) => ({
             id: t.id,
             title: t.title,
+            destination: t.destination,
             subtitle: t.subtitle,
             tier: t.tier as CommunityTrip['tier'],
             saves: t.savesLabel,
@@ -136,9 +137,11 @@ export class CommunityTripsComponent {
       startLocation: payload.startingFrom,
       startDate: payload.startDate,
       endDate: payload.endDate,
+      days: trip.days,
       maxTravelers: payload.travelers,
       journeyName: trip.title,
       cloneTripId: trip.id,
+      image: trip.image,
     });
     this.router.navigate(['/community/events/host']);
   }

@@ -1,33 +1,26 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { CommunityPostService, TripTemplateDayCity } from '../../../../../services/community-post.service';
+import { CommunityPostService, TripTemplateDayCity, TripTemplatePlace } from '../../../../../services/community-post.service';
 import { CommunityTrip } from '../../data/community-trips.data';
 
-interface ItineraryDayGroup {
-  startDay: number;
-  endDay: number;
+interface ItineraryDay {
+  day: number;
   city: string;
+  places: TripTemplatePlace[];
   highlights: string[];
 }
 
-function groupDayCities(dayCities: TripTemplateDayCity[]): ItineraryDayGroup[] {
-  const groups: ItineraryDayGroup[] = [];
-  for (const entry of dayCities) {
-    const last = groups[groups.length - 1];
-    if (last && last.city === entry.city && last.endDay === entry.day - 1) {
-      last.endDay = entry.day;
-      continue;
-    }
+function toItineraryDays(dayCities: TripTemplateDayCity[]): ItineraryDay[] {
+  return dayCities.map((entry) => {
     const highlights = entry.places.slice(0, 2).map((p) => p.title);
-    groups.push({
-      startDay: entry.day,
-      endDay: entry.day,
+    return {
+      day: entry.day,
       city: entry.city,
+      places: entry.places,
       highlights: highlights.length ? highlights : [`Free day to explore ${entry.city}`],
-    });
-  }
-  return groups;
+    };
+  });
 }
 
 @Component({
@@ -42,18 +35,22 @@ export class ItineraryPreviewModalComponent implements OnInit {
 
   readonly trip = input.required<CommunityTrip>();
 
+  readonly back = output<void>();
   readonly makeVersion = output<void>();
 
   readonly loading = signal(true);
   readonly error = signal(false);
-  readonly dayGroups = signal<ItineraryDayGroup[]>([]);
+  readonly days = signal<ItineraryDay[]>([]);
+  readonly expandedDay = signal<number | null>(null);
 
   readonly authorInitial = computed(() => this.trip().author?.trim().charAt(0).toUpperCase() || '?');
 
   ngOnInit(): void {
     this.communityPostService.getTripTemplateDetail(this.trip().id).subscribe({
       next: (detail) => {
-        this.dayGroups.set(groupDayCities(detail.dayCities));
+        const days = toItineraryDays(detail.dayCities);
+        this.days.set(days);
+        this.expandedDay.set(days[0]?.day ?? null);
         this.loading.set(false);
       },
       error: () => {
@@ -63,8 +60,20 @@ export class ItineraryPreviewModalComponent implements OnInit {
     });
   }
 
-  dayLabel(group: ItineraryDayGroup): string {
-    return group.startDay === group.endDay ? `Day ${group.startDay}` : `Day ${group.startDay}-${group.endDay}`;
+  isExpanded(day: number): boolean {
+    return this.expandedDay() === day;
+  }
+
+  toggleDay(day: number): void {
+    this.expandedDay.update((current) => (current === day ? null : day));
+  }
+
+  stopCount(day: ItineraryDay): string {
+    return `${day.places.length} stop${day.places.length === 1 ? '' : 's'}`;
+  }
+
+  onBack(): void {
+    this.back.emit();
   }
 
   onMakeVersion(): void {

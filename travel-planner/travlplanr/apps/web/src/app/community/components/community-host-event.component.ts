@@ -212,6 +212,7 @@ function defaultAnswers(): WizardAnswers {
                         class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                       <app-destination-typeahead
+                        #routeTypeahead
                         listboxId="wizard-route-listbox"
                         [query]="routeQuery"
                         presentation="dropdown"
@@ -251,13 +252,29 @@ function defaultAnswers(): WizardAnswers {
                     <label class="block text-sm font-bold text-eventText-deep dark:text-white mb-2">
                       Trip start place <span class="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      [(ngModel)]="answers.startLocation"
-                      placeholder="e.g. Chennai"
-                      autocomplete="off"
-                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <div class="relative" #startLocationShell>
+                      <input
+                        type="text"
+                        [(ngModel)]="answers.startLocation"
+                        (input)="onStartLocationInput()"
+                        (focus)="startLocationDropdownOpen = true"
+                        (blur)="onStartLocationBlur()"
+                        (keydown)="onStartLocationKeydown($event)"
+                        placeholder="e.g. Chennai"
+                        autocomplete="off"
+                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <app-destination-typeahead
+                        #startLocationTypeahead
+                        listboxId="wizard-start-location-listbox"
+                        [query]="answers.startLocation"
+                        presentation="dropdown"
+                        variant="surface"
+                        [open]="startLocationDropdownOpen"
+                        (picked)="onStartLocationPicked($event)"
+                        (dismissed)="startLocationDropdownOpen = false"
+                      />
+                    </div>
                   </div>
 
                   <div class="flex items-center justify-between gap-3">
@@ -283,13 +300,29 @@ function defaultAnswers(): WizardAnswers {
                     <label class="block text-sm font-bold text-eventText-deep dark:text-white mb-2">
                       Trip end place <span class="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      [(ngModel)]="answers.endLocation"
-                      placeholder="e.g. Kuala Lumpur"
-                      autocomplete="off"
-                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <div class="relative" #endLocationShell>
+                      <input
+                        type="text"
+                        [(ngModel)]="answers.endLocation"
+                        (input)="onEndLocationInput()"
+                        (focus)="endLocationDropdownOpen = true"
+                        (blur)="onEndLocationBlur()"
+                        (keydown)="onEndLocationKeydown($event)"
+                        placeholder="e.g. Kuala Lumpur"
+                        autocomplete="off"
+                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <app-destination-typeahead
+                        #endLocationTypeahead
+                        listboxId="wizard-end-location-listbox"
+                        [query]="answers.endLocation"
+                        presentation="dropdown"
+                        variant="surface"
+                        [open]="endLocationDropdownOpen"
+                        (picked)="onEndLocationPicked($event)"
+                        (dismissed)="endLocationDropdownOpen = false"
+                      />
+                    </div>
                   </div>
                   <div *ngIf="!answers.differentEnd" class="px-4 py-3 rounded-xl bg-primary-50 dark:bg-primary/10 text-primary text-xs font-semibold flex items-start gap-2">
                     <svg class="w-4 h-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -308,7 +341,8 @@ function defaultAnswers(): WizardAnswers {
                       </label>
                       <input
                         type="date"
-                        [(ngModel)]="answers.startDate"
+                        [ngModel]="answers.startDate"
+                        (ngModelChange)="answers.startDate = $event; onStartDateChange()"
                         [attr.min]="todayIso"
                         class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
                       />
@@ -321,8 +355,12 @@ function defaultAnswers(): WizardAnswers {
                         type="date"
                         [(ngModel)]="answers.endDate"
                         [attr.min]="answers.startDate || todayIso"
-                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                        [disabled]="datesLocked"
+                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-gray-700 text-sm font-semibold text-eventText-deep dark:text-white dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-50 dark:disabled:bg-gray-700/20 disabled:text-eventText-mid disabled:cursor-not-allowed"
                       />
+                      <p *ngIf="datesLocked" class="mt-1.5 text-xs font-semibold text-eventText-soft">
+                        This itinerary runs {{ templateDaysLabel }} — end date is calculated for you.
+                      </p>
                     </div>
                   </div>
 
@@ -598,7 +636,11 @@ export class CommunityHostEventComponent {
   private readonly wizardPrefill = inject(HostWizardPrefillService);
 
   @ViewChild('routeSearchShell') private routeSearchShellRef?: ElementRef<HTMLDivElement>;
-  @ViewChild(DestinationTypeaheadComponent) private routeTypeahead?: DestinationTypeaheadComponent;
+  @ViewChild('routeTypeahead') private routeTypeahead?: DestinationTypeaheadComponent;
+  @ViewChild('startLocationShell') private startLocationShellRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('startLocationTypeahead') private startLocationTypeahead?: DestinationTypeaheadComponent;
+  @ViewChild('endLocationShell') private endLocationShellRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('endLocationTypeahead') private endLocationTypeahead?: DestinationTypeaheadComponent;
 
   readonly tripTypeOptions = TRIP_TYPE_OPTIONS;
   readonly travelStyleOptions = TRAVEL_STYLE_OPTIONS;
@@ -612,6 +654,9 @@ export class CommunityHostEventComponent {
   routeQuery = '';
   routeDropdownOpen = false;
 
+  startLocationDropdownOpen = false;
+  endLocationDropdownOpen = false;
+
   publishing = false;
   publishedCard: CommunityEventCard | null = null;
   shareLink = '';
@@ -619,6 +664,8 @@ export class CommunityHostEventComponent {
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private cloneTripId: string | null = null;
+  private templateDays: number | null = null;
+  private templateImage: string | null = null;
 
   constructor() {
     const prefill = this.wizardPrefill.consume();
@@ -632,9 +679,15 @@ export class CommunityHostEventComponent {
       if (prefill.startLocation) this.answers.startLocation = prefill.startLocation;
       if (prefill.startDate) this.answers.startDate = prefill.startDate;
       if (prefill.endDate) this.answers.endDate = prefill.endDate;
+      if (prefill.days) this.templateDays = prefill.days;
+      if (prefill.image) this.templateImage = prefill.image;
       if (prefill.maxTravelers) this.answers.maxTravelers = prefill.maxTravelers;
       if (prefill.journeyName) this.answers.journeyName = prefill.journeyName;
     }
+
+    // Reflect an already-known destination in the search box on first render,
+    // so it doesn't look empty when a route came in via prefill or a saved draft.
+    if (this.answers.route.length) this.routeQuery = this.answers.route.join(', ');
   }
 
   get stepMeta() {
@@ -657,6 +710,18 @@ export class CommunityHostEventComponent {
     const end = new Date(`${this.answers.endDate}T00:00:00`);
     const diff = Math.round((end.getTime() - start.getTime()) / 86400000);
     return diff > 0 ? diff : 0;
+  }
+
+  /** True when cloning a template trip of known length — its route is a
+   * fixed, already-built itinerary, so the end date tracks the start date
+   * rather than being independently editable. */
+  get datesLocked(): boolean {
+    return !!this.cloneTripId && !!this.templateDays;
+  }
+
+  get templateDaysLabel(): string {
+    const days = this.templateDays ?? 0;
+    return `${days} day${days === 1 ? '' : 's'}`;
   }
 
   get canContinue(): boolean {
@@ -808,6 +873,63 @@ export class CommunityHostEventComponent {
     this.answers.route = this.answers.route.filter((c) => c !== city);
   }
 
+  // ── Step 2: start / end place search ──────────────────────────────
+
+  onStartLocationInput(): void {
+    this.startLocationTypeahead?.resetActiveIndex();
+    this.startLocationDropdownOpen = true;
+  }
+
+  onStartLocationBlur(): void {
+    setTimeout(() => {
+      const shell = this.startLocationShellRef?.nativeElement;
+      const active = document.activeElement;
+      if (shell && active && shell.contains(active)) return;
+      this.startLocationDropdownOpen = false;
+    }, 0);
+  }
+
+  onStartLocationKeydown(event: KeyboardEvent): void {
+    this.startLocationTypeahead?.handleKeydown(event);
+  }
+
+  onStartLocationPicked(item: DestinationListItem): void {
+    this.answers.startLocation = item.name;
+    this.startLocationDropdownOpen = false;
+  }
+
+  onEndLocationInput(): void {
+    this.endLocationTypeahead?.resetActiveIndex();
+    this.endLocationDropdownOpen = true;
+  }
+
+  onEndLocationBlur(): void {
+    setTimeout(() => {
+      const shell = this.endLocationShellRef?.nativeElement;
+      const active = document.activeElement;
+      if (shell && active && shell.contains(active)) return;
+      this.endLocationDropdownOpen = false;
+    }, 0);
+  }
+
+  onEndLocationKeydown(event: KeyboardEvent): void {
+    this.endLocationTypeahead?.handleKeydown(event);
+  }
+
+  onEndLocationPicked(item: DestinationListItem): void {
+    this.answers.endLocation = item.name;
+    this.endLocationDropdownOpen = false;
+  }
+
+  // ── Step 3: dates ──────────────────────────────────────────────────
+
+  onStartDateChange(): void {
+    if (!this.datesLocked || !this.answers.startDate) return;
+    const start = new Date(`${this.answers.startDate}T00:00:00`);
+    start.setDate(start.getDate() + (this.templateDays! - 1));
+    this.answers.endDate = toLocalIsoDate(start);
+  }
+
   // ── Step 4: multi-select pills ────────────────────────────────────
 
   hasTravelStyle(option: string): boolean {
@@ -922,7 +1044,7 @@ export class CommunityHostEventComponent {
       tag: 'Meetup',
       joined: false,
       followed: false,
-      imageUrl: unsplashUrl('1488646953014-85cb44e25828'),
+      imageUrl: this.templateImage || unsplashUrl('1488646953014-85cb44e25828'),
       hostId: CURRENT_USER_ID,
       hostName: 'You',
       hostRole: '',
@@ -952,8 +1074,17 @@ export class CommunityHostEventComponent {
 
     if (this.cloneTripId) {
       // Best-effort: also seeds a real itinerary from the cloned trip. Failure here
-      // shouldn't block the (purely local/mock) event publish above.
-      this.communityPostService.cloneTrip(this.cloneTripId).subscribe({ next: () => {}, error: () => {} });
+      // shouldn't block the (purely local/mock) event publish above. The user's chosen
+      // dates/destination/travelers are forwarded so the clone doesn't inherit the
+      // original (often already-completed) template trip's dates.
+      this.communityPostService
+        .cloneTrip(this.cloneTripId, {
+          destination: (this.answers.route.length ? this.answers.route : [this.primaryCity]).join(', '),
+          startDate: this.answers.startDate,
+          endDate: this.answers.endDate,
+          travelers: this.answers.maxTravelers,
+        })
+        .subscribe({ next: () => {}, error: () => {} });
     }
 
     this.publishedCard = card;
