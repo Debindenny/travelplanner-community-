@@ -12,6 +12,7 @@ export interface CommunityTrip {
   subtitle: string;
   tier: TripTier;
   saves: string;
+  savesCount: number;
   image: string;
   author: string;
   customer_id: string;
@@ -20,5 +21,8 @@ export interface CommunityTrip {
   cities: number;
   activities: number;
   perPerson: string;
+  /** `perPerson` converted to INR (at a static rate) for cross-currency
+   * sorting; null if the template didn't have a structured amount/currency. */
+  perPersonAmountInr: number | null;
   isSaved: boolean;
 }
