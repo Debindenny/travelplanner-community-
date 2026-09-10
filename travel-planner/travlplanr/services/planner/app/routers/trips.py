@@ -81,6 +81,29 @@ class TripCreateBody(BaseModel):
     coverageTier: str | None = "full"
 
 
+class TripFromContentBody(BaseModel):
+    """Pre-built day-by-day content supplied by the client — no AI generation.
+
+    Used to turn a source the client already has full content for (e.g. a
+    hosted community journey) into a real, immediately-ready trip.
+    """
+    title: str
+    destination: str
+    startDate: str
+    endDate: str
+    travelers: int = Field(ge=1, le=50, default=1)
+    travelStyle: str | None = None
+    travelMethod: str | None = None
+    budget: str | None = None
+    interests: list[str] | None = None
+    foodPreferences: list[str] | None = None
+    image: str | None = None
+    days: list[dict[str, Any]] = Field(min_length=1)
+    cityDays: list[dict[str, Any]] | None = None
+    segments: list[dict[str, Any]]
+    customizations: dict[str, Any] | None = None
+
+
 @router.get("")
 async def list_trips(
     request: Request,
@@ -481,6 +504,82 @@ async def create_trip(body: TripCreateBody, request: Request, background_tasks: 
             }
         )
         await emit_event(request.app.state.redis, STREAM_AI_WORKER, gen_event)
+
+        return {"id": str(trip.id), "status": trip.status.value}
+
+
+@router.post("/from-content")
+async def create_trip_from_content(
+    body: TripFromContentBody,
+    request: Request,
+    auth: dict = Depends(require_customer),
+):
+    """
+    Create a trip from client-supplied day-by-day content — no AI generation,
+    status is immediately READY. Mirrors packages.create_plan_from_package's
+    pattern, generalized for any source the client already has full content
+    for (currently: a traveler joining a hosted community journey).
+    """
+    customer_id = uuid.UUID(auth["customer_id"])
+    tenant_id = uuid.UUID(auth["tenant_id"])
+    customer_name = auth.get("customer_name", "Traveler")
+    customizations = body.customizations or {}
+
+    async with request.app.state.session_factory() as session:
+        source_id = customizations.get("eventId")
+        if source_id:
+            existing = (
+                await session.execute(
+                    select(Trip).where(
+                        Trip.customer_id == customer_id,
+                        Trip.customizations["eventId"].astext == str(source_id),
+                    )
+                )
+            ).scalar_one_or_none()
+            if existing:
+                return {"id": str(existing.id), "status": existing.status.value}
+
+        count_res = await session.execute(select(func.count()).select_from(Trip))
+        itin_code = f"ITIN-{(count_res.scalar() or 0) + 1:04d}"
+
+        trip = Trip(
+            tenant_id=tenant_id,
+            customer_id=customer_id,
+            customer_name=customer_name,
+            display_code=itin_code,
+            title=body.title,
+            destination=body.destination,
+            start_date=body.startDate,
+            end_date=body.endDate,
+            travelers=_travelers_from_style(body.travelStyle, body.travelers),
+            travel_style=body.travelStyle,
+            travel_method=body.travelMethod,
+            budget=body.budget,
+            interests=body.interests or [],
+            food_preferences=body.foodPreferences or [],
+            status=TripStatus.READY,
+            image=body.image,
+            days=body.days,
+            city_days=body.cityDays or [],
+            segments=body.segments,
+            customizations=customizations,
+        )
+        session.add(trip)
+        await session.flush()
+
+        event = DomainEvent(
+            event_type=EventType.TRIP_CREATED,
+            subject_id=str(trip.id),
+            tenant_id=str(tenant_id),
+            payload={
+                "customer_id": str(customer_id),
+                "destination": trip.destination,
+                "status": trip.status.value,
+                "source": customizations.get("source", "manual"),
+            },
+        )
+        await emit_event(request.app.state.redis, STREAM_PLANNER, event)
+        await session.commit()
 
         return {"id": str(trip.id), "status": trip.status.value}
 

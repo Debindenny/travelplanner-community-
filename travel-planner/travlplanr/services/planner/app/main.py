@@ -165,6 +165,7 @@ from app.routers import (
     community_moderation,
     community_gamification,
     community_meetups,
+    event_itinerary,
     community_journals,
     community_spaces,
     community_space_messages,
@@ -205,6 +206,7 @@ app.include_router(community_websockets.router, prefix="/api/v1/community", tags
 app.include_router(community_moderation.router, prefix="/api/v1/community", tags=["Community"])
 app.include_router(community_gamification.router, prefix="/api/v1/community/gamification", tags=["Community"])
 app.include_router(community_meetups.router, prefix="/api/v1/community/meetups", tags=["Community"])
+app.include_router(event_itinerary.router, prefix="/api/v1/community/meetups", tags=["Community"])
 app.include_router(community_journals.router, prefix="/api/v1/community/journals", tags=["Community"])
 app.include_router(community_spaces.router, prefix="/api/v1/community/spaces", tags=["Community"])
 app.include_router(community_space_messages.router, prefix="/api/v1/community/spaces", tags=["Community"])

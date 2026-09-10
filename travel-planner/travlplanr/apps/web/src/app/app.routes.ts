@@ -222,6 +222,26 @@ export const routes: Routes = [
           import('./community/components/community-host-event.component').then((m) => m.CommunityHostEventComponent),
       },
       {
+        path: 'community/events/:id/summary',
+        loadComponent: () =>
+          import('./community/components/community-event-summary.component').then((m) => m.CommunityEventSummaryComponent),
+      },
+      {
+        path: 'community/events/:id/review',
+        loadComponent: () =>
+          import('./community/components/community-event-review.component').then((m) => m.CommunityEventReviewComponent),
+      },
+      {
+        path: 'community/events/:id/payment',
+        loadComponent: () =>
+          import('./community/components/community-event-payment.component').then((m) => m.CommunityEventPaymentComponent),
+      },
+      {
+        path: 'community/events/:id/success',
+        loadComponent: () =>
+          import('./community/components/community-event-success.component').then((m) => m.CommunityEventSuccessComponent),
+      },
+      {
         path: 'community/events/:id',
         loadComponent: () =>
           import('./community/components/community-event-view.component').then((m) => m.CommunityEventDetailViewComponent),

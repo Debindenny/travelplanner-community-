@@ -56,7 +56,7 @@ interface SubnavItem {
     class="mt-40 flex items-center gap-3 px-3 py-3 ..."
   >
     <img
-      [src]="getAvatarUrl(profile.avatar)"
+      [src]="getAvatarUrl(profile.avatarUrl)"
       class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-100"
       alt=""
     />
@@ -115,7 +115,9 @@ export class CommunityHomeSubnavComponent implements OnInit {
       return;
     }
     this.profileService.getMyProfile().subscribe({
-      next: (p) => this.profile.set(p),
+      next: (p) => {
+        this.profile.set(p);
+      },
       error: () => {},
     });
     this.eventsService.getEvents(20, 0).subscribe({

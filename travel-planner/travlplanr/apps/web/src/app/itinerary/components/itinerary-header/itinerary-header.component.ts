@@ -122,7 +122,7 @@ import { TripViewer } from '../../../shared/services/trip-presence.service';
           </div>
         </div>
       } @else {
-      <nav class="sticky top-[68px] z-40 bg-surface-muted border-b border-border-light">
+      <nav class="bg-surface-muted border-b border-border-light">
         <div class="page-container px-5 xl:px-20 flex items-center justify-between gap-4 py-2">
           <!-- Tabs (Left side) -->
           <div class="flex items-center gap-0 overflow-x-auto min-w-0">

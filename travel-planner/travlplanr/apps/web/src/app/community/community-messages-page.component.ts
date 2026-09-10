@@ -82,7 +82,7 @@ import { apiErrorMessage } from '../shared/utils/api-error.util';
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
               </button>
               <img
-                [src]="(activeConversation()?.other_user?.avatar || pendingRecipient()?.avatar) || '/assets/images/default-avatar.svg'"
+                [src]="(activeConversation()?.other_user?.avatar || pendingRecipient()?.avatarUrl) || '/assets/images/default-avatar.svg'"
                 class="w-10 h-10 rounded-full object-cover"
                 />
               <div class="flex-1">
@@ -180,7 +180,7 @@ import { apiErrorMessage } from '../shared/utils/api-error.util';
                   class="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
                   (click)="selectRecipient(u)"
                   >
-                  <img [src]="u.avatar || '/assets/images/default-avatar.svg'" class="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" decoding="async" />
+                  <img [src]="u.avatarUrl || '/assets/images/default-avatar.svg'" class="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" decoding="async" />
                   <span class="font-medium text-gray-900 truncate">{{ u.name }}</span>
                 </button>
               }
@@ -385,7 +385,7 @@ export class CommunityMessagesPageComponent implements OnInit, OnDestroy, AfterV
             this.conversations.set(convs);
             const created = convs.find((c) => c.id === msg.conversation_id) ?? {
               id: msg.conversation_id,
-              other_user: recipient,
+              other_user: { id: recipient.id, name: recipient.name, avatar: recipient.avatarUrl },
               last_message_at: msg.created_at,
               unread_count: 0,
               last_message_preview: msg.content,

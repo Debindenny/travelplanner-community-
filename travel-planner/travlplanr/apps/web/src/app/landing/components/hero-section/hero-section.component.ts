@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnDestroy, AfterViewInit, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AnimatedLinkComponent } from '../../../shared/components/animated-link/animated-link.component';
 import { DestinationTypeaheadComponent } from '../../../shared/components/destination-typeahead/destination-typeahead.component';
 import { SearchPlanAssistComponent } from '../../../shared/components/search-plan-assist/search-plan-assist.component';
@@ -10,6 +10,7 @@ import { EventHostAssistantService } from '../../../shared/services/event-host-a
 import { ChatContextService } from '../../../shared/services/chat-context.service';
 import { DestinationSearchService } from '../../../shared/services/destination-search.service';
 import { DestinationListItem } from '../../../shared/utils/destination.util';
+import { isHostEventRequest } from '../../../shared/utils/chat-intent.util';
 import { TranslatePipe } from '@ngx-translate/core';
 
 // PROTECTED SURFACE: see ./PROTECTED.md before changing video/mute/composer/typeahead markup below.
@@ -859,6 +860,7 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
   private readonly chatContext = inject(ChatContextService);
   private readonly destinationSearch = inject(DestinationSearchService);
   private readonly eventHost = inject(EventHostAssistantService);
+  private readonly router = inject(Router);
 
   readonly typeaheadEnabled = computed(
     () =>
@@ -1690,6 +1692,17 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
     }
     const query = this.searchInput()?.nativeElement.value.trim();
     if (!query || this.chat.sending()) return;
+
+    // "Host event" belongs to its own dedicated flow on the Community Events
+    // page, not the home-page trip-planning chat — send it straight there
+    // instead of opening this chat and answering as the generic AI.
+    if (!this.eventHost.active() && isHostEventRequest(query)) {
+      const input = this.searchInput()?.nativeElement;
+      if (input) input.value = '';
+      this.inputValue.set('');
+      this.router.navigate(['/community/events/host']);
+      return;
+    }
 
     this.openChat();
     const input = this.searchInput()?.nativeElement;

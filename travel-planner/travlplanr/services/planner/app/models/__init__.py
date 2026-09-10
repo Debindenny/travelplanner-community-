@@ -17,6 +17,10 @@ from app.models.community import (
     CommunityMeetup, MeetupRsvp, Journal, CommunitySpace, SpaceMember,
 )
 from app.models.collaboration import TripCollaborator, TripInvite, TripActivity, TripExpense, ExpenseShare
+from app.models.event_bookings import (
+    EventItineraryDay, EventItineraryActivity, EventActivitySelection,
+    EventActivityBooking, EventTransportSegment, EventJourneyParticipation,
+)
 from app.models.matching import TravelBuddyProfile, TravelBuddyRequest
 from app.models.ai_learning import (
     ChatInteraction,
@@ -37,4 +41,6 @@ __all__ = [
     "CommunitySpace", "SpaceMember", "TripCollaborator", "TripInvite",
     "TripActivity", "TripExpense", "ExpenseShare", "TravelBuddyProfile", "TravelBuddyRequest",
     "ChatInteraction", "ActivityOutcome", "ActivityAcceptanceStat", "CustomerTravelProfile", "PromptVersion",
+    "EventItineraryDay", "EventItineraryActivity", "EventActivitySelection",
+    "EventActivityBooking", "EventTransportSegment", "EventJourneyParticipation",
 ]

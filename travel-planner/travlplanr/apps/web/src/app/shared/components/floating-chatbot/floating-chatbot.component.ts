@@ -1,5 +1,7 @@
 import {
+  AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   computed,
@@ -9,6 +11,9 @@ import {
   viewChild,
   OnDestroy
 } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DestinationTypeaheadComponent } from '../destination-typeahead/destination-typeahead.component';
 import { SearchPlanAssistComponent } from '../search-plan-assist/search-plan-assist.component';
@@ -19,6 +24,7 @@ import { TravelChatSessionService } from '../../services/travel-chat-session.ser
 import { EventHostAssistantService } from '../../services/event-host-assistant.service';
 import { TravelChatMessagesComponent } from '../travel-chat-messages/travel-chat-messages.component';
 import { DestinationListItem } from '../../utils/destination.util';
+import { isHostEventRequest } from '../../utils/chat-intent.util';
 
 /**
  * The same docked search/chat bar used on the landing hero, rendered
@@ -47,6 +53,7 @@ import { DestinationListItem } from '../../utils/destination.util';
         #dockEl
         class="global-dock-wrap"
         [class.chat-active]="showChatThread()"
+        [class.dock-hidden]="dockHidden()"
         (mousedown)="$event.stopPropagation()"
       >
         <div class="chat-thread" [class.visible]="showChatThread()">
@@ -238,11 +245,19 @@ import { DestinationListItem } from '../../utils/destination.util';
         justify-content: flex-end;
         --hero-chat-max: min(58dvh, calc(100dvh - 8rem));
         will-change: transform, opacity;
-        transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
       }
       .global-dock-wrap.chat-active {
         width: min(800px, calc(100vw - 2rem));
         max-width: min(800px, calc(100vw - 2rem));
+      }
+      /* Soft-hidden near a page's own footer/payment section (see
+         observePageBoundaryProximity) — visibility-only, the dock instance
+         and its chat session/history are never destroyed. */
+      .global-dock-wrap.dock-hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%) translateY(110%);
       }
 
       .chat-thread {
@@ -426,7 +441,7 @@ import { DestinationListItem } from '../../utils/destination.util';
     `,
     ]
 })
-export class FloatingChatbotComponent implements OnDestroy {
+export class FloatingChatbotComponent implements AfterViewInit, OnDestroy {
   private readonly dockEl = viewChild<ElementRef<HTMLElement>>('dockEl');
   private readonly dockInput = viewChild<ElementRef<HTMLInputElement>>('dockInput');
   readonly dockTypeahead = viewChild(DestinationTypeaheadComponent);
@@ -438,12 +453,76 @@ export class FloatingChatbotComponent implements OnDestroy {
     if (this.chat.sending()) {
       this.chat.stopGenerating();
     }
+    this.boundaryObserver?.disconnect();
+    this.boundaryObserver = null;
+    if (this.boundaryHideTimer) {
+      clearTimeout(this.boundaryHideTimer);
+      this.boundaryHideTimer = null;
+    }
+  }
+
+  /** Soft-hidden (visibility only — same dock instance, chat session and
+   * history stay alive) whenever the current page marks a "near the payment
+   * area / footer" boundary with `[data-chat-hide-boundary]`. Mirrors
+   * HeroSectionComponent's observeFooterProximity() 1:1. */
+  readonly dockHidden = signal(false);
+  private boundaryObserver: IntersectionObserver | null = null;
+  private boundaryHideTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly destroyRef = inject(DestroyRef);
+
+  ngAfterViewInit(): void {
+    if (typeof window === 'undefined') return;
+    queueMicrotask(() => this.observePageBoundaryProximity());
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      this.dockHidden.set(false);
+      queueMicrotask(() => this.observePageBoundaryProximity());
+    });
+  }
+
+  private observePageBoundaryProximity(): void {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
+    this.boundaryObserver?.disconnect();
+    this.boundaryObserver = null;
+
+    const boundary = document.querySelector('[data-chat-hide-boundary]');
+    if (!boundary) {
+      this.dockHidden.set(false);
+      return;
+    }
+
+    // Shrink the effective viewport by the dock's own reserved bottom space —
+    // hide as soon as the boundary enters that zone, not once some fixed
+    // fraction of it is covered. A percentage-of-target threshold (like the
+    // hero footer's 0.35) only works for a target roughly as tall as the
+    // dock's danger zone; a compact section like a cost-summary/payment
+    // block never reaches it before the dock is already sitting on top of it.
+    this.boundaryObserver = new IntersectionObserver(
+      ([entry]) => {
+        // Soften only — never fully hide/show the dock on threshold chatter
+        // (that read as a scroll glitch). Keep it usable while chatting.
+        const overlapping = entry.isIntersecting && !this.showChatThread();
+        if (this.boundaryHideTimer) {
+          clearTimeout(this.boundaryHideTimer);
+          this.boundaryHideTimer = null;
+        }
+        this.boundaryHideTimer = setTimeout(() => {
+          this.boundaryHideTimer = null;
+          this.dockHidden.set(overlapping);
+        }, overlapping ? 200 : 280);
+      },
+      { threshold: 0, rootMargin: '0px 0px -110px 0px' },
+    );
+    this.boundaryObserver.observe(boundary);
   }
 
   readonly chatContext = inject(ChatContextService);
   readonly chat = inject(TravelChatSessionService);
   readonly eventHost = inject(EventHostAssistantService);
   private readonly destinationSearch = inject(DestinationSearchService);
+  private readonly router = inject(Router);
 
   readonly inputValue = signal('');
   private ignoreOutsideClickUntil = 0;
@@ -639,6 +718,17 @@ export class FloatingChatbotComponent implements OnDestroy {
     }
     const query = this.dockInput()?.nativeElement.value.trim();
     if (!query || this.chat.sending()) return;
+
+    // "Host event" belongs to its own dedicated flow on the Community Events
+    // page, not this general-purpose trip-planning dock — send it straight
+    // there instead of answering as the generic AI.
+    if (!this.eventHost.active() && isHostEventRequest(query)) {
+      const input = this.dockInput()?.nativeElement;
+      if (input) input.value = '';
+      this.inputValue.set('');
+      this.router.navigate(['/community/events/host']);
+      return;
+    }
 
     this.openChat();
     const input = this.dockInput()?.nativeElement;

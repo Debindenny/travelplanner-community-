@@ -62,7 +62,8 @@ async def update_my_community_profile(data: UpdateCommunityProfileRequest, reque
             session.add(prof)
         if data.name is not None: prof.name = data.name
         if data.bio is not None: prof.bio = data.bio
-        if data.avatar is not None: prof.avatar_url = data.avatar
+        if "avatar" in data.model_fields_set:
+            prof.avatar_url = data.avatar if data.avatar else None
         if data.local_in is not None: prof.local_in = data.local_in
         if data.cover is not None: prof.cover_url = data.cover
         if data.about is not None: prof.about = data.about

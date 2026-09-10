@@ -1,14 +1,20 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { CommunityEventsMockStore } from '../services/community-events-mock.store';
-import { CommunityEventCard, JourneyDay } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment } from '../services/community-event-view.model';
+import { EventItineraryService } from '../services/event-itinerary.service';
+import { AuthService } from '../../auth/auth.service';
+import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary-timeline/itinerary-timeline.component';
+import type { DetailDay, DetailItem } from '../../itinerary/itinerary-page.component';
+import type { DetailActivity } from '../../trip/trip.service';
 
 type JoinMode = 'full' | 'partial';
 
 @Component({
   selector: 'app-community-event-view',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule, ItineraryTimelineComponent],
   styles: [
     `
     .trip-slider {
@@ -59,12 +65,15 @@ type JoinMode = 'full' | 'partial';
       </div>
     } @else {
       <div class="font-manrope">
+      @if (!showChangeActivityView) {
         <!-- Breadcrumb -->
         <nav class="w-full bg-slate-50 dark:bg-gray-900 border-b border-slate-100 dark:border-gray-800 flex items-center gap-2 text-xs font-semibold text-eventText-soft dark:text-gray-400 flex-wrap">
           <div class="page-container w-full px-5 xl:px-20 py-3 flex items-center gap-2 flex-wrap">
             <a routerLink="/community" class="hover:text-primary transition-colors">Community</a>
             <span class="text-slate-300 dark:text-gray-600">/</span>
             <a routerLink="/community/events" class="hover:text-primary transition-colors">Hosted Journeys</a>
+            <span class="text-slate-300 dark:text-gray-600">/</span>
+            <a [routerLink]="['/community/events', event.id, 'summary']" class="hover:text-primary transition-colors">Summary</a>
             <span class="text-slate-300 dark:text-gray-600">/</span>
             <span class="font-extrabold text-eventText-deep dark:text-white">{{ event.title }}</span>
           </div>
@@ -138,7 +147,8 @@ type JoinMode = 'full' | 'partial';
         </div>
 
         <!-- Below hero -->
-        <div class="page-container mx-auto px-5 xl:px-20 py-6">
+        <!-- Extra bottom padding (pb-28) keeps the last itinerary/summary buttons clear of the floating chat dock (~75px fixed at the viewport bottom on every page — see floating-chatbot.component.ts's .global-dock-wrap), which otherwise sits on top of and swallows clicks on whatever content scrolls to rest behind it. -->
+        <div class="page-container mx-auto px-5 xl:px-20 pt-6 pb-28">
           <!-- Title row -->
           <div class="flex items-start justify-between flex-wrap gap-4 pb-6 mb-6 border-b border-slate-100 dark:border-gray-700">
             <div>
@@ -191,65 +201,40 @@ type JoinMode = 'full' | 'partial';
           </div>
 
           @if (event.days?.length) {
-            <!-- Day tabs -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 mb-6">
-              <button
-                *ngFor="let d of event.days; let i = index"
-                type="button"
-                (click)="selectedDayIndex = i"
-                class="h-9 px-4 rounded-lg text-xs font-bold whitespace-nowrap transition-colors shrink-0"
-                [class.bg-primary]="selectedDayIndex === i"
-                [class.text-white]="selectedDayIndex === i"
-                [class.bg-slate-100]="selectedDayIndex !== i"
-                [class.dark:bg-gray-700]="selectedDayIndex !== i"
-                [class.text-eventText-mid]="selectedDayIndex !== i"
-                [class.dark:text-gray-300]="selectedDayIndex !== i"
-              >
-                Day {{ d.day }}
-              </button>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <!-- Itinerary Timeline -->
               <div class="lg:col-span-2 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-5">
                 <h3 class="font-manrope text-base font-extrabold text-eventText-deep dark:text-white mb-4">Itinerary Timeline</h3>
 
-                <div>
-                  <ng-container *ngFor="let d of event.days; let i = index; let last = last">
-                    <div
-                      class="rounded-xl p-4 transition-colors"
-                      [class.bg-primary]="selectedDayIndex === i"
-                      [class.text-white]="selectedDayIndex === i"
-                      [class.bg-slate-50]="selectedDayIndex !== i"
-                      [class.dark:bg-gray-700/40]="selectedDayIndex !== i"
-                    >
-                      <div class="flex items-center gap-3">
-                        <span
-                          class="w-5 h-5 rounded-md border flex items-center justify-center shrink-0"
-                          [class.bg-white]="isDayIncluded(d.day)"
-                          [class.border-white]="selectedDayIndex === i"
-                          [class.border-slate-300]="selectedDayIndex !== i"
-                        >
-                          <svg *ngIf="isDayIncluded(d.day)" class="w-3 h-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </span>
-                        <div class="min-w-0">
-                          <p class="text-xs font-extrabold uppercase tracking-wide" [class.text-white]="selectedDayIndex === i" [class.text-eventText-deep]="selectedDayIndex !== i" [class.dark:text-white]="selectedDayIndex !== i">
-                            Day {{ d.day }} - {{ d.city }}
-                          </p>
-                          <p class="text-[11px] font-semibold mt-0.5" [class.text-white/80]="selectedDayIndex === i" [class.text-eventText-soft]="selectedDayIndex !== i">
-                            {{ d.dateLabel }}
-                          </p>
+                <app-itinerary-timeline
+                  [displayedDays]="detailDays()"
+                  [highlightedDays]="highlightedDaySet()"
+                  [getItemKey]="activityItemKey"
+                  [transportModeOptions]="transportModeOptions"
+                  [bookedItemKeys]="bookedActivityKeys()"
+                  (dayHeaderClick)="onDayHeaderClick($event)"
+                  (book)="onBookActivity($event)"
+                  (activitySwap)="onActivitySwap($event)"
+                  (transportAdd)="addTransport($event.day, $event.type)"
+                ></app-itinerary-timeline>
+
+                @if (transport.length) {
+                  <div class="mt-4 pt-4 border-t border-slate-100 dark:border-gray-700">
+                    <p class="text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-2">Your added transport</p>
+                    <div class="flex flex-col gap-2">
+                      <div *ngFor="let t of transport" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-gray-700/40">
+                        <svg class="w-4 h-4 text-eventText-soft shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 6V4h10v2M7 18v2M17 18v2" />
+                        </svg>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-xs font-extrabold text-eventText-deep dark:text-white truncate">After Day {{ t.afterDay }} · {{ t.title }}</p>
+                          <p class="text-[11px] font-semibold text-eventText-soft">{{ t.mode }}<span *ngIf="t.time"> · {{ t.time }}</span><span *ngIf="t.price"> · ₹{{ t.price | number }}</span></p>
                         </div>
+                        <button type="button" (click)="removeTransportSegment(t)" class="text-[11px] font-bold text-red-500 hover:underline shrink-0">Remove</button>
                       </div>
-                      <ul class="mt-3 ml-8 space-y-1 list-disc" [class.text-white/90]="selectedDayIndex === i" [class.text-eventText-mid]="selectedDayIndex !== i" [class.dark:text-gray-300]="selectedDayIndex !== i">
-                        <li *ngFor="let activity of d.activities" class="text-[12px] font-semibold">{{ activity }}</li>
-                      </ul>
                     </div>
-                    <div *ngIf="!last" class="ml-6 h-3 border-l-2 border-dashed border-slate-200 dark:border-gray-700"></div>
-                  </ng-container>
-                </div>
+                  </div>
+                }
               </div>
 
               <!-- Trip Summary -->
@@ -340,7 +325,7 @@ type JoinMode = 'full' | 'partial';
 
                   <button
                     type="button"
-                    (click)="toggleJoin()"
+                    (click)="joinFullJourney()"
                     class="w-full h-11 rounded-xl text-sm font-extrabold transition-colors"
                     [class.bg-primary]="!event.joined"
                     [class.hover:bg-primary-hover]="!event.joined"
@@ -492,6 +477,101 @@ type JoinMode = 'full' | 'partial';
             </div>
           }
         </div>
+      } @else {
+        <!-- Change Activity full-page picker (replaces the event view, same pattern as the main itinerary's swap-activity screen) -->
+        <div class="bg-surface-muted dark:bg-gray-900 min-h-screen">
+          <div class="bg-white dark:bg-gray-800 border-b border-slate-100 dark:border-gray-700">
+            <div class="page-container mx-auto px-5 xl:px-20 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex flex-wrap items-center gap-2 min-w-0">
+                <span class="text-xs font-semibold text-eventText-soft shrink-0">Plan Update:</span>
+                <span class="text-sm font-extrabold text-eventText-deep dark:text-white truncate">{{ changeTargetActivity?.title }}</span>
+              </div>
+              <button
+                type="button"
+                (click)="closeChangeActivityView()"
+                class="flex shrink-0 items-center gap-2 text-sm font-bold text-eventText-deep dark:text-white hover:text-primary transition-colors"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Back to Plan</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="page-container mx-auto px-5 xl:px-20 py-6 pb-28">
+            <h2 class="font-manrope text-lg font-extrabold text-eventText-deep dark:text-white mb-1">Change Activity</h2>
+            <p class="text-xs font-semibold text-eventText-soft mb-6">Replace the selected activity with another activity from the same event.</p>
+
+            @if (changeModalLoading) {
+              <div class="flex flex-col items-center justify-center py-16 gap-3">
+                <div class="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
+                <p class="text-xs font-semibold text-eventText-soft">Finding alternative activities…</p>
+              </div>
+            } @else if (changeModalError) {
+              <div class="flex flex-col items-center justify-center py-16 gap-2 text-center">
+                <p class="text-xs font-bold text-red-500">{{ changeModalError }}</p>
+                <button type="button" (click)="changeActivity(changeTargetActivity!)" class="text-xs font-bold text-primary hover:underline">Try again</button>
+              </div>
+            } @else if (!changeCandidates.length) {
+              <div class="flex flex-col items-center justify-center py-16 gap-2 text-center">
+                <p class="text-xs font-semibold text-eventText-soft">No other activities available on this day yet.</p>
+              </div>
+            } @else {
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  *ngFor="let c of changeCandidates"
+                  type="button"
+                  (click)="selectChangeCandidate(c)"
+                  class="text-left rounded-2xl border-2 bg-white dark:bg-gray-800 overflow-hidden transition-colors"
+                  [class.border-primary]="selectedCandidateId === c.id"
+                  [class.bg-primary-50]="selectedCandidateId === c.id"
+                  [class.border-slate-100]="selectedCandidateId !== c.id"
+                  [class.dark:border-gray-700]="selectedCandidateId !== c.id"
+                  [class.hover:border-primary/50]="selectedCandidateId !== c.id"
+                >
+                  <div class="relative w-full h-32">
+                    <img [src]="c.image" alt="" class="w-full h-full object-cover" />
+                    <span
+                      class="absolute top-2 right-2 w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center bg-white/90"
+                      [class.border-primary]="selectedCandidateId === c.id"
+                      [class.bg-primary]="selectedCandidateId === c.id"
+                      [class.border-slate-300]="selectedCandidateId !== c.id"
+                    >
+                      <svg *ngIf="selectedCandidateId === c.id" class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    </span>
+                  </div>
+                  <div class="p-3.5">
+                    <p class="text-sm font-extrabold text-eventText-deep dark:text-white truncate">{{ c.title }}</p>
+                    <p class="text-[11.5px] font-semibold text-eventText-soft mt-1">
+                      {{ c.time }}<span *ngIf="c.category"> • {{ c.category }}</span><span *ngIf="c.duration"> • {{ c.duration }}</span>
+                    </p>
+                    <p class="text-sm font-extrabold text-eventText-deep dark:text-white mt-2">{{ c.price !== null ? ('₹' + (c.price | number)) : 'Free' }}</p>
+                  </div>
+                </button>
+              </div>
+
+              <p *ngIf="changeModalReplaceError" class="text-[11px] font-bold text-red-500 text-center mt-5">{{ changeModalReplaceError }}</p>
+
+              <div class="flex items-center justify-end gap-3 mt-8 pt-5 border-t border-slate-100 dark:border-gray-700">
+                <button
+                  type="button"
+                  (click)="closeChangeActivityView()"
+                  class="h-11 px-5 rounded-xl text-sm font-extrabold text-eventText-deep dark:text-white border border-slate-200 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  [disabled]="!selectedCandidateId || isReplacingActivity"
+                  (click)="confirmReplaceActivity()"
+                  class="h-11 px-6 rounded-xl text-sm font-extrabold text-white bg-primary hover:bg-primary-hover transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+                >
+                  {{ isReplacingActivity ? 'Replacing…' : 'Replace Activity' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
       </div>
 
       <!-- Edit days modal -->
@@ -546,6 +626,63 @@ type JoinMode = 'full' | 'partial';
           </div>
         </div>
       }
+
+      <!-- Add transport modal -->
+      @if (showTransportModal) {
+        <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeTransportModal()">
+          <div class="w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6" (click)="$event.stopPropagation()">
+            <h3 class="font-manrope text-base font-extrabold text-eventText-deep dark:text-white mb-4">Add transport after Day {{ transportAfterDay }}</h3>
+
+            <label class="block text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Mode</label>
+            <select [(ngModel)]="transportForm.mode" class="w-full h-10 rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-semibold px-3 mb-3">
+              <option value="train">Train</option>
+              <option value="flight">Flight</option>
+              <option value="car">Car</option>
+              <option value="bus">Bus</option>
+              <option value="ferry">Ferry</option>
+            </select>
+
+            <label class="block text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Title</label>
+            <input
+              [(ngModel)]="transportForm.title"
+              type="text"
+              placeholder="e.g. Paris → Barcelona express"
+              class="w-full h-10 rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-semibold px-3 mb-3"
+            />
+
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label class="block text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Time</label>
+                <input [(ngModel)]="transportForm.time" type="text" placeholder="08:00" class="w-full h-10 rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-semibold px-3" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Price (₹)</label>
+                <input [(ngModel)]="transportForm.price" type="number" min="0" placeholder="0" class="w-full h-10 rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-semibold px-3" />
+              </div>
+            </div>
+
+            <label class="block text-[10px] font-extrabold text-eventText-soft uppercase tracking-wide mb-1">Notes</label>
+            <textarea
+              [(ngModel)]="transportForm.notes"
+              rows="2"
+              placeholder="Optional notes"
+              class="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-semibold px-3 py-2 mb-4"
+            ></textarea>
+
+            <button
+              type="button"
+              [disabled]="!transportForm.title.trim()"
+              (click)="submitTransport()"
+              class="w-full h-11 rounded-xl text-sm font-extrabold text-white bg-primary hover:bg-primary-hover transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed mb-3"
+            >
+              Add transport
+            </button>
+            <button type="button" (click)="closeTransportModal()" class="w-full text-center text-sm font-bold text-primary hover:underline">
+              Cancel
+            </button>
+          </div>
+        </div>
+      }
     }
 
     <!-- Toast -->
@@ -558,13 +695,15 @@ type JoinMode = 'full' | 'partial';
 })
 export class CommunityEventDetailViewComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly store = inject(CommunityEventsMockStore);
+  private readonly auth = inject(AuthService);
+  private readonly itineraryService = inject(EventItineraryService);
 
   event: CommunityEventCard | null = null;
 
   readonly stars = [0, 1, 2, 3, 4];
 
-  selectedDayIndex = 0;
   joinMode: JoinMode = 'full';
   /** Inclusive day-number range currently picked in Partial mode — always contiguous, no gaps. */
   rangeStart: number | null = null;
@@ -575,12 +714,58 @@ export class CommunityEventDetailViewComponent {
   tempStart = 1;
   tempCount = 1;
 
+  /** This traveler's personal transport additions, keyed by the day they follow. */
+  transport: TransportSegment[] = [];
+  /** activity.id currently mid-request (book) — disables the button so a slow tap can't double-fire. */
+  activityActionInFlight: string | null = null;
+
+  /** "Change activity" full-page picker (replaces the event view, same pattern as the main itinerary's swap-activity screen). */
+  showChangeActivityView = false;
+  changeTargetActivity: JourneyActivity | null = null;
+  changeCandidates: JourneyActivity[] = [];
+  selectedCandidateId: string | null = null;
+  changeModalLoading = false;
+  changeModalError: string | null = null;
+  changeModalReplaceError: string | null = null;
+  isReplacingActivity = false;
+
+  /** "Add transport" form modal. */
+  showTransportModal = false;
+  transportAfterDay: number | null = null;
+  transportForm: { mode: string; title: string; time: string; notes: string; price: number | null } = {
+    mode: 'train', title: '', time: '', notes: '', price: null
+  };
+
+  /** Quick-add buttons rendered in the shared itinerary timeline's "Add to Day" panel. */
+  readonly transportModeOptions: { id: 'flight' | 'train' | 'bus' | 'car'; labelKey: string }[] = [
+    { id: 'train', labelKey: 'Add Train' },
+    { id: 'flight', labelKey: 'Add Flight' },
+    { id: 'bus', labelKey: 'Add Bus' },
+    { id: 'car', labelKey: 'Add Car' }
+  ];
+
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
     this.event = id ? this.store.getById(id) : null;
+    this.loadItinerary();
+  }
+
+  /** Replaces the mock day/activity list with the DB-backed one (with ids + this traveler's selection/booking/transport state). */
+  private async loadItinerary(): Promise<void> {
+    const ev = this.event;
+    if (!ev) return;
+    try {
+      const res = await this.itineraryService.getItinerary(ev.id);
+      if (res.days.length) {
+        ev.days = res.days;
+      }
+      this.transport = res.transport;
+    } catch (err) {
+      console.error('Failed to load event itinerary', err);
+    }
   }
 
   dateRangeFor(ev: CommunityEventCard): string {
@@ -669,9 +854,218 @@ export class CommunityEventDetailViewComponent {
     return this.rangeStart != null && this.rangeEnd != null && day >= this.rangeStart && day <= this.rangeEnd;
   }
 
-  /** Whether a day counts toward the current selection — every day in Full mode, only the picked range in Partial mode. */
-  isDayIncluded(day: number): boolean {
-    return this.joinMode === 'full' || this.isDayInRange(day);
+  /** Maps this journey's day/activity data onto the shared itinerary-timeline component's shape (see itinerary-page.component.ts DetailDay/DetailActivity). */
+  detailDays(): DetailDay[] {
+    return (this.event?.days ?? []).map((d) => ({
+      day: d.day,
+      title: d.city,
+      dateStr: d.dateLabel,
+      items: d.activities.map((a): DetailActivity => ({
+        id: a.id,
+        type: 'activity',
+        time: a.time,
+        title: a.title,
+        rating: a.rating,
+        location: d.city,
+        refundable: a.price != null ? 'Non-refundable' : 'Free cancellation',
+        image: a.image,
+        price: a.price ?? undefined,
+        duration: a.duration || undefined
+      }))
+    }));
+  }
+
+  /** Stable per-item tracking for the shared timeline's `@for` loop. */
+  readonly activityItemKey = (item: DetailItem): string => {
+    const activity = item as DetailActivity;
+    return activity.id || activity.title;
+  };
+
+  /** `null` in Full mode (nothing dimmed — everything's included); the picked day-number range in Partial mode. */
+  highlightedDaySet(): Set<number> | null {
+    if (this.joinMode === 'full') return null;
+    const set = new Set<number>();
+    if (this.rangeStart != null && this.rangeEnd != null) {
+      for (let day = this.rangeStart; day <= this.rangeEnd; day++) set.add(day);
+    }
+    return set;
+  }
+
+  onDayHeaderClick(day: number): void {
+    if (this.joinMode === 'partial') this.selectDay(day);
+  }
+
+  /** Maps the shared timeline's generic "Book" click back onto the underlying JourneyActivity by id. */
+  onBookActivity(item: DetailItem): void {
+    const activity = this.findActivityById((item as DetailActivity).id);
+    if (activity) {
+      this.bookActivity(activity);
+    } else {
+      console.error('Book Activity: no matching JourneyActivity for item', item);
+      this.showToast("Couldn't book this activity — please refresh and try again.");
+    }
+  }
+
+  /** Maps the shared timeline's "Change" click (day + index within that day) back onto the underlying JourneyActivity. */
+  onActivitySwap(event: { day: number; index: number }): void {
+    const day = (this.event?.days ?? []).find((d) => d.day === event.day);
+    const activity = day?.activities[event.index];
+    if (activity) {
+      this.changeActivity(activity);
+    } else {
+      console.error('Change activity: could not resolve activity for', event);
+      this.showToast("Couldn't open the change picker — please refresh and try again.");
+    }
+  }
+
+  /** Which activities this traveler currently has an active booking on — drives the shared timeline's persistent "Booked" button state. */
+  bookedActivityKeys(): Set<string> {
+    return new Set(
+      (this.event?.days ?? [])
+        .flatMap((d) => d.activities)
+        .filter((a) => a.booked && a.id)
+        .map((a) => a.id!)
+    );
+  }
+
+  private findActivityById(id: string | undefined): JourneyActivity | undefined {
+    if (!id) return undefined;
+    return (this.event?.days ?? []).flatMap((d) => d.activities).find((a) => a.id === id);
+  }
+
+  /** Opens the "Change Activity" picker, pre-loaded with other activities from this event ranked by how closely they match the one being replaced. */
+  changeActivity(activity: JourneyActivity): void {
+    const ev = this.event;
+    if (!activity.id || !ev) return;
+    const day = (ev.days ?? []).find((d) => d.activities.includes(activity));
+    if (!day) return;
+
+    this.changeTargetActivity = activity;
+    this.selectedCandidateId = null;
+    this.changeModalError = null;
+    this.changeModalReplaceError = null;
+    this.changeModalLoading = true;
+    this.showChangeActivityView = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      this.changeCandidates = this.findChangeCandidates(activity, day);
+    } catch {
+      this.changeCandidates = [];
+      this.changeModalError = 'Could not load alternative activities — please try again.';
+    } finally {
+      this.changeModalLoading = false;
+    }
+  }
+
+  /** Other activities on the same day (same event, same location, same day) — the backend's
+   * /change endpoint rejects a swap across two activities with different day_id, so the pool
+   * must stay within `day`. Ranked by matching category/type and time slot. */
+  private findChangeCandidates(activity: JourneyActivity, day: JourneyDay): JourneyActivity[] {
+    return day.activities
+      .filter((a) => a.id && a.id !== activity.id)
+      .sort((a, b) => {
+        const score = (a: JourneyActivity) => (a.category === activity.category ? 2 : 0) + (a.time === activity.time ? 1 : 0);
+        return score(b) - score(a);
+      });
+  }
+
+  closeChangeActivityView(): void {
+    this.showChangeActivityView = false;
+    this.changeTargetActivity = null;
+    this.changeCandidates = [];
+    this.selectedCandidateId = null;
+    this.changeModalLoading = false;
+    this.changeModalError = null;
+    this.changeModalReplaceError = null;
+    this.isReplacingActivity = false;
+  }
+
+  /** Highlights a candidate; the swap itself only happens once "Replace Activity" is confirmed. */
+  selectChangeCandidate(candidate: JourneyActivity): void {
+    if (!candidate.id) return;
+    this.selectedCandidateId = candidate.id;
+    this.changeModalReplaceError = null;
+  }
+
+  async confirmReplaceActivity(): Promise<void> {
+    const ev = this.event;
+    const old = this.changeTargetActivity;
+    const candidate = this.changeCandidates.find((c) => c.id === this.selectedCandidateId);
+    if (!ev || !old?.id || !candidate?.id || this.isReplacingActivity) return;
+
+    this.isReplacingActivity = true;
+    this.changeModalReplaceError = null;
+    try {
+      await this.itineraryService.changeActivity(ev.id, old.id, candidate.id);
+      old.included = false;
+      candidate.included = true;
+      this.showToast(`Replaced "${old.title}" with "${candidate.title}"`);
+      this.closeChangeActivityView();
+    } catch (err) {
+      this.changeModalReplaceError = 'Could not replace this activity — please try again.';
+    } finally {
+      this.isReplacingActivity = false;
+    }
+  }
+
+  /** Toggle-booking idiom: tapping "Book Activity" again cancels the reservation. */
+  async bookActivity(activity: JourneyActivity): Promise<void> {
+    const ev = this.event;
+    if (!ev || !activity.id || this.activityActionInFlight) return;
+    this.activityActionInFlight = activity.id;
+    try {
+      const res = await this.itineraryService.bookActivity(ev.id, activity.id);
+      activity.booked = res.booked;
+      activity.bookedCount = res.bookedCount;
+      activity.capacity = res.capacity;
+      this.showToast(res.booked ? `Booked "${activity.title}"` : `Cancelled your booking for "${activity.title}"`);
+    } catch (err: any) {
+      this.showToast(err?.error?.detail || 'Could not book this activity — please try again.');
+    } finally {
+      this.activityActionInFlight = null;
+    }
+  }
+
+  addTransport(afterDay: number, mode = 'train'): void {
+    this.transportAfterDay = afterDay;
+    this.transportForm = { mode, title: '', time: '', notes: '', price: null };
+    this.showTransportModal = true;
+  }
+
+  closeTransportModal(): void {
+    this.showTransportModal = false;
+    this.transportAfterDay = null;
+  }
+
+  async submitTransport(): Promise<void> {
+    const ev = this.event;
+    if (!ev || this.transportAfterDay == null || !this.transportForm.title.trim()) return;
+    try {
+      const segment = await this.itineraryService.addTransport(ev.id, {
+        afterDay: this.transportAfterDay,
+        mode: this.transportForm.mode,
+        title: this.transportForm.title.trim(),
+        time: this.transportForm.time || undefined,
+        notes: this.transportForm.notes || undefined,
+        price: this.transportForm.price ?? undefined
+      });
+      this.transport = [...this.transport, segment];
+      this.closeTransportModal();
+    } catch (err) {
+      this.showToast('Could not add transport — please try again.');
+    }
+  }
+
+  async removeTransportSegment(segment: TransportSegment): Promise<void> {
+    const ev = this.event;
+    if (!ev) return;
+    try {
+      await this.itineraryService.removeTransport(ev.id, segment.id);
+      this.transport = this.transport.filter((t) => t.id !== segment.id);
+    } catch (err) {
+      this.showToast('Could not remove that transport segment — please try again.');
+    }
   }
 
   /** Range picking: first tap starts a single-day selection, a second tap spans to it (clamped to the max), tapping a completed range starts over. */
@@ -740,9 +1134,40 @@ export class CommunityEventDetailViewComponent {
     return `Day ${this.rangeStart} – Day ${this.rangeEnd} (${this.rangeLength()} days)`;
   }
 
+  /** "Continue" in Full Journey mode — hands off to the booking review page before the trip is created. */
+  joinFullJourney(): void {
+    const ev = this.event;
+    if (!ev?.days?.length) return;
+    this.goToReview('full');
+  }
+
+  /** "Continue" in Partial mode — hands off to the booking review page before the trip is created. */
   continuePartial(): void {
     if (!this.canContinuePartial()) return;
-    this.toggleJoin();
+    this.goToReview('partial');
+  }
+
+  /** Sends the traveler to /community/events/:id/review with the day selection so they can confirm before paying.
+   * The traveler already saw the Event Summary page on the way in (events list → Summary → this Detail page), so
+   * Continue here goes straight into the existing review/payment flow rather than back through Summary. */
+  private async goToReview(mode: JoinMode): Promise<void> {
+    const ev = this.event;
+    if (!ev) return;
+
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    try {
+      await this.itineraryService.startParticipation(ev.id, mode, this.rangeStart, this.rangeEnd);
+    } catch (err) {
+      console.error('Failed to persist journey participation', err);
+    }
+
+    this.router.navigate(['/community/events', ev.id, 'review'], {
+      state: { mode, rangeStart: this.rangeStart, rangeEnd: this.rangeEnd }
+    });
   }
 
   toggleJoin(): void {

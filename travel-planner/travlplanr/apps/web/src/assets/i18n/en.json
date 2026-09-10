@@ -1630,6 +1630,7 @@
       "ADD_PEOPLE": "Add people to this plan",
       "ADD_TO_DAY": "Add to Day {{number}}",
       "BOOK_ACTIVITY": "Book Activity",
+      "BOOKED_LABEL": "Booked ✓",
       "BOOK_NOW": "Book Now",
       "BOOK_STAY": "Book Stay",
       "BUILD_ITINERARY": "Build my itinerary",

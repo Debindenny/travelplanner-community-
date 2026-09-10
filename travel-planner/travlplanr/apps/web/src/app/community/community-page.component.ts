@@ -426,7 +426,7 @@ const FEED_LOCATION_SUGGESTIONS: string[] = [
                       } @else {
                         <app-community-post-comments 
                           [postId]="post.id" 
-                          [myAvatar]="myProfile()?.avatar || null"
+                          [myAvatar]="myProfile()?.avatarUrl || null"
                           (commentAdded)="onCommentAdded(post.id)"
                         />
                       }

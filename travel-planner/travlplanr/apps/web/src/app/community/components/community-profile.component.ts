@@ -55,7 +55,7 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
                 <!-- Avatar -->
                 <div class="relative group -mt-20 sm:-mt-24 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden shrink-0">
                   <img 
-                    [src]="getAvatarUrl(profile()?.avatar)" 
+                    [src]="getAvatarUrl(profile()?.avatarUrl)" 
                     [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate" 
                     class="w-full h-full object-cover cursor-pointer"
                     (click)="openImagePreview()"
@@ -348,7 +348,7 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
                   <img 
                     [src]="avatarRemoved 
                       ? '/assets/images/default-avatar.svg'
-                      : getAvatarUrl(editForm.avatar || profile()?.avatar)"
+                      : getAvatarUrl(editForm.avatar || profile()?.avatarUrl)"
                     [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate"
                     class="w-12 h-12 rounded-full object-cover border border-gray-200 bg-gray-100"
                   />
@@ -492,7 +492,7 @@ type ProfileTab = 'posts' | 'trips' | 'photos';
     (click)="closeImagePreview()">
 
     <img
-      [src]="getAvatarUrl(profile()?.avatar)"
+      [src]="getAvatarUrl(profile()?.avatarUrl)"
       class="max-w-[90vw] max-h-[90vh] rounded-xl shadow-2xl"
       (click)="$event.stopPropagation()"
     />
@@ -581,8 +581,8 @@ getAvatarUrl(url: string | null | undefined): string {
   if (url.startsWith('http')) {
     return url;
   }
-
   return `http://localhost:8080${url}`;
+  
 }
 
   ngOnInit() {
@@ -751,14 +751,14 @@ getAvatarUrl(url: string | null | undefined): string {
   openEditModal() {
     const p = this.profile();
     if (!p) return;
-    console.log('Avatar URL:', p.avatar);
+    console.log('Avatar URL:', p.avatarUrl);
     this.avatarRemoved = false;
     this.editForm = {
       name: p.name ?? '',
       about: p.about ?? p.bio ?? '',
       local_in: p.local_in ?? '',
       countries_visited: p.countries_visited ?? 0,
-      avatar: p.avatar ?? '',
+      avatar: p.avatarUrl ?? '',
       interests: [...(p.interests ?? [])],
       post_visibility: p.post_visibility ?? 'everyone',
     };
@@ -856,6 +856,8 @@ getAvatarUrl(url: string | null | undefined): string {
   }
 
   saveProfile() {
+    console.log('avatarRemoved:', this.avatarRemoved);
+    console.log('avatar before save:', this.editForm.avatar);
     if (!this.editForm.name.trim()) {
       this.editFormErrors.name = this.translate.instant('COMMUNITY.PROFILE.NAME_REQUIRED');
       return;
@@ -878,7 +880,7 @@ getAvatarUrl(url: string | null | undefined): string {
       interests: [...this.editForm.interests],
       local_in: this.editForm.local_in,
       countries_visited: Number(this.editForm.countries_visited) || 0,
-      avatar: this.editForm.avatar || null,
+      avatar: this.avatarRemoved ? null : (this.editForm.avatar || null),
       post_visibility: this.editForm.post_visibility === 'followers' ? 'followers' : 'everyone',
     };
     this.profileService
@@ -886,6 +888,10 @@ getAvatarUrl(url: string | null | undefined): string {
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
       .subscribe({
         next: (updated) => {
+          if (this.avatarRemoved) {
+            updated.avatarUrl = null;
+          }
+
           this.profile.update(p => (p ? { ...p, ...updated } : p));
           this.showEditModal = false;
           this.toast.success(this.translate.instant('COMMUNITY.PROFILE.TOAST_PROFILE_UPDATED'));
@@ -938,6 +944,7 @@ getAvatarUrl(url: string | null | undefined): string {
     })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
       .subscribe(({ profile, posts }) => {
+        console.log('PROFILE', profile);
         this.profile.set(profile && profile.customer_id ? profile : null);
         this.posts.set(posts ?? []);
       });

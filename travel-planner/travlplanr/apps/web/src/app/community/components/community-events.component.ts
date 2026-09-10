@@ -107,17 +107,20 @@ export class CommunityEventsComponent {
   }
 
   // ── Advanced filters ─────────────────────────────────────────────
+  // Single-select per category: each FilterKey holds at most one chosen
+  // value (or null for "no filter on this category"), while every category
+  // can be active at the same time — e.g. destination=Tokyo AND budget=Paid.
   readonly filterDefs = FILTER_DEFS;
 
   openFilter: FilterKey | null = null;
 
-  private readonly selected: Record<FilterKey, Set<string>> = {
-    destination: new Set(),
-    date: new Set(),
-    style: new Set(),
-    duration: new Set(),
-    budget: new Set(),
-    spots: new Set()
+  private readonly selected: Record<FilterKey, string | null> = {
+    destination: null,
+    date: null,
+    style: null,
+    duration: null,
+    budget: null,
+    spots: null
   };
 
   toggleFilterPanel(key: FilterKey): void {
@@ -128,51 +131,77 @@ export class CommunityEventsComponent {
     this.openFilter = null;
   }
 
+  /** Picking an option replaces whatever was selected for this filter; picking the same option again clears it. */
   toggleOption(key: FilterKey, option: string): void {
-    const set = this.selected[key];
-    if (set.has(option)) {
-      set.delete(option);
-    } else {
-      set.add(option);
-    }
+    this.selected[key] = this.selected[key] === option ? null : option;
+    this.openFilter = null;
   }
 
   isSelected(key: FilterKey, option: string): boolean {
-    return this.selected[key].has(option);
+    return this.selected[key] === option;
+  }
+
+  selectedValue(key: FilterKey): string | null {
+    return this.selected[key];
   }
 
   selectedCount(key: FilterKey): number {
-    return this.selected[key].size;
+    return this.selected[key] ? 1 : 0;
   }
 
   clearFilter(key: FilterKey, event?: Event): void {
     event?.stopPropagation();
-    this.selected[key].clear();
+    this.selected[key] = null;
   }
 
   get hasActiveFilters(): boolean {
-    return this.filterDefs.some((f) => this.selectedCount(f.key) > 0);
+    return this.filterDefs.some((f) => this.selected[f.key] !== null);
   }
 
   clearAllFilters(): void {
-    for (const f of this.filterDefs) this.selected[f.key].clear();
+    for (const f of this.filterDefs) this.selected[f.key] = null;
+  }
+
+  /**
+   * The current filter selection in the shape an API request would send —
+   * one value (or null) per category. This page has no backend of its own
+   * yet (CommunityEventsMockStore is in-memory), but any future
+   * `/community/events?...` call should be built from exactly this object
+   * rather than re-deriving query params elsewhere.
+   */
+  get filterQueryParams(): {
+    destination: string | null;
+    date: string | null;
+    travelStyle: string | null;
+    duration: string | null;
+    budget: string | null;
+    availableSpots: string | null;
+  } {
+    return {
+      destination: this.selected.destination,
+      date: this.selected.date,
+      travelStyle: this.selected.style,
+      duration: this.selected.duration,
+      budget: this.selected.budget,
+      availableSpots: this.selected.spots
+    };
   }
 
   private matchesFilters(ev: CommunityEventCard): boolean {
     return (
-      this.matchesGroup(this.selected.destination, (opt) => this.matchesDestination(ev, opt)) &&
-      this.matchesGroup(this.selected.date, (opt) => this.matchesDate(ev, opt)) &&
-      this.matchesGroup(this.selected.style, (opt) => this.styleFor(ev) === opt) &&
-      this.matchesGroup(this.selected.duration, (opt) => this.matchesDuration(ev, opt)) &&
-      this.matchesGroup(this.selected.budget, (opt) => (opt === 'Free' ? ev.price === 'Free' : ev.price !== 'Free')) &&
-      this.matchesGroup(this.selected.spots, (opt) => this.matchesSpots(ev, opt))
+      this.matchesOption(this.selected.destination, (opt) => this.matchesDestination(ev, opt)) &&
+      this.matchesOption(this.selected.date, (opt) => this.matchesDate(ev, opt)) &&
+      this.matchesOption(this.selected.style, (opt) => this.styleFor(ev) === opt) &&
+      this.matchesOption(this.selected.duration, (opt) => this.matchesDuration(ev, opt)) &&
+      this.matchesOption(this.selected.budget, (opt) => (opt === 'Free' ? ev.price === 'Free' : ev.price !== 'Free')) &&
+      this.matchesOption(this.selected.spots, (opt) => this.matchesSpots(ev, opt))
     );
   }
 
-  /** Empty selection = no filtering on this category; otherwise any selected option matching is enough (OR). */
-  private matchesGroup(selected: Set<string>, predicate: (option: string) => boolean): boolean {
-    if (selected.size === 0) return true;
-    return [...selected].some(predicate);
+  /** null = no filtering on this category; otherwise the event must match the single selected option. */
+  private matchesOption(selected: string | null, predicate: (option: string) => boolean): boolean {
+    if (selected === null) return true;
+    return predicate(selected);
   }
 
   private matchesDestination(ev: CommunityEventCard, option: string): boolean {

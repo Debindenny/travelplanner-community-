@@ -173,7 +173,7 @@ export class CommunityFollowersModalComponent implements OnChanges {
           id: u.id,
           customer_id: u.id,
           name: u.name,
-          avatar: u.avatar,
+          avatar: u.avatarUrl,
           is_following: !!u.is_following,
         }));
         this.rows.set(mapped.length > 0 ? mapped : DEMO_FOLLOWERS.map(u => ({ ...u })));
