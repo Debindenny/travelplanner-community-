@@ -2,8 +2,9 @@ import { Component, OnInit, OnDestroy, inject, signal, computed, NgZone } from '
 
 import { A11yModule } from '@angular/cdk/a11y';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { CommunityStoryService, StoryGroup, Story } from '../services/community-story.service';
+import { CommunityStoryService, StoryGroup, Story, StoryViewer } from '../services/community-story.service';
 import { CommunityProfileService } from '../services/community-profile.service';
+import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../shared/utils/toast.service';
 import { PreviewStoryDetail, PREVIEW_STORY_DETAILS } from './community-story-preview.mock';
 import { AUDIENCE_OPTIONS, TipAudience } from './community-tip-composer.component';
@@ -17,18 +18,36 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
     template: `
     <div class="flex gap-4 overflow-x-auto no-scrollbar items-start max-w-2xl py-2 px-1">
 
-      <!-- Add Story -->
+      <!-- My Story: one combined card. The ring itself opens the viewer when a
+           story already exists (or the create modal when it doesn't); the small
+           "+" badge always opens the create modal so you can add another story
+           even while one is already live — same split Instagram uses. -->
       <button
         type="button"
-        (click)="openCreateStoryModal()"
+        (click)="openMyStoryOrCreate()"
         class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 focus:outline-none"
+        [attr.aria-label]="myStoryGroup() ? ('COMMUNITY.STORIES_BAR.VIEW_STORY_ARIA' | translate) : ('COMMUNITY.STORIES_BAR.ADD_STORY_ARIA' | translate)"
       >
-        <span class="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
-          <img
-            [src]="myAvatar() || '/assets/images/default-avatar.svg'"
-            class="absolute inset-0 w-full h-full object-cover opacity-40"
-          />
-          <span class="relative z-10 w-7 h-7 rounded-full bg-primary group-hover:bg-primary-hover text-white flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-md transition-transform group-hover:scale-110">
+        <span
+          class="relative w-16 h-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
+          [class.bg-gradient-to-tr]="!!myStoryGroup()"
+          [class.from-amber-400]="!!myStoryGroup()"
+          [class.via-pink-500]="!!myStoryGroup()"
+          [class.to-fuchsia-600]="!!myStoryGroup()"
+        >
+          <span class="block w-full h-full rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-slate-100 dark:bg-gray-700 flex items-center justify-center">
+            <img
+              [src]="myAvatar() || '/assets/images/default-avatar.svg'"
+              class="w-full h-full object-cover"
+              [class.opacity-40]="!myStoryGroup()"
+            />
+          </span>
+          <span
+            class="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary group-hover:bg-primary-hover text-white flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-md transition-transform group-hover:scale-110 focus:outline-none"
+            role="button"
+            [attr.aria-label]="'COMMUNITY.STORIES_BAR.ADD_STORY_ARIA' | translate"
+            (click)="openCreateStoryModal(); $event.stopPropagation()"
+          >
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M12 4v16m8-8H4" />
             </svg>
@@ -47,11 +66,11 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
         }
       }
 
-      <!-- Story rings -->
-      @for (group of feed(); track group.author.id; let i = $index) {
+      <!-- Story rings (everyone but me — my own story lives in the combined card above) -->
+      @for (group of otherGroups(); track group.author.id) {
         <button
           type="button"
-          (click)="openStory(i, group)"
+          (click)="openStory(group)"
           class="group flex flex-col items-center gap-1.5 w-[72px] shrink-0 text-center focus:outline-none"
           [attr.aria-label]="'COMMUNITY.STORIES_BAR.VIEW_STORY_ARIA' | translate"
         >
@@ -156,6 +175,16 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
               class="w-10 h-10 rounded-full border border-white/50"
             />
             <span class="text-white font-semibold shadow-sm">{{ activeGroup?.author?.name }}</span>
+            @if (isOwnStory()) {
+              <button
+                type="button"
+                (click)="requestDeleteCurrentStory(); $event.stopPropagation()"
+                class="ml-auto mr-8 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors focus:outline-none"
+                [attr.aria-label]="'COMMUNITY.STORY_MODAL.DELETE_ARIA' | translate"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            }
           </div>
 
           <!-- Media -->
@@ -211,6 +240,87 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
           <!-- Navigation invisible zones -->
           <div class="absolute inset-y-0 left-0 w-1/3 cursor-pointer z-0" (click)="prevStory()"></div>
           <div class="absolute inset-y-0 right-0 w-1/3 cursor-pointer z-0" (click)="nextStory()"></div>
+
+          <!-- Engagement bar: view count + viewers sheet for your own story, like for anyone else's -->
+          @if (!mediaLoading()) {
+            @if (isOwnStory()) {
+              <button
+                type="button"
+                (click)="openViewersSheet(); $event.stopPropagation()"
+                class="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white text-xs font-semibold transition-colors focus:outline-none"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ 'COMMUNITY.STORY_MODAL.VIEWS_COUNT' | translate: { count: currentStory?.views_count ?? 0 } }}
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="toggleStoryLike(); $event.stopPropagation()"
+                class="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white text-xs font-semibold transition-colors focus:outline-none"
+                [attr.aria-label]="(currentStory?.liked_by_me ? 'COMMUNITY.STORY_MODAL.UNLIKE_ARIA' : 'COMMUNITY.STORY_MODAL.LIKE_ARIA') | translate"
+              >
+                <svg class="w-4 h-4" [attr.fill]="currentStory?.liked_by_me ? '#ef4444' : 'none'" [attr.stroke]="currentStory?.liked_by_me ? '#ef4444' : 'currentColor'" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                @if ((currentStory?.likes_count ?? 0) > 0) {
+                  {{ currentStory?.likes_count }}
+                }
+              </button>
+            }
+          }
+
+          <!-- Delete confirmation -->
+          @if (showDeleteConfirm()) {
+            <div class="absolute inset-0 z-30 flex items-center justify-center bg-black/70 p-6" (click)="cancelDeleteStory(); $event.stopPropagation()">
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 w-full max-w-xs text-center" (click)="$event.stopPropagation()">
+                <p class="text-sm font-extrabold text-text-primary mb-1">{{ 'COMMUNITY.STORY_MODAL.DELETE_CONFIRM_TITLE' | translate }}</p>
+                <p class="text-xs text-text-faint mb-4">{{ 'COMMUNITY.STORY_MODAL.DELETE_CONFIRM_BODY' | translate }}</p>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="cancelDeleteStory()"
+                    class="flex-1 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-gray-600 text-xs font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                  >{{ 'COMMUNITY.STORY_MODAL.CANCEL' | translate }}</button>
+                  <button
+                    type="button"
+                    [disabled]="deletingStory()"
+                    (click)="deleteCurrentStory()"
+                    class="flex-1 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold transition-colors"
+                  >{{ 'COMMUNITY.STORY_MODAL.DELETE_CONFIRM_ACTION' | translate }}</button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Viewers sheet -->
+          @if (showViewersSheet()) {
+            <div class="absolute inset-0 z-30 flex items-end" (click)="closeViewersSheet(); $event.stopPropagation()">
+              <div class="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-h-[60%] overflow-y-auto no-scrollbar" (click)="$event.stopPropagation()">
+                <div class="sticky top-0 bg-white dark:bg-gray-800 flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-gray-700">
+                  <p class="text-sm font-extrabold text-text-primary">{{ 'COMMUNITY.STORY_MODAL.VIEWERS_TITLE' | translate }}</p>
+                  <button type="button" (click)="closeViewersSheet()" class="w-7 h-7 rounded-full flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 focus:outline-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                @if (loadingViewers()) {
+                  <div class="flex justify-center py-6">
+                    <div class="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                  </div>
+                } @else if (storyViewers().length === 0) {
+                  <p class="text-xs text-text-faint text-center py-6">{{ 'COMMUNITY.STORY_MODAL.NO_VIEWERS' | translate }}</p>
+                } @else {
+                  <div class="flex flex-col">
+                    @for (viewer of storyViewers(); track viewer.customer_id) {
+                      <div class="flex items-center gap-3 px-4 py-2.5">
+                        <img [src]="viewer.avatar || '/assets/images/default-avatar.svg'" class="w-9 h-9 rounded-full object-cover" alt="" />
+                        <span class="text-sm font-semibold text-text-primary truncate">{{ viewer.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
       </div>
     }
@@ -496,6 +606,7 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
 export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
   private storyService = inject(CommunityStoryService);
   private profileService = inject(CommunityProfileService);
+  private authService = inject(AuthService);
   private toast = inject(ToastService);
   private translate = inject(TranslateService);
   private ngZone = inject(NgZone);
@@ -512,6 +623,12 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
 
   readonly previewStories = PREVIEW_STORY_DETAILS;
 
+  /** The signed-in user's own story group, if they have one — drives the combined "My Story" card. */
+  readonly myStoryGroup = computed(() => this.feed().find(g => g.author.id === this.authService.user()?.id));
+  /** Everyone else's stories — the ring loop excludes the current user's own group (shown separately above). */
+  readonly otherGroups = computed(() => this.feed().filter(g => g.author.id !== this.authService.user()?.id));
+  readonly isOwnStory = computed(() => !!this.activeGroup && this.activeGroup.author.id === this.authService.user()?.id);
+
   // Story viewer modal state (formerly CommunityStoryModalComponent)
   currentGroupIndex = 0;
   currentStoryIndex = 0;
@@ -521,6 +638,14 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
   mediaLoading = signal(true);
   private storyTimer: any;
   private readonly STORY_DURATION_MS = 5000;
+  // Instagram-like story engagement: viewers sheet + delete confirmation (own
+  // stories) and like toggling (everyone else's).
+  showViewersSheet = signal(false);
+  loadingViewers = signal(false);
+  storyViewers = signal<StoryViewer[]>([]);
+  showDeleteConfirm = signal(false);
+  deletingStory = signal(false);
+  private viewedStoryIds = new Set<string>();
   private readonly UPDATE_INTERVAL_MS = 50;
 
   // Create Story modal state (formerly CommunityCreateStoryComponent)
@@ -675,7 +800,10 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
     });
   }
 
-  openStory(index: number, group: StoryGroup) {
+  /** Opens whichever group is currently at this position in feed(). Callers that
+   * iterate a filtered view (otherGroups()) must resolve the real feed() index
+   * themselves — see openStory(group) / openMyStoryOrCreate(). */
+  private openStoryAt(index: number, group: StoryGroup) {
     this.activeStoryIndex = index;
     this.showStoryModal.set(true);
     this.markGroupSeen(group);
@@ -684,6 +812,25 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
     this.currentGroupIndex = index;
     this.currentStoryIndex = 0;
     this.goToStory();
+  }
+
+  /** otherGroups() is filtered, so its own iteration index doesn't match feed()'s
+   * — resolve the real index by author id before opening. */
+  openStory(group: StoryGroup) {
+    const index = this.feed().findIndex(g => g.author.id === group.author.id);
+    if (index === -1) return;
+    this.openStoryAt(index, group);
+  }
+
+  /** The combined "My Story" card: open the viewer on an existing story, or the
+   * create modal when there isn't one yet. */
+  openMyStoryOrCreate() {
+    const group = this.myStoryGroup();
+    if (group) {
+      this.openStory(group);
+    } else {
+      this.openCreateStoryModal();
+    }
   }
 
   ringGradient(status: PreviewStoryDetail['status']): string {
@@ -812,16 +959,29 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
    */
   private goToStory(sameStory = false) {
     this.progress = 0;
+    this.showViewersSheet.set(false);
+    this.showDeleteConfirm.set(false);
     if (sameStory) {
       this.startTimer();
       return;
     }
+    this.recordViewIfNeeded();
     if (this.currentStory?.media_url) {
       this.mediaLoading.set(true);
     } else {
       this.mediaLoading.set(false);
       this.startTimer();
     }
+  }
+
+  /** Owners never generate a view of their own story. Everyone else's view is
+   * recorded once per (story, session) — the backend's unique constraint makes
+   * repeat calls idempotent too, this just avoids the redundant request. */
+  private recordViewIfNeeded() {
+    const story = this.currentStory;
+    if (!story || this.isOwnStory() || this.viewedStoryIds.has(story.id)) return;
+    this.viewedStoryIds.add(story.id);
+    this.storyService.recordView(story.id).subscribe();
   }
 
   onMediaLoaded() {
@@ -855,5 +1015,115 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
     if (this.storyTimer) {
       clearInterval(this.storyTimer);
     }
+  }
+
+  // --- Engagement: like (other people's stories) ---
+
+  toggleStoryLike() {
+    const story = this.currentStory;
+    if (!story || this.isOwnStory()) return;
+
+    // Optimistic update, mutated in place — the viewer reads currentStory via a
+    // getter re-evaluated every change-detection pass, so this reflects
+    // immediately without needing a fresh feed() array reference.
+    const wasLiked = story.liked_by_me;
+    story.liked_by_me = !wasLiked;
+    story.likes_count += wasLiked ? -1 : 1;
+
+    this.storyService.likeStory(story.id).subscribe({
+      next: (res) => {
+        story.liked_by_me = res.liked;
+        story.likes_count = res.likes_count;
+      },
+      error: () => {
+        // Revert on failure.
+        story.liked_by_me = wasLiked;
+        story.likes_count += wasLiked ? 1 : -1;
+        this.toast.error(this.translate.instant('COMMUNITY.STORY_MODAL.LIKE_FAILED'));
+      }
+    });
+  }
+
+  // --- Engagement: viewers sheet (your own stories) ---
+
+  openViewersSheet() {
+    const story = this.currentStory;
+    if (!story || !this.isOwnStory()) return;
+    this.stopTimer(); // pause playback while the sheet is open
+    this.showViewersSheet.set(true);
+    this.loadingViewers.set(true);
+    this.storyService.getStoryViewers(story.id).subscribe({
+      next: (viewers) => {
+        this.storyViewers.set(viewers);
+        this.loadingViewers.set(false);
+      },
+      error: () => {
+        this.storyViewers.set([]);
+        this.loadingViewers.set(false);
+        this.toast.error(this.translate.instant('COMMUNITY.STORY_MODAL.VIEWERS_LOAD_FAILED'));
+      }
+    });
+  }
+
+  closeViewersSheet() {
+    this.showViewersSheet.set(false);
+    this.startTimer(); // resume — media is already loaded, no need to go through goToStory()
+  }
+
+  // --- Delete your own story ---
+
+  requestDeleteCurrentStory() {
+    if (!this.isOwnStory()) return;
+    this.stopTimer(); // pause playback while the confirm dialog is open
+    this.showDeleteConfirm.set(true);
+  }
+
+  cancelDeleteStory() {
+    this.showDeleteConfirm.set(false);
+    this.startTimer();
+  }
+
+  deleteCurrentStory() {
+    const story = this.currentStory;
+    const group = this.activeGroup;
+    if (!story || !group || !this.isOwnStory() || this.deletingStory()) return;
+
+    this.deletingStory.set(true);
+    this.storyService.deleteStory(story.id).subscribe({
+      next: () => {
+        this.deletingStory.set(false);
+        this.showDeleteConfirm.set(false);
+        this.toast.success(this.translate.instant('COMMUNITY.STORY_MODAL.DELETE_SUCCESS'));
+        this.removeStoryFromFeed(group.author.id, story.id);
+      },
+      error: () => {
+        this.deletingStory.set(false);
+        this.toast.error(this.translate.instant('COMMUNITY.STORY_MODAL.DELETE_FAILED'));
+      }
+    });
+  }
+
+  /** Removes one story from the in-memory feed after a successful delete —
+   * closes the viewer if that was the group's last story, otherwise re-points
+   * the viewer at whatever now sits at the same story index. */
+  private removeStoryFromFeed(authorId: string, storyId: string) {
+    const groups = this.feed();
+    const groupIndex = groups.findIndex(g => g.author.id === authorId);
+    if (groupIndex === -1) return;
+
+    const remainingStories = groups[groupIndex].stories.filter(s => s.id !== storyId);
+
+    if (remainingStories.length === 0) {
+      this.feed.set(groups.filter(g => g.author.id !== authorId));
+      this.closeStoryModal();
+      return;
+    }
+
+    const updatedGroups = groups.map((g, i) => i === groupIndex ? { ...g, stories: remainingStories } : g);
+    this.feed.set(updatedGroups);
+    this.currentStoryIndex = Math.min(this.currentStoryIndex, remainingStories.length - 1);
+    // Not a same-media replay — the story at this index just changed, so this
+    // must go through the normal load-then-play path (spinner until ready).
+    this.goToStory();
   }
 }

@@ -10,6 +10,9 @@ export interface Story {
   caption: string | null;
   created_at: string;
   expires_at: string;
+  likes_count: number;
+  views_count: number;
+  liked_by_me: boolean;
 }
 
 export interface StoryGroup {
@@ -21,11 +24,18 @@ export interface StoryGroup {
   stories: Story[];
 }
 
+export interface StoryViewer {
+  customer_id: string;
+  name: string;
+  avatar: string | null;
+  viewed_at: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CommunityStoryService {
   private readonly http = inject(HttpClient);
 
-  getFeed(): Observable<{ feed: StoryGroup[] }> {    
+  getFeed(): Observable<{ feed: StoryGroup[] }> {
     return this.http.get<{ feed: StoryGroup[] }>(apiUrl('/community/stories/feed'));
   }
 
@@ -45,5 +55,20 @@ export class CommunityStoryService {
 
   deleteStory(storyId: string): Observable<{ status: string }> {
     return this.http.delete<{ status: string }>(apiUrl(`/community/stories/${storyId}`));
+  }
+
+  likeStory(storyId: string): Observable<{ liked: boolean; likes_count: number }> {
+    return this.http.post<{ liked: boolean; likes_count: number }>(apiUrl(`/community/stories/${storyId}/like`), {});
+  }
+
+  /** Fire-and-forget from the caller's perspective — failures shouldn't block viewing a story. */
+  recordView(storyId: string): Observable<{ status: string; views_count: number }> {
+    return this.http.post<{ status: string; views_count: number }>(apiUrl(`/community/stories/${storyId}/view`), {}).pipe(
+      catchError(() => of({ status: 'error', views_count: 0 }))
+    );
+  }
+
+  getStoryViewers(storyId: string): Observable<StoryViewer[]> {
+    return this.http.get<StoryViewer[]>(apiUrl(`/community/stories/${storyId}/viewers`));
   }
 }

@@ -242,8 +242,6 @@
       "HINT_BUDDY": "Seuls les voyageurs dont les dates se chevauchent sont mis en relation.",
       "HINT_MEETUP": "Une rencontre programmée — les voyageurs peuvent la rejoindre et l'ajouter à un voyage.",
       "HINT_PHOTO": "Identifiez le lieu pour que les voyageurs puissent l'ajouter à un voyage.",
-      "HINT_POLL": "Deux ou trois options — les voyageurs votent en un clic.",
-      "HINT_QUESTION": "Les voyageurs récents répondent en premier.",
       "HINT_TIP": "Une chose précise qui vous a fait gagner du temps, de l'argent ou évité une file d'attente.",
       "HINT_TRIP": "Joignez un itinéraire que d'autres peuvent cloner et adapter.",
       "SUBTITLE": "Choisissez un type de publication — nous ne demandons que ce dont ce type a besoin.",
@@ -251,8 +249,6 @@
       "TYPE_BUDDY": "Trouver un compagnon de voyage",
       "TYPE_MEETUP": "Organiser une rencontre",
       "TYPE_PHOTO": "Photo / Vidéo",
-      "TYPE_POLL": "Créer un sondage",
-      "TYPE_QUESTION": "Poser une question",
       "TYPE_TIP": "Astuce de voyage",
       "TYPE_TRIP": "Partager un voyage"
     },
@@ -403,6 +399,7 @@
     "NO_POSTS_BODY": "Suivez des voyageurs pour voir leurs voyages ici.",
     "NO_POSTS_TITLE": "Aucune publication pour le moment",
     "NO_SHORTCUTS": "Aucun raccourci disponible",
+    "POST_COMMENT_BUTTON": "Publier",
     "POST_CARD": {
       "ADD_TO_TRIP": "Ajouter au voyage",
       "AUTHOR_AVATAR_ALT": "Avatar de l'auteur",
@@ -655,6 +652,7 @@
     "SORT_BY": "Trier par :",
     "START_POST": "Commencer une publication…",
     "STORIES_BAR": {
+      "ADD_STORY_ARIA": "Ajouter à votre story",
       "PREVIEW_NOTICE": "Ceci est un aperçu du style de story de {{name}} — les vraies stories de votre communauté apparaîtront ici.",
       "VIEW_STORY_ARIA": "Voir la story",
       "YOUR_STORY": "Votre story",
@@ -672,7 +670,21 @@
       }
     },
     "STORY_MODAL": {
-      "CLOSE": "Fermer"
+      "CANCEL": "Annuler",
+      "CLOSE": "Fermer",
+      "DELETE_ARIA": "Supprimer la story",
+      "DELETE_CONFIRM_ACTION": "Supprimer",
+      "DELETE_CONFIRM_BODY": "Cette action est irréversible.",
+      "DELETE_CONFIRM_TITLE": "Supprimer cette story ?",
+      "DELETE_FAILED": "Échec de la suppression de la story",
+      "DELETE_SUCCESS": "Story supprimée",
+      "LIKE_ARIA": "Aimer",
+      "LIKE_FAILED": "Échec de la mise à jour du like",
+      "NO_VIEWERS": "Aucune vue pour l'instant",
+      "UNLIKE_ARIA": "Ne plus aimer",
+      "VIEWERS_LOAD_FAILED": "Échec du chargement des spectateurs",
+      "VIEWERS_TITLE": "Vu par",
+      "VIEWS_COUNT": "{{count}} vues"
     },
     "TOAST_CLONE_ERROR": "Impossible de cloner le voyage.",
     "TOAST_CLONE_SUCCESS": "Itinéraire cloné avec succès dans vos voyages !",

@@ -47,6 +47,7 @@ export interface FollowToggleResult {
   status: string;
   action: string;
   is_following: boolean;
+  followed_at?: string | null;
 }
 
 export interface PaginatedPosts {

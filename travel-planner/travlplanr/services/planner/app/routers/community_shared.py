@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 
 from app.models.community import (
     CommunityPost, PostReaction, Hashtag, PostHashtag, CommunityProfile, NotificationPreference,
-    CommunityCollection, CommunityCollectionItem,
-    CommunityPoll, CommunityPollOption, CommunityPollVote
+    CommunityCollection, CommunityCollectionItem
 )
 
 
@@ -74,8 +73,6 @@ class CreateCommentRequest(BaseModel): content: str
 class CreatePostRequest(BaseModel):
     caption: str; location: str | None = None; destination_id: str | None = None
     images: list[str]; itinerary_id: str | None = None; video_url: str | None = None; is_reel: bool = False
-    poll_options: list[str] | None = None
-class PollVoteRequest(BaseModel): option_id: str
 class CommentResponse(BaseModel):
     id: str; author_name: str; author_avatar: str | None; content: str; created_at: str; customer_id: str
 class PaginatedCommentsResponse(BaseModel):
@@ -127,14 +124,14 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
             )).scalars().all()
         }
 
-    following_set = set()
+    following_map: dict[uuid.UUID, datetime] = {}
     if customer_id:
         from app.models.community import UserFollow
         author_ids = {p.customer_id for p in posts}
         following_res = await session.execute(
-            select(UserFollow.following_id).where(UserFollow.follower_id == customer_id, UserFollow.following_id.in_(author_ids))
+            select(UserFollow.following_id, UserFollow.created_at).where(UserFollow.follower_id == customer_id, UserFollow.following_id.in_(author_ids))
         )
-        following_set = set(following_res.scalars().all())
+        following_map = {following_id: created_at for following_id, created_at in following_res.all()}
 
     saved_post_ids: set[uuid.UUID] = set()
     if customer_id:
@@ -166,36 +163,6 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
     for p_id, tag in (await session.execute(select(PostHashtag.post_id, Hashtag.tag).join(Hashtag, PostHashtag.hashtag_id == Hashtag.id).where(PostHashtag.post_id.in_(post_ids)))).all():
         post_hashtags_dict.setdefault(p_id, []).append(tag)
 
-    # Poll data (options + live vote counts + this viewer's own vote) — batched the
-    # same way as everything else above, only for the posts that are actually polls.
-    poll_post_ids = [p.id for p in posts if p.type == 'poll']
-    polls_by_post: dict[uuid.UUID, CommunityPoll] = {}
-    options_by_poll: dict[uuid.UUID, list[CommunityPollOption]] = {}
-    poll_vote_counts: dict[uuid.UUID, int] = {}
-    my_poll_votes: dict[uuid.UUID, uuid.UUID] = {}
-    if poll_post_ids:
-        polls = (await session.execute(select(CommunityPoll).where(CommunityPoll.post_id.in_(poll_post_ids)))).scalars().all()
-        polls_by_post = {p.post_id: p for p in polls}
-        poll_ids = [p.id for p in polls]
-        if poll_ids:
-            options = (await session.execute(
-                select(CommunityPollOption).where(CommunityPollOption.poll_id.in_(poll_ids)).order_by(CommunityPollOption.position)
-            )).scalars().all()
-            for o in options:
-                options_by_poll.setdefault(o.poll_id, []).append(o)
-
-            poll_vote_counts = dict((await session.execute(
-                select(CommunityPollVote.option_id, func.count(CommunityPollVote.id))
-                .where(CommunityPollVote.poll_id.in_(poll_ids))
-                .group_by(CommunityPollVote.option_id)
-            )).all())
-
-            if customer_id:
-                my_poll_votes = dict((await session.execute(
-                    select(CommunityPollVote.poll_id, CommunityPollVote.option_id)
-                    .where(CommunityPollVote.poll_id.in_(poll_ids), CommunityPollVote.customer_id == customer_id)
-                )).all())
-
     response = []
     for post in posts:
         p_reacts = reactions_summary.get(post.id, {})
@@ -205,23 +172,6 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
         if dest: dest_dict = {"id": str(dest.id), "name": dest.name, "country": getattr(dest, 'region', ''), "image_url": getattr(dest, 'image_url', ''), "latitude": getattr(dest, 'latitude', None), "longitude": getattr(dest, 'longitude', None)}
         prof = profiles_by_customer.get(post.customer_id)
         prof_dict = {"name": prof.name, "avatar": prof.avatar_url, "is_verified": bool(prof.is_verified), "countries_visited": prof.countries_visited or 0, "local_in": prof.local_in} if prof else {}
-
-        poll_dict = None
-        if post.type == 'poll':
-            poll = polls_by_post.get(post.id)
-            if poll:
-                opts = options_by_poll.get(poll.id, [])
-                my_option_id = my_poll_votes.get(poll.id)
-                poll_dict = {
-                    "id": str(poll.id),
-                    "question": post.caption,
-                    "options": [
-                        {"id": str(o.id), "text": o.text, "votes": poll_vote_counts.get(o.id, 0)}
-                        for o in opts
-                    ],
-                    "totalVotes": sum(poll_vote_counts.get(o.id, 0) for o in opts),
-                    "userVotedOptionId": str(my_option_id) if my_option_id else None,
-                }
 
         response.append({
             "id": str(post.id),
@@ -234,7 +184,7 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
             "isSaved": post.id in saved_post_ids, "saveCount": post.save_count,
             "isLiked": user_react is not None, "timeAgo": iso_utc(post.created_at), "created_at": iso_utc(post.created_at),
             "reactions": p_reacts, "user_reaction": user_react, "itinerary_id": str(post.itinerary_id) if post.itinerary_id else None,
-            "itinerary": trips_dict.get(post.itinerary_id) if post.itinerary_id else None, "is_following": post.customer_id in following_set, "hashtags": post_hashtags_dict.get(post.id, []),
-            "type": post.type, "poll": poll_dict,
+            "itinerary": trips_dict.get(post.itinerary_id) if post.itinerary_id else None, "is_following": post.customer_id in following_map, "followed_at": iso_utc(following_map.get(post.customer_id)), "hashtags": post_hashtags_dict.get(post.id, []),
+            "type": post.type,
         })
     return response

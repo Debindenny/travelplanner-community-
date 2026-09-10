@@ -32,7 +32,7 @@ class CommunityPost(Base):
     is_reel: Mapped[bool] = mapped_column(Boolean, default=False)
     video_url: Mapped[str] = mapped_column(String(2048), nullable=True)
 
-    # Distinguishes special post kinds ('poll', 'qa', ...) from a plain post. Null for
+    # Distinguishes special post kinds ('qa', ...) from a plain post. Null for
     # ordinary posts — only set when the composer creates one of those kinds.
     type: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
@@ -56,41 +56,6 @@ class CommunityPost(Base):
     __table_args__ = (
         Index("ix_community_posts_created_at", "created_at"),
         Index("ix_community_posts_likes_count", "likes_count"),
-    )
-
-
-class CommunityPoll(Base):
-    """One row per poll post. The question itself is the post's own `caption` —
-    this table only exists to anchor the options/votes to a post 1:1."""
-    __tablename__ = "community_polls"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_posts.id", ondelete="CASCADE"), unique=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
-class CommunityPollOption(Base):
-    __tablename__ = "community_poll_options"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    poll_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_polls.id", ondelete="CASCADE"), index=True)
-    text: Mapped[str] = mapped_column(String(200))
-    position: Mapped[int] = mapped_column(Integer, default=0)
-
-
-class CommunityPollVote(Base):
-    """One vote per (poll, customer) — the unique constraint lets a re-vote change
-    the customer's option instead of stacking a second vote."""
-    __tablename__ = "community_poll_votes"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    poll_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_polls.id", ondelete="CASCADE"), index=True)
-    option_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_poll_options.id", ondelete="CASCADE"), index=True)
-    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-    __table_args__ = (
-        UniqueConstraint('poll_id', 'customer_id', name='uq_community_poll_votes_poll_customer'),
     )
 
 
@@ -133,6 +98,28 @@ class Story(Base):
     __table_args__ = (
         Index("ix_stories_expires_at", "expires_at"),
     )
+
+class StoryLike(Base):
+    __tablename__ = "story_likes"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    story_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("stories.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('story_id', 'customer_id', name='uq_story_likes_story_customer'),)
+
+class StoryView(Base):
+    __tablename__ = "story_views"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    story_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("stories.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    # Snapshotted at view time, same convention as Story.author_name/author_avatar —
+    # the viewers list reflects who the viewer was then, not a live profile join.
+    viewer_name: Mapped[str] = mapped_column(String(255))
+    viewer_avatar: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('story_id', 'customer_id', name='uq_story_views_story_customer'),)
 
 class Notification(Base):
     __tablename__ = "notifications"
