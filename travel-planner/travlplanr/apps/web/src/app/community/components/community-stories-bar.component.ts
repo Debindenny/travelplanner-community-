@@ -555,7 +555,7 @@ export class CommunityStoriesBarComponent implements OnInit, OnDestroy {
 
   loadMyAvatar() {
     this.profileService.getMyProfile().subscribe({
-      next: (p) => this.myAvatar.set(p.avatar),
+      next: (p) => this.myAvatar.set(p.avatarUrl),
       error: () => {}
     });
   }

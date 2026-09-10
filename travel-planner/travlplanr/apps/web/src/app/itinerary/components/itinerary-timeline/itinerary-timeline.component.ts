@@ -23,6 +23,10 @@ export class ItineraryTimelineComponent {
 
   @Input() displayedDays: DetailDay[] = [];
   @Input() getItemKey: (item: DetailItem) => string = () => '';
+  /** When set, dims any day not in the set and switches its badge to a neutral color — used by read-only day-selection previews. `null` (default) leaves every day looking included, matching the original always-bg-primary look. */
+  @Input() highlightedDays: ReadonlySet<number> | null = null;
+  /** Hides per-item action rows, the "Add to Day" panel, drag-and-drop and the comments button — for previewing an itinerary without editing it. */
+  @Input() readOnly = false;
   @Input() getFlightLogoUrl: (item: any) => string | undefined = () => undefined;
   @Input() getAirlineIataCode: (carrier: string) => string = () => '';
   @Input() cityNameForAirport: (code: string) => string = () => '';
@@ -32,6 +36,8 @@ export class ItineraryTimelineComponent {
   @Input() getBusImageUrl: (item: any) => string = () => '';
   @Input() isTransferDay: (dayDay: number) => boolean = () => false;
   @Input() transportModeOptions: { id: TransportType; labelKey: string }[] = [];
+  /** Keys (via `getItemKey`) of items already booked — shows a persistent "Booked" state on that item's Book button instead of relying on a transient toast. `null`/empty leaves every Book button in its default state. */
+  @Input() bookedItemKeys: ReadonlySet<string> | null = null;
 
   @Output() itemDropped = new EventEmitter<CdkDragDrop<{ day: number; items: DetailItem[] }>>();
   @Output() moveUp = new EventEmitter<{ day: number; index: number }>();
@@ -51,6 +57,7 @@ export class ItineraryTimelineComponent {
   @Output() transferAdd = new EventEmitter<number>();
   @Output() transportAdd = new EventEmitter<{ day: number; type: TransportType }>();
   @Output() openComments = new EventEmitter<number>();
+  @Output() dayHeaderClick = new EventEmitter<number>();
 
   constructor() {
     this.translate.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {

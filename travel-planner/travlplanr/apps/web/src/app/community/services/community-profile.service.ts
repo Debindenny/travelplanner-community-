@@ -6,7 +6,7 @@ import { apiUrl } from '../../shared/utils/api-url';
 export interface UserProfile {
   customer_id: string;
   name: string;
-  avatar: string | null;
+  avatarUrl: string | null;
   bio?: string;
   posts_count: number;
   followers_count: number;
@@ -39,7 +39,7 @@ export interface MutualConnection {
 export interface User {
   id: string;
   name: string;
-  avatar: string | null;
+  avatarUrl: string | null;
   is_following: boolean;
 }
 
@@ -56,7 +56,7 @@ export interface PaginatedPosts {
 export interface MyCommunityProfile {
   customer_id: string;
   name: string;
-  avatar: string | null;
+  avatarUrl: string | null;
   bio: string | null;
   profile_views: number;
   followers_count: number;

@@ -306,6 +306,36 @@ export class TripService {
   }
 
   /**
+   * Create a trip from content the caller already has fully built (no AI
+   * generation — the trip is READY immediately). For sources that only have
+   * day/activity data, not a full wizard-shaped request — currently used to
+   * turn a joined community-hosted journey into a real, editable itinerary.
+   * Re-joining the same source (`customizations.eventId`) returns the
+   * existing trip instead of creating a duplicate.
+   */
+  async createFromContent(input: {
+    title: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    travelers: number;
+    travelStyle?: string;
+    travelMethod?: string;
+    budget?: string;
+    interests?: string[];
+    foodPreferences?: string[];
+    image?: string;
+    days: TripDay[];
+    cityDays?: TripCityDay[];
+    segments: TripSegment[];
+    customizations?: Record<string, unknown>;
+  }): Promise<string> {
+    const res: any = await firstValueFrom(this.http.post(apiUrl('/trips/from-content'), input));
+    this.refreshTrips();
+    return res.id;
+  }
+
+  /**
    * Fetch a single trip. Returns undefined on failure (caller decides how to
    * render that), but also surfaces network/server failures via `tripLoadError`
    * so callers can distinguish a real failure from a genuine "not found".

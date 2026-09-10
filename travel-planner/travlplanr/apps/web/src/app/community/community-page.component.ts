@@ -338,7 +338,7 @@ interface HeroDestination {
                       } @else {
                         <app-community-post-comments 
                           [postId]="post.id" 
-                          [myAvatar]="myProfile()?.avatar || null"
+                          [myAvatar]="myProfile()?.avatarUrl || null"
                           (commentAdded)="onCommentAdded(post.id)"
                         />
                       }
@@ -401,7 +401,7 @@ interface HeroDestination {
 
       @if (showComposerModal()) {
         <app-community-composer-modal
-          [userAvatar]="myProfile()?.avatar ?? undefined"
+          [userAvatar]="myProfile()?.avatarUrl ?? undefined"
           (postCreated)="onPostCreated($event); showComposerModal.set(false)"
           (close)="showComposerModal.set(false)"
         />

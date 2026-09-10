@@ -80,11 +80,46 @@ export interface CommunityEventCard {
 }
 
 export interface JourneyDay {
+  /** Backend row id (event_itinerary_days.id) — undefined for an event with no DB-backed itinerary yet. */
+  id?: string;
   day: number;
   city: string;
   dateLabel: string;
   price: number;
-  activities: string[];
+  activities: JourneyActivity[];
+}
+
+export interface JourneyActivity {
+  /** Backend row id (event_itinerary_activities.id) — required for booking/selection/change calls. */
+  id?: string;
+  title: string;
+  time: string;
+  /** Short line shown under the title, e.g. "Guided Tour · 2 hrs". */
+  category: string;
+  duration: string;
+  rating: number;
+  image: string;
+  /** null means free / no booking needed — the card shows "Free" + "Options" instead of a price + "Book". */
+  price: number | null;
+  /** Whether this activity is part of the traveler's plan by default — optional extras can be unchecked. */
+  included: boolean;
+  /** Max bookings the host allows — null/undefined means uncapped. Populated from the backend. */
+  capacity?: number | null;
+  /** How many travelers currently hold a booking on this activity. */
+  bookedCount?: number;
+  /** Whether the current traveler has an active booking on this activity. */
+  booked?: boolean;
+}
+
+/** A traveler's personal "Add Transport" addition to the itinerary timeline — see EventItineraryService. */
+export interface TransportSegment {
+  id: string;
+  afterDay: number;
+  mode: string;
+  title: string;
+  time?: string | null;
+  notes?: string | null;
+  price?: number | null;
 }
 
 /** Mirrors the source design's unsplashUrl() helper — same crop/format params. */

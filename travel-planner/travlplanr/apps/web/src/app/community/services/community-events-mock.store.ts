@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { CommunityEventCard, JourneyDay, unsplashUrl } from './community-event-view.model';
+import { CommunityEventCard, JourneyActivity, JourneyDay, unsplashUrl } from './community-event-view.model';
 
 /**
  * Frontend-only data source for the Community Events surfaces (list, detail,
@@ -25,11 +25,39 @@ const MONTH_INDEX: Record<string, number> = {
   JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11
 };
 
+/** Small reusable pool of category thumbnails — activities are decorative mock content, not unique photos. */
+const ACTIVITY_IMAGES = [
+  unsplashUrl('1566073771259-6a8506099945', 100), // hotel room
+  unsplashUrl('1517248135467-4c7edcad34c4', 100), // restaurant table
+  unsplashUrl('1499856871958-5b9627545d1a', 100), // old-town street
+  unsplashUrl('1499425543974-31970c11ecd8', 100), // museum interior
+  unsplashUrl('1502602898657-3e91760cbb34', 100), // landmark
+  unsplashUrl('1474487548417-781cb71495f3', 100), // train
+  unsplashUrl('1436491865332-7a61a109cc05', 100), // flight
+  unsplashUrl('1470337458703-46ad1756a187', 100), // rooftop bar
+  unsplashUrl('1507525428034-b723cf961d3e', 100), // beach
+  unsplashUrl('1512453979798-5ea266f8880c', 100)  // culture/show
+];
+
+const DEFAULT_TIMES = ['09:00', '14:00', '19:00', '20:00'];
+
+interface ActivityInput {
+  title: string;
+  time?: string;
+  category?: string;
+  duration?: string;
+  rating?: number;
+  image?: string;
+  /** null means free/optional. Omit to default to an even split of the day's price. */
+  price?: number | null;
+  included?: boolean;
+}
+
 /** Lays out a journey's per-day itinerary/pricing sequentially from a start date, city block by city block. */
 function buildJourneyDays(
   startMonth: string,
   startDay: number,
-  segments: { city: string; days: { activities: string[]; price: number }[] }[]
+  segments: { city: string; days: { activities: ActivityInput[]; price: number }[] }[]
 ): JourneyDay[] {
   const start = new Date(2026, MONTH_INDEX[startMonth], startDay);
   let dayNum = 1;
@@ -38,17 +66,38 @@ function buildJourneyDays(
     for (const day of segment.days) {
       const date = new Date(start);
       date.setDate(start.getDate() + (dayNum - 1));
+      const evenSplit = Math.round(day.price / day.activities.length);
+      const activities: JourneyActivity[] = day.activities.map((a, i) => ({
+        title: a.title,
+        time: a.time ?? DEFAULT_TIMES[i % DEFAULT_TIMES.length],
+        category: a.category ?? 'Included Experience',
+        duration: a.duration ?? '',
+        rating: a.rating ?? 4.6,
+        image: a.image ?? ACTIVITY_IMAGES[(dayNum + i) % ACTIVITY_IMAGES.length],
+        price: a.price === undefined ? evenSplit : a.price,
+        included: a.included ?? true
+      }));
       result.push({
         day: dayNum,
         city: segment.city,
         dateLabel: date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
         price: day.price,
-        activities: day.activities
+        activities
       });
       dayNum++;
     }
   }
   return result;
+}
+
+/** Wraps plain activity titles into ActivityInput, auto-flagging obviously optional/free ones (last-of-day "free"/"departure" entries). */
+function asActivities(titles: string[]): ActivityInput[] {
+  return titles.map((title) => {
+    if (/free|departure/i.test(title)) {
+      return { title, included: false, price: null, category: 'Optional · Free time' };
+    }
+    return { title };
+  });
 }
 
 const SEED_EVENTS: CommunityEventCard[] = [
@@ -89,19 +138,51 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Culture', 'Food', 'Adventure'],
     days: buildJourneyDays('JUN', 3, [
       { city: 'Paris', days: [
-        { activities: ['Arrival', 'Eiffel Tower at sunset'], price: 8500 },
-        { activities: ['Louvre', 'Seine river cruise'], price: 7800 },
-        { activities: ['Montmartre walk', 'Free evening'], price: 6200 }
+        { price: 8500, activities: [
+          { title: 'Hotel Check-in: Le Marais Boutique Hotel', time: '14:00', category: '4-Star Hotel · Guided Check-in', duration: '', rating: 4.7, image: ACTIVITY_IMAGES[0], price: 4200 },
+          { title: 'Welcome Dinner: Chez Julien Restaurant', time: '19:00', category: 'Group Dining · Set Menu', duration: '2h', rating: 4.5, image: ACTIVITY_IMAGES[1], price: 1800 },
+          { title: 'Evening Seine River Walk', time: '20:00', category: 'Optional · Self-guided until sunset', duration: '', rating: 4.6, image: ACTIVITY_IMAGES[2], price: null, included: false }
+        ]},
+        { price: 7800, activities: [
+          { title: 'Eiffel Tower & Trocadéro', time: '09:00', category: 'Skip-the-line · Guided', duration: '2h', rating: 4.9, image: ACTIVITY_IMAGES[4], price: 2500 },
+          { title: 'Louvre Museum', time: '10:30', category: 'Guided Tour', duration: '2h 30m', rating: 4.8, image: ACTIVITY_IMAGES[3], price: 2200 },
+          { title: 'Seine River Sunset Cruise', time: '18:00', category: 'Optional · Sightseeing', duration: '1h 30m', rating: 4.9, image: ACTIVITY_IMAGES[7], price: 1900 }
+        ]},
+        { price: 6200, activities: [
+          { title: 'Free Day / Palace of Versailles Visit', time: '09:00', category: 'Optional · Full-day excursion', duration: 'Full day', rating: 4.5, image: ACTIVITY_IMAGES[4], price: 4200 },
+          { title: 'Montmartre Walking Tour', time: '14:00', category: 'Group Activity', duration: '2h', rating: 4.3, image: ACTIVITY_IMAGES[2], price: 2000 }
+        ]}
       ]},
       { city: 'Barcelona', days: [
-        { activities: ['Flight to Barcelona', 'Gothic Quarter'], price: 9100 },
-        { activities: ['Sagrada Família', 'Park Güell'], price: 7600 },
-        { activities: ['Beach day', 'Tapas crawl'], price: 6900 }
+        { price: 9100, activities: [
+          { title: 'High-Speed Train to Barcelona — TGV', time: '08:00', category: 'Train · Direct', duration: '3h (approx)', rating: 4.7, image: ACTIVITY_IMAGES[5], price: 3100 },
+          { title: 'Sagrada Família & Tapas Tasting', time: '16:00', category: 'Group Activity', duration: '3h (approx)', rating: 4.7, image: ACTIVITY_IMAGES[1], price: 6000 }
+        ]},
+        { price: 7600, activities: [
+          { title: 'Park Güell Tour', time: '09:00', category: 'Guided Tour', duration: '2h', rating: 4.7, image: ACTIVITY_IMAGES[3], price: 2100 },
+          { title: 'Gothic Quarter Walking Tour', time: '15:00', category: 'Guided · Group Activity', duration: '2h', rating: 4.6, image: ACTIVITY_IMAGES[2], price: 1700 },
+          { title: 'Sunset Rooftop Drinks', time: '20:00', category: 'Optional · Sightseeing', duration: '1h 30m', rating: 4.9, image: ACTIVITY_IMAGES[7], price: 3800 }
+        ]},
+        { price: 6900, activities: [
+          { title: 'Beach Day & Water Sports', time: '10:00', category: 'Optional · Free time', duration: 'Half day', rating: 4.4, image: ACTIVITY_IMAGES[8], price: 1200, included: false },
+          { title: 'Flamenco Show & Dinner', time: '20:00', category: 'Optional · Evening Show', duration: '2h', rating: 4.8, image: ACTIVITY_IMAGES[9], price: 2400, included: false }
+        ]}
       ]},
       { city: 'Madrid', days: [
-        { activities: ['Train to Madrid', 'Retiro Park'], price: 8200 },
-        { activities: ['Prado Museum', 'Flamenco night'], price: 7400 },
-        { activities: ['Free morning', 'Departure'], price: 5200 }
+        { price: 8200, activities: [
+          { title: 'Flight to Madrid — Iberia', time: '08:00', category: 'Direct · Economy', duration: '1h 15m', rating: 4.6, image: ACTIVITY_IMAGES[6], price: 3800 },
+          { title: 'Royal Palace & Prado Museum', time: '11:00', category: 'Guided Tour', duration: '3h', rating: 4.6, image: ACTIVITY_IMAGES[3], price: 2300 },
+          { title: 'Farewell Dinner: Sobrinos de Botín', time: '20:00', category: "Group Activity · World's oldest restaurant", duration: '2h', rating: 4.9, image: ACTIVITY_IMAGES[1], price: 2100 }
+        ]},
+        { price: 7400, activities: [
+          { title: 'Retiro Park & Crystal Palace', time: '09:00', category: 'Free time · Self-guided', duration: '2h', rating: 4.5, image: ACTIVITY_IMAGES[4], price: 800 },
+          { title: 'Flamenco Masterclass', time: '15:00', category: 'Optional · Group Activity', duration: '1h 30m', rating: 4.4, image: ACTIVITY_IMAGES[9], price: 1400, included: false },
+          { title: 'Free Evening', time: '19:00', category: 'Optional · Free time', duration: '', rating: 4.2, image: ACTIVITY_IMAGES[2], price: null, included: false }
+        ]},
+        { price: 5200, activities: [
+          { title: 'Free Morning / Souvenir Shopping', time: '09:00', category: 'Optional · Self-guided', duration: 'Half day', rating: 4.2, image: ACTIVITY_IMAGES[2], price: null, included: false },
+          { title: 'Departure Transfer to Airport', time: '13:00', category: 'Private Transfer', duration: '1h', rating: 4.7, image: ACTIVITY_IMAGES[6], price: 900 }
+        ]}
       ]}
     ]),
     schedule: [
@@ -149,19 +230,19 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Coastal', 'Relaxed', 'Wine Tasting'],
     days: buildJourneyDays('JUN', 18, [
       { city: 'Rome', days: [
-        { activities: ['Arrival', 'Colosseum at sunset'], price: 9200 },
-        { activities: ['Vatican Museums', 'Trastevere dinner'], price: 8100 },
-        { activities: ['Day trip to Tivoli'], price: 7300 }
+        { activities: asActivities(['Arrival', 'Colosseum at sunset']), price: 9200 },
+        { activities: asActivities(['Vatican Museums', 'Trastevere dinner']), price: 8100 },
+        { activities: asActivities(['Day trip to Tivoli']), price: 7300 }
       ]},
       { city: 'Amalfi', days: [
-        { activities: ['Drive to Amalfi', 'Positano viewpoint'], price: 9600 },
-        { activities: ['Ravello gardens', 'Boat day'], price: 8800 },
-        { activities: ['Free beach morning', 'Limoncello tasting'], price: 6700 }
+        { activities: asActivities(['Drive to Amalfi', 'Positano viewpoint']), price: 9600 },
+        { activities: asActivities(['Ravello gardens', 'Boat day']), price: 8800 },
+        { activities: asActivities(['Free beach morning', 'Limoncello tasting']), price: 6700 }
       ]},
       { city: 'Palermo', days: [
-        { activities: ['Ferry to Palermo', 'Street food market'], price: 7900 },
-        { activities: ['Wine tasting', 'Coastline drive'], price: 7100 },
-        { activities: ['Free morning', 'Departure'], price: 5400 }
+        { activities: asActivities(['Ferry to Palermo', 'Street food market']), price: 7900 },
+        { activities: asActivities(['Wine tasting', 'Coastline drive']), price: 7100 },
+        { activities: asActivities(['Free morning', 'Departure']), price: 5400 }
       ]}
     ]),
     schedule: [
@@ -207,14 +288,14 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Heritage', 'Nature', 'Slow Travel'],
     days: buildJourneyDays('OCT', 12, [
       { city: 'Kyoto', days: [
-        { activities: ['Arrival', 'Gion evening walk'], price: 8900 },
-        { activities: ['Fushimi Inari torii gates'], price: 7200 },
-        { activities: ['Arashiyama bamboo grove', 'Tea ceremony'], price: 8300 },
-        { activities: ['Kinkaku-ji', 'Ryoan-ji rock garden'], price: 7600 },
-        { activities: ['Philosopher’s Path', 'Nishiki Market'], price: 6800 },
-        { activities: ['Nara day trip', 'Deer Park'], price: 7900 },
-        { activities: ['Free day', 'Optional kaiseki dinner'], price: 6100 },
-        { activities: ['Closing dinner', 'Departure'], price: 5300 }
+        { activities: asActivities(['Arrival', 'Gion evening walk']), price: 8900 },
+        { activities: asActivities(['Fushimi Inari torii gates']), price: 7200 },
+        { activities: asActivities(['Arashiyama bamboo grove', 'Tea ceremony']), price: 8300 },
+        { activities: asActivities(['Kinkaku-ji', 'Ryoan-ji rock garden']), price: 7600 },
+        { activities: asActivities(['Philosopher’s Path', 'Nishiki Market']), price: 6800 },
+        { activities: asActivities(['Nara day trip', 'Deer Park']), price: 7900 },
+        { activities: asActivities(['Free day', 'Optional kaiseki dinner']), price: 6100 },
+        { activities: asActivities(['Closing dinner', 'Departure']), price: 5300 }
       ]}
     ]),
     schedule: [
@@ -262,19 +343,19 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Culture', 'Food', 'Adventure'],
     days: buildJourneyDays('DEC', 12, [
       { city: 'Paris', days: [
-        { activities: ['Arrival', 'Christmas market at Tuileries'], price: 8700 },
-        { activities: ['Louvre', 'Seine river cruise'], price: 7900 },
-        { activities: ['Montmartre walk', 'Free evening'], price: 6300 }
+        { activities: asActivities(['Arrival', 'Christmas market at Tuileries']), price: 8700 },
+        { activities: asActivities(['Louvre', 'Seine river cruise']), price: 7900 },
+        { activities: asActivities(['Montmartre walk', 'Free evening']), price: 6300 }
       ]},
       { city: 'Barcelona', days: [
-        { activities: ['Flight to Barcelona', 'Gothic Quarter lights'], price: 9200 },
-        { activities: ['Sagrada Família', 'Park Güell'], price: 7700 },
-        { activities: ['Tapas crawl', 'Free evening'], price: 6900 }
+        { activities: asActivities(['Flight to Barcelona', 'Gothic Quarter lights']), price: 9200 },
+        { activities: asActivities(['Sagrada Família', 'Park Güell']), price: 7700 },
+        { activities: asActivities(['Tapas crawl', 'Free evening']), price: 6900 }
       ]},
       { city: 'Madrid', days: [
-        { activities: ['Train to Madrid', 'Retiro Park'], price: 8300 },
-        { activities: ['Prado Museum', 'Flamenco night'], price: 7500 },
-        { activities: ['Free morning', 'Departure'], price: 5300 }
+        { activities: asActivities(['Train to Madrid', 'Retiro Park']), price: 8300 },
+        { activities: asActivities(['Prado Museum', 'Flamenco night']), price: 7500 },
+        { activities: asActivities(['Free morning', 'Departure']), price: 5300 }
       ]}
     ]),
     schedule: [
@@ -322,19 +403,19 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Coastal', 'Relaxed', 'Wine Tasting'],
     days: buildJourneyDays('DEC', 12, [
       { city: 'Rome', days: [
-        { activities: ['Arrival', 'Colosseum'], price: 8900 },
-        { activities: ['Vatican Museums', 'Trastevere dinner'], price: 7900 },
-        { activities: ['Day trip to Tivoli'], price: 7000 }
+        { activities: asActivities(['Arrival', 'Colosseum']), price: 8900 },
+        { activities: asActivities(['Vatican Museums', 'Trastevere dinner']), price: 7900 },
+        { activities: asActivities(['Day trip to Tivoli']), price: 7000 }
       ]},
       { city: 'Amalfi', days: [
-        { activities: ['Drive to Amalfi', 'Positano viewpoint'], price: 9100 },
-        { activities: ['Ravello gardens'], price: 8300 },
-        { activities: ['Coastal walk', 'Limoncello tasting'], price: 6400 }
+        { activities: asActivities(['Drive to Amalfi', 'Positano viewpoint']), price: 9100 },
+        { activities: asActivities(['Ravello gardens']), price: 8300 },
+        { activities: asActivities(['Coastal walk', 'Limoncello tasting']), price: 6400 }
       ]},
       { city: 'Palermo', days: [
-        { activities: ['Ferry to Palermo', 'Street food market'], price: 7500 },
-        { activities: ['Wine tasting', 'Coastline drive'], price: 6800 },
-        { activities: ['Free morning', 'Departure'], price: 5100 }
+        { activities: asActivities(['Ferry to Palermo', 'Street food market']), price: 7500 },
+        { activities: asActivities(['Wine tasting', 'Coastline drive']), price: 6800 },
+        { activities: asActivities(['Free morning', 'Departure']), price: 5100 }
       ]}
     ]),
     schedule: [
@@ -380,14 +461,14 @@ const SEED_EVENTS: CommunityEventCard[] = [
     interestTags: ['Heritage', 'Nature', 'Slow Travel'],
     days: buildJourneyDays('DEC', 12, [
       { city: 'Kyoto', days: [
-        { activities: ['Arrival', 'Gion evening walk'], price: 8600 },
-        { activities: ['Fushimi Inari torii gates in snow'], price: 7100 },
-        { activities: ['Arashiyama bamboo grove', 'Tea ceremony'], price: 8000 },
-        { activities: ['Kinkaku-ji under snow'], price: 7400 },
-        { activities: ['Philosopher’s Path', 'Nishiki Market'], price: 6600 },
-        { activities: ['Nara day trip', 'Deer Park'], price: 7700 },
-        { activities: ['Free day', 'Optional kaiseki dinner'], price: 6000 },
-        { activities: ['Closing dinner', 'Departure'], price: 5200 }
+        { activities: asActivities(['Arrival', 'Gion evening walk']), price: 8600 },
+        { activities: asActivities(['Fushimi Inari torii gates in snow']), price: 7100 },
+        { activities: asActivities(['Arashiyama bamboo grove', 'Tea ceremony']), price: 8000 },
+        { activities: asActivities(['Kinkaku-ji under snow']), price: 7400 },
+        { activities: asActivities(['Philosopher’s Path', 'Nishiki Market']), price: 6600 },
+        { activities: asActivities(['Nara day trip', 'Deer Park']), price: 7700 },
+        { activities: asActivities(['Free day', 'Optional kaiseki dinner']), price: 6000 },
+        { activities: asActivities(['Closing dinner', 'Departure']), price: 5200 }
       ]}
     ]),
     schedule: [
@@ -424,6 +505,17 @@ export class CommunityEventsMockStore {
       })
     );
     return joined;
+  }
+
+  /**
+   * One-way transition to joined=true — idempotent, unlike toggleJoin(). Used
+   * after a real itinerary trip has actually been created for this journey,
+   * where a second "Continue" click must not flip the traveler back to un-joined.
+   */
+  markJoined(id: string): void {
+    this.events.update((list) =>
+      list.map((e) => (e.id === id && !e.joined ? { ...e, joined: true, travelersGoing: e.travelersGoing + 1 } : e))
+    );
   }
 
   /** Returns the new followed state. */

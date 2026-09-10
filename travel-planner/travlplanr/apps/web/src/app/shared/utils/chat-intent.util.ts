@@ -216,6 +216,16 @@ const DESTINATION_PATTERNS: Array<[RegExp, string]> = [
 
 const TRANSPORT_WORDS = new Set(['train', 'bus', 'flight', 'car', 'transfer', 'transportation', 'transport', 'rental']);
 
+// "Host Event" / "create an event" / "start hosting a journey" — routed to
+// EventHostAssistantService's guided Q&A instead of the generic trip-planning
+// chat, which has no concept of "event" and would otherwise misread it as an
+// unrecognized destination name (see chat.py's curated-list fallback).
+const HOST_EVENT_RE = /\b(?:host|create|start|plan|make)\s+(?:an?\s+|my\s+)?(?:new\s+)?event\b|\bhost\s+(?:an?\s+)?journey\b/i;
+
+export function isHostEventRequest(message: string): boolean {
+  return HOST_EVENT_RE.test(message.trim());
+}
+
 export function extractDestinationFromMessage(message: string): string | null {
   for (const [pattern, name] of DESTINATION_PATTERNS) {
     if (pattern.test(message)) return name;

@@ -92,12 +92,8 @@
           [class.hover:bg-slate-200]="selectedCount(filter.key) === 0"
           [class.dark:hover:bg-gray-600]="selectedCount(filter.key) === 0"
         >
-          {{ filter.label }}
-          <span
-            *ngIf="selectedCount(filter.key) > 0"
-            class="w-4 h-4 rounded-full bg-primary text-white text-[9.5px] font-extrabold flex items-center justify-center shrink-0"
-          >
-            {{ selectedCount(filter.key) }}
+          <span>
+            {{ filter.label }}<ng-container *ngIf="selectedValue(filter.key) as val">: {{ val }}</ng-container>
           </span>
           <svg
             class="w-3 h-3 shrink-0 transition-transform"
@@ -190,9 +186,9 @@
         Upcoming
       </span>
 
-      <!-- Banner: links to the event's details -->
+      <!-- Banner: links to the Event Summary page (informational recap before the traveler reaches the full detail/booking flow) -->
       <a
-        [routerLink]="['/community/events', ev.id]"
+        [routerLink]="['/community/events', ev.id, 'summary']"
         class="relative h-44 bg-cover bg-center bg-gradient-to-br from-primary-50 to-slate-50 dark:from-gray-700 dark:to-gray-800"
         [style.background-image]="ev.imageUrl ? ('linear-gradient(180deg, rgba(255,255,255,0) 50%, rgba(11,18,32,.45) 100%), url(' + ev.imageUrl + ')') : null"
       ></a>

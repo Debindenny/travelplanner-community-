@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { ToastService } from 'ui';
 import { AuthService } from '../auth/auth.service';
 import { catchError, switchMap } from 'rxjs/operators';
 import { throwError, from } from 'rxjs';
@@ -24,7 +25,8 @@ function readRequestCurrency(): string {
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+  const toast = inject(ToastService);
+
   // Do not intercept refresh requests themselves
   if (req.url.includes('/auth/refresh')) {
     return next(req);
@@ -59,7 +61,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               });
               return next(retriedReq);
             }
+            const hadSession = !!token;
             authService.logout();
+            toast.info(
+              hadSession
+                ? 'Your session has expired — please sign in again to continue.'
+                : 'Please sign in to continue.'
+            );
             router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
             return throwError(() => error);
           })

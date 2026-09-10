@@ -1513,6 +1513,7 @@
       "ADD_PEOPLE": "Agregar personas a este plan",
       "ADD_TO_DAY": "Agregar al día {{number}}",
       "BOOK_ACTIVITY": "Reservar actividad",
+      "BOOKED_LABEL": "Reservado ✓",
       "BOOK_NOW": "Reservar ahora",
       "BOOK_STAY": "Reservar estadía",
       "BUILD_ITINERARY": "Crear mi itinerario",
