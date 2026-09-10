@@ -5,7 +5,6 @@ import { CommunityCreatePostComponent } from './community-post-shared.component'
 import { CommunityTipComposerComponent } from './community-tip-composer.component';
 import { CommunityPhotoComposerComponent } from './community-photo-composer.component';
 import { CommunityTripComposerComponent } from './community-trip-composer.component';
-import { CommunityQuestionComposerComponent } from './community-question-composer.component';
 import { CommunityMeetupComposerComponent } from './community-meetup-composer.component';
 import { CommunityBuddyComposerComponent } from './community-buddy-composer.component';
 import { CommunityPost } from '../services/community-post.service';
@@ -21,15 +20,13 @@ const TYPE_OPTIONS: ComposerTypeOption[] = [
   { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_TIP', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_TIP', icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z', postType: 'tip' },
   { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_PHOTO', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_PHOTO', icon: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z', postType: 'photo' },
   { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_TRIP', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_TRIP', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z', postType: 'trip_share' },
-  { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_QUESTION', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_QUESTION', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', postType: 'question' },
-  { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_POLL', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_POLL', icon: 'M3 3v18h18M8 17V9m4 8V5m4 12v-6', postType: 'poll' },
   { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_MEETUP', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_MEETUP', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', postType: 'meetup' },
   { labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_BUDDY', hintKey: 'COMMUNITY.COMPOSER_MODAL.HINT_BUDDY', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm6-3h-3m0 0h-3m3 0v-3m0 3v3M13 7a4 4 0 11-8 0 4 4 0 018 0z', postType: 'buddy_request' },
 ];
 
 @Component({
   selector: 'app-community-composer-modal',
-  imports: [TranslatePipe, CommunityCreatePostComponent, CommunityTipComposerComponent, CommunityPhotoComposerComponent, CommunityTripComposerComponent, CommunityQuestionComposerComponent, CommunityMeetupComposerComponent, CommunityBuddyComposerComponent],
+  imports: [TranslatePipe, CommunityCreatePostComponent, CommunityTipComposerComponent, CommunityPhotoComposerComponent, CommunityTripComposerComponent, CommunityMeetupComposerComponent, CommunityBuddyComposerComponent],
   template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
@@ -114,11 +111,6 @@ const TYPE_OPTIONS: ComposerTypeOption[] = [
               (posted)="postCreated.emit($event); close.emit()"
               (cancel)="close.emit()"
             />
-          } @else if (selectedType() === 'question') {
-            <app-community-question-composer
-              (posted)="postCreated.emit($event); close.emit()"
-              (cancel)="close.emit()"
-            />
           } @else if (selectedType() === 'meetup') {
             <app-community-meetup-composer
               (posted)="close.emit()"
@@ -150,7 +142,7 @@ const TYPE_OPTIONS: ComposerTypeOption[] = [
 })
 export class CommunityComposerModalComponent implements OnInit {
   @Input() userAvatar?: string;
-  /** Post type to open directly on, skipping the type-picker list (e.g. 'tip', 'photo', 'trip_share', 'question', 'poll'). */
+  /** Post type to open directly on, skipping the type-picker list (e.g. 'tip', 'photo', 'trip_share'). */
   @Input() initialType?: string;
   @Output() postCreated = new EventEmitter<CommunityPost>();
   @Output() close = new EventEmitter<void>();

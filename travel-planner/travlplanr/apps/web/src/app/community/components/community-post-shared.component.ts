@@ -29,7 +29,6 @@ import { apiErrorMessage } from '../../shared/utils/api-error.util';
 import { DestinationSearchService } from '../../shared/services/destination-search.service';
 import { DestinationListItem } from '../../shared/utils/destination.util';
 import { CommunityLevelBadgeComponent } from './community-level-badge.component';
-import { CommunityPollComponent } from './community-poll.component';
 import { CommunityQaThreadComponent } from './community-qa-thread.component';
 import { CommunityReportModalComponent } from './community-report-modal.component';
 
@@ -38,6 +37,19 @@ interface DestinationOption {
   name: string;
   country: string;
   image: string;
+}
+
+const FOLLOWING_BUTTON_VISIBLE_MS = 60 * 60 * 1000;
+
+/** The "Following" button is only shown for an hour after the follow action; past that
+    the user is still followed server-side, but the button disappears (neither Follow nor
+    Following is shown) rather than reverting to an actionable "Follow" state. */
+export function getFollowButtonState(post: { is_following?: boolean; followed_at?: string | null }): 'follow' | 'following' | 'hidden' {
+  if (!post.is_following) return 'follow';
+  if (!post.followed_at) return 'following';
+  const followedAtMs = new Date(post.followed_at).getTime();
+  if (isNaN(followedAtMs)) return 'following';
+  return Date.now() - followedAtMs < FOLLOWING_BUTTON_VISIBLE_MS ? 'following' : 'hidden';
 }
 
 @Component({
@@ -243,7 +255,7 @@ export class CommunityPostCarouselComponent implements OnDestroy {
 
 @Component({
     selector: 'app-community-post-card',
-    imports: [RouterLink, CommunityPostCarouselComponent, FormsModule, TranslatePipe, CommunityLevelBadgeComponent, CommunityPollComponent, CommunityQaThreadComponent, CommunityReportModalComponent, A11yModule],
+    imports: [RouterLink, CommunityPostCarouselComponent, FormsModule, TranslatePipe, CommunityLevelBadgeComponent, CommunityQaThreadComponent, CommunityReportModalComponent, A11yModule],
     template: `
     <article class="bg-white dark:bg-gray-800/90 backdrop-blur-md rounded-2xl overflow-hidden border border-slate-100 dark:border-gray-700/80 shadow-[0_1px_2px_rgba(11,18,32,0.03),0_10px_30px_rgba(11,18,32,0.055)] hover:shadow-[0_2px_4px_rgba(11,18,32,0.04),0_18px_44px_rgba(11,18,32,0.09)] transition-shadow duration-200 relative">
 
@@ -271,8 +283,6 @@ export class CommunityPostCarouselComponent implements OnDestroy {
               @if (kindLabel() !== 'INSIGHT') {
                 <span
                   class="h-[21px] px-2.5 rounded-md text-[9.5px] font-semibold tracking-wide flex items-center whitespace-nowrap"
-                  [class.text-purple-700]="kindLabel() === 'POLL'"
-                  [class.bg-purple-50]="kindLabel() === 'POLL'"
                   [class.text-amber-700]="kindLabel() === 'QUESTION'"
                   [class.bg-amber-50]="kindLabel() === 'QUESTION'"
                 >{{ kindLabel() }}</span>
@@ -301,21 +311,21 @@ export class CommunityPostCarouselComponent implements OnDestroy {
             <button (click)="deletePost()" class="h-8 px-3.5 rounded-lg text-[11.5px] font-semibold whitespace-nowrap border border-slate-200 dark:border-gray-700 text-text-faint bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none">
               {{ 'COMMUNITY.POST_CARD.DELETE' | translate }}
             </button>
-          } @else {
+          } @else if (followButtonState() !== 'hidden') {
             <button
               (click)="onToggleFollow.emit(post)"
               class="h-8 px-3.5 rounded-lg text-[11.5px] font-semibold whitespace-nowrap border transition-colors focus:outline-none"
-              [class.border-primary]="!post.is_following"
-              [class.text-primary]="!post.is_following"
-              [class.bg-white]="!post.is_following"
-              [class.dark:bg-gray-800]="!post.is_following"
-              [class.border-slate-200]="post.is_following"
-              [class.dark:border-gray-700]="post.is_following"
-              [class.bg-slate-50]="post.is_following"
-              [class.dark:bg-gray-700]="post.is_following"
-              [class.text-text-faint]="post.is_following"
+              [class.border-primary]="followButtonState() === 'follow'"
+              [class.text-primary]="followButtonState() === 'follow'"
+              [class.bg-white]="followButtonState() === 'follow'"
+              [class.dark:bg-gray-800]="followButtonState() === 'follow'"
+              [class.border-slate-200]="followButtonState() === 'following'"
+              [class.dark:border-gray-700]="followButtonState() === 'following'"
+              [class.bg-slate-50]="followButtonState() === 'following'"
+              [class.dark:bg-gray-700]="followButtonState() === 'following'"
+              [class.text-text-faint]="followButtonState() === 'following'"
               >
-              {{ (post.is_following ? 'COMMUNITY.FOLLOWING' : 'COMMUNITY.POST_CARD.FOLLOW') | translate }}
+              {{ (followButtonState() === 'following' ? 'COMMUNITY.FOLLOWING' : 'COMMUNITY.POST_CARD.FOLLOW') | translate }}
             </button>
           }
           <div class="relative">
@@ -339,24 +349,18 @@ export class CommunityPostCarouselComponent implements OnDestroy {
       <!-- Caption -->
       <div class="px-4 pb-3">
         @if (!isEditing) {
-          @if (post.type === 'poll') {
-            <!-- The poll question IS the caption — shown once, as a heading, with no
-                 muted-body repeat below it (the options list takes that spot instead). -->
-            <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ post.caption }}</p>
-          } @else {
-            @if (captionHeadline()) {
-              <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
-            }
-            <p class="text-[13.5px] font-normal leading-[1.65] text-text-muted whitespace-pre-wrap">
-              @for (token of getCaptionTokens(captionRest()); track $index) {
-                @if (token.type === 'hashtag') {
-                  <span (click)="filterByHashtag(token.value)" class="text-primary font-semibold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
-                } @else {
-                  <span>{{ token.value }}</span>
-                }
-              }
-            </p>
+          @if (captionHeadline()) {
+            <p class="text-[17px] font-bold leading-snug tracking-tight text-text-primary mb-1">{{ captionHeadline() }}</p>
           }
+          <p class="text-[13.5px] font-normal leading-[1.65] text-text-muted whitespace-pre-wrap">
+            @for (token of getCaptionTokens(captionRest()); track $index) {
+              @if (token.type === 'hashtag') {
+                <span (click)="filterByHashtag(token.value)" class="text-primary font-semibold hover:underline cursor-pointer mr-1.5">{{ token.value }}</span>
+              } @else {
+                <span>{{ token.value }}</span>
+              }
+            }
+          </p>
         }
         @if (isEditing) {
           <textarea [(ngModel)]="editCaption" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" rows="3"></textarea>
@@ -396,13 +400,6 @@ export class CommunityPostCarouselComponent implements OnDestroy {
             <svg class="w-3 h-3 text-primary fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
             <span class="text-xs font-semibold text-primary">{{ post.destination.name }}</span>
           </a>
-        </div>
-      }
-
-      <!-- Poll -->
-      @if (post.type === 'poll' && post.poll) {
-        <div class="px-4 pb-3">
-          <app-community-poll [poll]="post.poll" [voting]="pollVoting()" (onVote)="onPollVote($event)" />
         </div>
       }
 
@@ -614,8 +611,11 @@ export class CommunityPostCardComponent {
     return this.post.author?.id === this.authService.user()?.id;
   }
 
+  followButtonState(): 'follow' | 'following' | 'hidden' {
+    return getFollowButtonState(this.post);
+  }
+
   kindLabel(): string {
-    if (this.post.type === 'poll') return 'POLL';
     if (this.post.type === 'qa') return 'QUESTION';
     return 'INSIGHT';
   }
@@ -768,23 +768,6 @@ export class CommunityPostCardComponent {
     });
   }
 
-  pollVoting = signal(false);
-
-  onPollVote(event: { pollId: string; optionId: string }) {
-    if (!this.post?.poll || this.pollVoting()) return;
-    this.pollVoting.set(true);
-    this.postService.votePoll(this.post.id, event.optionId).subscribe({
-      next: (poll) => {
-        this.post.poll = poll;
-        this.pollVoting.set(false);
-      },
-      error: () => {
-        this.pollVoting.set(false);
-        this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_POLL_VOTE_ERROR'));
-      },
-    });
-  }
-
   reactPost() {
     if (!this.post) return;
 
@@ -877,6 +860,14 @@ export class CommunityPostCardComponent {
             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
           }
         </div>
+        <button
+          type="button"
+          (click)="submitComment(commentInput)"
+          [disabled]="!commentInput.value.trim() || loadingSubmit()"
+          class="shrink-0 h-10 px-4 rounded-full text-xs font-semibold bg-primary hover:bg-primary-hover text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
+        >
+          {{ 'COMMUNITY.POST_COMMENT_BUTTON' | translate }}
+        </button>
       </div>
     </div>
   `
@@ -1239,9 +1230,7 @@ export class CommunityCreatePostComponent implements OnInit, OnDestroy {
   postTypes = [
     { value: 'photo', label: 'Photo', emoji: '📸' },
     { value: 'trip_share', label: 'Trip Share', emoji: '✈️' },
-    { value: 'question', label: 'Question', emoji: '🤔' },
     { value: 'buddy_request', label: 'Find Buddy', emoji: '🤝' },
-    { value: 'poll', label: 'Poll', emoji: '📊' },
     { value: 'qa', label: 'Q&A Thread', emoji: '💬' },
   ];
   selectedPostType = 'photo';
@@ -1302,7 +1291,6 @@ export class CommunityCreatePostComponent implements OnInit, OnDestroy {
   getPlaceholder(): string {
     switch (this.selectedPostType) {
       case 'trip_share': return 'Share your trip story…';
-      case 'question': return 'Ask the community…';
       case 'buddy_request': return 'Looking for a travel buddy? Describe your trip plans…';
       default: return this.translate.instant('COMMUNITY.CREATE_POST.CAPTION_PLACEHOLDER');
     }

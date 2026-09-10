@@ -5,7 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FooterSectionComponent } from '../../landing/components/footer-section/footer-section.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from '../services/community-post.service';
-import { CommunityPostCarouselComponent } from './community-post-shared.component';
+import { CommunityPostCarouselComponent, getFollowButtonState } from './community-post-shared.component';
 import { CommunityCommentService, Comment } from '../services/community-comment.service';
 import { AuthService } from '../../auth/auth.service';
 import { CommunityProfileService } from '../services/community-profile.service';
@@ -146,17 +146,19 @@ const BUDGET_TIERS = ['budget', 'economy', 'standard', 'mid', 'premium', 'luxury
                       </div>
                     </div>
                     <div class="flex items-center gap-1.5">
-                      <button
-                        (click)="toggleFollow()"
-                        [class.text-primary]="!post()!.is_following"
-                        [class.bg-primary-50]="!post()!.is_following"
-                        [class.text-text-tertiary]="post()!.is_following"
-                        [class.bg-slate-100]="post()!.is_following"
-                        class="px-3 py-1 rounded-full text-xs font-bold transition-all hover:scale-102 focus:outline-none"
-                        >
-                        {{ post()!.is_following ? ('COMMUNITY.FOLLOWING' | translate) : ('COMMUNITY.POST_DETAIL.FOLLOW_BUTTON' | translate) }}
-                      </button>
-    
+                      @if (followButtonState() !== 'hidden') {
+                        <button
+                          (click)="toggleFollow()"
+                          [class.text-primary]="followButtonState() === 'follow'"
+                          [class.bg-primary-50]="followButtonState() === 'follow'"
+                          [class.text-text-tertiary]="followButtonState() === 'following'"
+                          [class.bg-slate-100]="followButtonState() === 'following'"
+                          class="px-3 py-1 rounded-full text-xs font-bold transition-all hover:scale-102 focus:outline-none"
+                          >
+                          {{ followButtonState() === 'following' ? ('COMMUNITY.FOLLOWING' | translate) : ('COMMUNITY.POST_DETAIL.FOLLOW_BUTTON' | translate) }}
+                        </button>
+                      }
+
                       @if (isAuthor()) {
                         <div class="relative">
                           <button (click)="showOptionsMenu = !showOptionsMenu" class="text-text-tertiary hover:bg-slate-100 p-1.5 rounded-full transition-colors focus:outline-none">
@@ -543,20 +545,30 @@ export class CommunityPostDetailComponent implements OnInit, OnDestroy {
   }
 
 
+  followButtonState(): 'follow' | 'following' | 'hidden' {
+    const currentPost = this.post();
+    return currentPost ? getFollowButtonState(currentPost) : 'hidden';
+  }
+
   toggleFollow() {
     const currentPost = this.post();
     if (!currentPost || !currentPost.author?.id) return;
 
-    currentPost.is_following = !currentPost.is_following;
+    const prevFollowing = currentPost.is_following;
+    const prevFollowedAt = currentPost.followed_at;
+    currentPost.is_following = !prevFollowing;
+    currentPost.followed_at = currentPost.is_following ? new Date().toISOString() : null;
     this.post.set({...currentPost});
 
     this.profileService.toggleFollow(currentPost.author.id).subscribe({
       next: (res) => {
         currentPost.is_following = res.is_following;
+        currentPost.followed_at = res.followed_at ?? null;
         this.post.set({...currentPost});
       },
       error: () => {
-        currentPost.is_following = !currentPost.is_following;
+        currentPost.is_following = prevFollowing;
+        currentPost.followed_at = prevFollowedAt;
         this.post.set({...currentPost});
         this.toast.error(this.translate.instant('COMMUNITY.TOAST_FOLLOW_ERROR'));
       }

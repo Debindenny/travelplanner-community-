@@ -58,17 +58,17 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
     placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_TRIP',
     icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
-  question: {
-    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_QUESTION',
-    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_QUESTION',
-    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-  },
-  poll: {
-    labelKey: 'COMMUNITY.COMPOSER_MODAL.TYPE_POLL',
-    placeholderKey: 'COMMUNITY.FEED_COMPOSER_PLACEHOLDER_POLL',
-    icon: 'M3 3v18h18M8 17V9m4 8V5m4 12v-6',
-  },
 };
+
+/** Static suggestion list for the feed composer's location field — filtered client-side as the
+    user types. Free text is always allowed too; this never blocks a custom location. */
+const FEED_LOCATION_SUGGESTIONS: string[] = [
+  'Singapore',
+  'Dubai, UAE',
+  'Paris, France',
+  'Tokyo, Japan',
+  'London, UK',
+];
 
 @Component({
     selector: 'app-community-page',
@@ -258,33 +258,48 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                     class="w-full h-16 sm:h-20 px-4 py-3 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary resize-none mb-3"
                   ></textarea>
 
-                  @if (composerType() === 'poll') {
-                    <!-- Poll needs at least 2 filled options alongside the question; Post stays
-                         disabled until both are met (see canSubmitComposer). -->
-                    <div class="space-y-2 mb-3">
-                      @for (option of composerPollOptions(); track $index; let i = $index) {
-                        <input
-                          type="text"
-                          [value]="option"
-                          (input)="updateComposerPollOption(i, $any($event.target).value)"
-                          [attr.placeholder]="(getComposerPollPlaceholderKey(i) | translate: { n: i + 1 })"
-                          maxlength="80"
-                          class="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary"
-                        />
-                      }
-                      <button
-                        type="button"
-                        (click)="addComposerPollOption()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-50 text-primary text-xs font-bold hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
-                      >
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        {{ 'COMMUNITY.FEED_COMPOSER_ADD_OPTION' | translate }}
-                      </button>
+                  <!-- Location: free text with a filtered suggestion list — selecting a suggestion
+                       just fills the same field, it isn't a separate structured value. -->
+                  <div class="relative mb-3">
+                    <div class="relative">
+                      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      <input
+                        type="text"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        [attr.aria-expanded]="composerShowLocationSuggestions()"
+                        aria-controls="feed-composer-location-listbox"
+                        [value]="composerLocation()"
+                        (input)="onComposerLocationInput($any($event.target).value)"
+                        (focus)="composerShowLocationSuggestions.set(true)"
+                        (blur)="composerShowLocationSuggestions.set(false)"
+                        [attr.placeholder]="'COMMUNITY.FEED_COMPOSER_LOCATION_PLACEHOLDER' | translate"
+                        maxlength="120"
+                        class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary"
+                      />
                     </div>
-                  }
+                    @if (composerShowLocationSuggestions() && composerLocationSuggestions().length > 0) {
+                      <ul
+                        id="feed-composer-location-listbox"
+                        role="listbox"
+                        class="absolute z-50 w-full mt-1.5 bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] max-h-56 overflow-auto divide-y divide-slate-50 dark:divide-gray-700"
+                      >
+                        @for (loc of composerLocationSuggestions(); track loc) {
+                          <li role="option">
+                            <button
+                              type="button"
+                              (mousedown)="$event.preventDefault()"
+                              (click)="selectComposerLocation(loc)"
+                              class="w-full text-left px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-primary-50/60 dark:hover:bg-gray-700 transition-colors"
+                            >{{ loc }}</button>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
 
                   @if (composerType() === 'photo') {
-                    <!-- Photo is the only type that requires media; Tip/Trip/Question/Poll post from text alone. -->
+                    <!-- Photo is the only type that requires media; Tip/Trip post from text alone. -->
                     <div class="mb-3">
                       @if (composerImages().length === 0 && !composerVideoPreviewUrl()) {
                         <button
@@ -365,9 +380,6 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                   @if (composerType() === 'photo' && !composerHasMedia()) {
                     <p class="text-[11px] font-semibold text-danger mt-2">{{ 'COMMUNITY.FEED_COMPOSER_MEDIA_REQUIRED' | translate }}</p>
                   }
-                  @if (composerType() === 'poll' && composerPollFilledOptionCount() < 2) {
-                    <p class="text-[11px] font-semibold text-danger mt-2">{{ 'COMMUNITY.FEED_COMPOSER_POLL_OPTIONS_REQUIRED' | translate }}</p>
-                  }
                 } @else {
                   <button
                     type="button"
@@ -384,7 +396,7 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                       <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                       {{ 'COMMUNITY.FEED_COMPOSER_PHOTO' | translate }}
                     </button>
-                    <button type="button" (click)="openFeedComposer('trip_share')" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
+                    <button type="button" (click)="showTripModal.set(true)" class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-colors">
                       <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                       {{ 'COMMUNITY.FEED_COMPOSER_TRIP' | translate }}
                     </button>
@@ -475,6 +487,99 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
         />
       }
 
+      @if (showTripModal()) {
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="trip-share-modal-title"
+          (click)="closeTripModal()"
+        >
+          <div
+            class="no-scrollbar w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-800 shadow-2xl"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="sticky top-0 z-10 rounded-t-2xl bg-white dark:bg-gray-800 flex items-start justify-between gap-3 px-4 py-2.5 border-b border-slate-100 dark:border-gray-700">
+              <div class="flex items-center gap-2 min-w-0">
+                @if (tripToShare()) {
+                  <button
+                    type="button"
+                    (click)="backToTripPicker()"
+                    class="w-7 h-7 rounded-lg border border-slate-200 dark:border-gray-600 flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                    [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.BACK_ARIA' | translate"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                  </button>
+                }
+                <h2 id="trip-share-modal-title" class="text-base font-extrabold text-text-primary truncate">{{ 'COMMUNITY.COMPOSER_MODAL.TYPE_TRIP' | translate }}</h2>
+              </div>
+              <button
+                type="button"
+                (click)="closeTripModal()"
+                class="w-7 h-7 rounded-lg border border-slate-200 dark:border-gray-600 flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
+                [attr.aria-label]="'COMMUNITY.COMPOSER_MODAL.CLOSE_ARIA' | translate"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            @if (tripToShare(); as trip) {
+              <div class="p-4 flex flex-col gap-3">
+                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-primary-50/50 border border-primary-subtle/40">
+                  <div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 bg-slate-100" [style.backgroundImage]="trip.image ? 'url(' + trip.image + ')' : null"></div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-extrabold text-text-primary truncate">{{ trip.title }}</p>
+                    <p class="text-[11px] font-medium text-text-faint truncate">{{ trip.destination }}@if (trip.days) { · {{ trip.days }}d }</p>
+                  </div>
+                </div>
+
+                <textarea
+                  [value]="tripShareCaption()"
+                  (input)="tripShareCaption.set($any($event.target).value)"
+                  [attr.placeholder]="'COMMUNITY.COMPOSER_MODAL.TRIP_STORY_PLACEHOLDER' | translate"
+                  maxlength="500"
+                  class="w-full h-24 px-3 py-2 bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 rounded-lg focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium text-text-primary resize-none"
+                ></textarea>
+              </div>
+
+              <div class="sticky bottom-0 z-10 rounded-b-2xl bg-white dark:bg-gray-800 flex items-center justify-end gap-2 px-4 py-2.5 border-t border-slate-100 dark:border-gray-700">
+                <button
+                  type="button"
+                  (click)="closeTripModal()"
+                  class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-gray-600 text-xs font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                >{{ 'COMMUNITY.COMPOSER_MODAL.CANCEL' | translate }}</button>
+                <button
+                  type="button"
+                  [disabled]="!tripShareCaption().trim() || tripShareSubmitting()"
+                  (click)="submitTripShare()"
+                  class="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors"
+                >{{ 'COMMUNITY.COMPOSER_MODAL.SHARE_ITINERARY' | translate }}</button>
+              </div>
+            } @else {
+              <div class="p-4 flex flex-col gap-2">
+                @if (tripService.trips().length === 0) {
+                  <p class="text-sm text-text-faint text-center py-8">{{ 'COMMUNITY.COMPOSER_MODAL.NO_TRIPS_TO_SHARE' | translate }}</p>
+                }
+                @for (trip of tripService.trips(); track trip.id) {
+                  <button
+                    type="button"
+                    (click)="onTripPicked(trip)"
+                    class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-gray-700 hover:border-primary-subtle/60 hover:bg-primary-50/40 dark:hover:bg-gray-700/40 transition-colors text-left focus:outline-none"
+                  >
+                    <div class="w-11 h-11 rounded-lg bg-cover bg-center shrink-0 bg-slate-100" [style.backgroundImage]="trip.image ? 'url(' + trip.image + ')' : null"></div>
+                    <span class="flex-1 min-w-0">
+                      <span class="block text-sm font-extrabold text-text-primary truncate">{{ trip.title }}</span>
+                      <span class="block text-xs font-medium text-text-faint truncate">{{ trip.destination }}@if (trip.days) { · {{ trip.days }}d }</span>
+                    </span>
+                    <svg class="w-3.5 h-3.5 text-text-disabled shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       @if (toastMessage()) {
         <div class="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded shadow-lg transition-opacity z-50">
           {{ toastMessage() }}
@@ -496,29 +601,40 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   notificationsService = inject(CommunityNotificationsService);
   posts: CommunityPostType[] = [];
 
-  // Inline feed composer (no modal): composerType is the selected type ('tip' | 'photo' |
-  // 'trip_share' | 'question' | 'poll') or null while the type-picker row is shown.
+  // Inline feed composer (no modal): composerType is the selected type ('tip' | 'photo')
+  // or null while the type-picker row is shown. Trip skips this entirely and opens the
+  // existing composer modal directly (see showTripModal / openFeedComposer's caller).
   composerType = signal<string | null>(null);
   composerText = signal('');
+  composerLocation = signal('');
+  composerShowLocationSuggestions = signal(false);
   composerSubmitting = signal(false);
-  // Media state: only the 'photo' type uses these — Tip/Trip/Question/Poll never read them.
+  // Trip picks from the user's OWN trips only (TripService.trips(), the same signal the
+  // hero "next trip" card already reads — no public/community trips, no Clone/View
+  // Itinerary actions, no free-text form, no location field), then adds a caption.
+  showTripModal = signal(false);
+  tripToShare = signal<SavedTrip | null>(null);
+  tripShareCaption = signal('');
+  tripShareSubmitting = signal(false);
+  // Media state: only the 'photo' type uses these — Tip never reads them.
   composerImages = signal<{ file: File; url: string }[]>([]);
   composerVideoFile = signal<File | null>(null);
   composerVideoPreviewUrl = signal<string | null>(null);
-  // Poll options: only the 'poll' type uses this — starts with the 2 required options.
-  composerPollOptions = signal<string[]>(['', '']);
   readonly composerEmojis = ['✨', '❤️', '🤩', '🌍', '📷', '🌞'];
   readonly composerMeta = computed(() => {
     const type = this.composerType();
     return type ? FEED_COMPOSER_TYPE_META[type] ?? null : null;
   });
   readonly composerHasMedia = computed(() => this.composerImages().length > 0 || !!this.composerVideoFile());
-  readonly composerPollFilledOptionCount = computed(() => this.composerPollOptions().filter(o => o.trim().length > 0).length);
+  readonly composerLocationSuggestions = computed(() => {
+    const query = this.composerLocation().trim().toLowerCase();
+    if (!query) return FEED_LOCATION_SUGGESTIONS;
+    return FEED_LOCATION_SUGGESTIONS.filter(loc => loc.toLowerCase().includes(query));
+  });
   readonly canSubmitComposer = computed(() => {
     if (this.composerSubmitting() || this.composerText().trim().length === 0) return false;
     const type = this.composerType();
     if (type === 'photo') return this.composerHasMedia();
-    if (type === 'poll') return this.composerPollFilledOptionCount() >= 2;
     return true;
   });
 
@@ -551,10 +667,10 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private observer: IntersectionObserver | null = null;
   nextCursor?: string;
   hasMorePosts = true;
-  private http = inject(HttpClient);
-  private tripService = inject(TripService);
+  tripService = inject(TripService);
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
+  private http = inject(HttpClient);
   readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
@@ -713,17 +829,53 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     }, 500);
   }
 
+  onTripPicked(trip: SavedTrip) {
+    this.tripToShare.set(trip);
+  }
+
+  backToTripPicker() {
+    this.tripToShare.set(null);
+    this.tripShareCaption.set('');
+  }
+
+  closeTripModal() {
+    this.showTripModal.set(false);
+    this.tripToShare.set(null);
+    this.tripShareCaption.set('');
+  }
+
+  submitTripShare() {
+    const trip = this.tripToShare();
+    const caption = this.tripShareCaption().trim();
+    if (!trip || !caption || this.tripShareSubmitting()) return;
+
+    this.tripShareSubmitting.set(true);
+    this.postService.createPost({ caption, images: [], itinerary_id: trip.id }).subscribe({
+      next: (post) => {
+        this.tripShareSubmitting.set(false);
+        this.onPostCreated(post);
+        this.closeTripModal();
+      },
+      error: (err) => {
+        this.tripShareSubmitting.set(false);
+        this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.CREATE_FAILED')));
+      },
+    });
+  }
+
   openFeedComposer(type: string) {
     this.composerType.set(type);
     this.composerText.set('');
-    this.composerPollOptions.set(['', '']);
+    this.composerLocation.set('');
+    this.composerShowLocationSuggestions.set(false);
     this.clearComposerMedia();
   }
 
   closeFeedComposer() {
     this.composerType.set(null);
     this.composerText.set('');
-    this.composerPollOptions.set(['', '']);
+    this.composerLocation.set('');
+    this.composerShowLocationSuggestions.set(false);
     this.clearComposerMedia();
   }
 
@@ -731,18 +883,14 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerText.update(text => text + emoji);
   }
 
-  updateComposerPollOption(index: number, value: string) {
-    this.composerPollOptions.update(opts => opts.map((o, i) => i === index ? value : o));
+  onComposerLocationInput(value: string) {
+    this.composerLocation.set(value);
+    this.composerShowLocationSuggestions.set(true);
   }
 
-  addComposerPollOption() {
-    this.composerPollOptions.update(opts => [...opts, '']);
-  }
-
-  getComposerPollPlaceholderKey(index: number): string {
-    if (index === 0) return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_FIRST';
-    if (index === 1) return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_SECOND';
-    return 'COMMUNITY.FEED_COMPOSER_POLL_OPTION_OTHER';
+  selectComposerLocation(location: string) {
+    this.composerLocation.set(location);
+    this.composerShowLocationSuggestions.set(false);
   }
 
   onComposerFileSelect(event: Event): void {
@@ -790,22 +938,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
     const caption = this.composerText().trim();
     this.composerSubmitting.set(true);
-
-    if (this.composerType() === 'poll') {
-      const pollOptions = this.composerPollOptions().map(o => o.trim()).filter(o => o.length > 0);
-      this.postService.createPost({ caption, images: [], poll_options: pollOptions }).subscribe({
-        next: (post) => {
-          this.composerSubmitting.set(false);
-          this.onPostCreated(post);
-          this.closeFeedComposer();
-        },
-        error: (err) => {
-          this.composerSubmitting.set(false);
-          this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.CREATE_FAILED')));
-        },
-      });
-      return;
-    }
 
     if (this.composerType() === 'photo') {
       const imageUploads = this.composerImages().map(img => this.postService.uploadImage(img.file));
@@ -891,7 +1023,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
       case 'tripPlans':
         return this.posts.filter(p => !!p.itinerary);
       case 'tips':
-        return this.posts.filter(p => !p.itinerary && p.type !== 'qa' && p.type !== 'poll' && !(p.images?.length));
+        return this.posts.filter(p => !p.itinerary && p.type !== 'qa' && !(p.images?.length));
       case 'photos':
         return this.posts.filter(p => !!p.images?.length && !p.itinerary);
       default:
@@ -1002,15 +1134,20 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
 
   toggleFollow(post: CommunityPostType) {
     if (!post.author?.id) return;
-    
-    post.is_following = !post.is_following;
-    
+
+    const prevFollowing = post.is_following;
+    const prevFollowedAt = post.followed_at;
+    post.is_following = !prevFollowing;
+    post.followed_at = post.is_following ? new Date().toISOString() : null;
+
     this.profileService.toggleFollow(post.author.id).subscribe({
       next: (res) => {
         post.is_following = res.is_following;
+        post.followed_at = res.followed_at ?? null;
       },
       error: () => {
-        post.is_following = !post.is_following;
+        post.is_following = prevFollowing;
+        post.followed_at = prevFollowedAt;
         this.showToast(this.translate.instant('COMMUNITY.TOAST_FOLLOW_ERROR'));
       }
     });

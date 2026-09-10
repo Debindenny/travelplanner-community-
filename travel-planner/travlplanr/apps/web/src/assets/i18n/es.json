@@ -242,8 +242,6 @@
       "HINT_BUDDY": "Solo se emparejan viajeros con fechas superpuestas.",
       "HINT_MEETUP": "Un encuentro programado — los viajeros pueden unirse y añadirlo a un viaje.",
       "HINT_PHOTO": "Etiqueta el lugar para que los viajeros puedan añadirlo a un viaje.",
-      "HINT_POLL": "Dos o tres opciones — los viajeros votan con un toque.",
-      "HINT_QUESTION": "Quienes viajaron recientemente responden primero.",
       "HINT_TIP": "Una cosa específica que te ahorró tiempo, dinero o una cola.",
       "HINT_TRIP": "Adjunta una ruta que otros puedan clonar y adaptar.",
       "SUBTITLE": "Elige un tipo de publicación — solo pedimos lo que ese tipo necesita.",
@@ -431,6 +429,7 @@
     "NO_POSTS_BODY": "Sigue a viajeros para ver sus viajes aquí.",
     "NO_POSTS_TITLE": "Aún no hay publicaciones",
     "NO_SHORTCUTS": "No hay atajos disponibles",
+    "POST_COMMENT_BUTTON": "Publicar",
     "POST_CARD": {
       "ADD_TO_TRIP": "Añadir al viaje",
       "AUTHOR_AVATAR_ALT": "Avatar del autor",
@@ -683,6 +682,7 @@
     "SORT_BY": "Ordenar por:",
     "START_POST": "Iniciar una publicación…",
     "STORIES_BAR": {
+      "ADD_STORY_ARIA": "Añadir a tu historia",
       "PREVIEW_NOTICE": "Esto es una vista previa del estilo de historia de {{name}} — las historias reales de tu comunidad aparecerán aquí.",
       "VIEW_STORY_ARIA": "Ver historia",
       "YOUR_STORY": "Tu historia",
@@ -700,7 +700,21 @@
       }
     },
     "STORY_MODAL": {
-      "CLOSE": "Cerrar"
+      "CANCEL": "Cancelar",
+      "CLOSE": "Cerrar",
+      "DELETE_ARIA": "Eliminar historia",
+      "DELETE_CONFIRM_ACTION": "Eliminar",
+      "DELETE_CONFIRM_BODY": "Esta acción no se puede deshacer.",
+      "DELETE_CONFIRM_TITLE": "¿Eliminar esta historia?",
+      "DELETE_FAILED": "No se pudo eliminar la historia",
+      "DELETE_SUCCESS": "Historia eliminada",
+      "LIKE_ARIA": "Me gusta",
+      "LIKE_FAILED": "No se pudo actualizar el me gusta",
+      "NO_VIEWERS": "Aún no hay vistas",
+      "UNLIKE_ARIA": "Ya no me gusta",
+      "VIEWERS_LOAD_FAILED": "No se pudieron cargar los espectadores",
+      "VIEWERS_TITLE": "Visto por",
+      "VIEWS_COUNT": "{{count}} vistas"
     },
     "TOAST_CLONE_ERROR": "No se pudo clonar el viaje.",
     "TOAST_CLONE_SUCCESS": "¡Itinerario clonado exitosamente en tus viajes!",

@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy import select, desc, func, or_, and_
 from pydantic import BaseModel
@@ -8,7 +9,7 @@ from shared.rate_limit import rate_limiter
 from app.models.community import CommunityProfile, CommunityPost, UserFollow, Notification, PostHashtag, Block
 from app.models.trips import Trip
 
-from .community_shared import _serialize_posts, should_notify, ws_manager
+from .community_shared import _serialize_posts, should_notify, ws_manager, iso_utc
 from app.services.gamification import award_xp
 
 router = APIRouter()
@@ -289,9 +290,13 @@ async def toggle_follow(customer_id: UUID, request: Request, auth: dict = Depend
         existing_follow = (await session.execute(select(UserFollow).where(UserFollow.follower_id == follower_id, UserFollow.following_id == customer_id))).scalar_one_or_none()
         if existing_follow:
             await session.delete(existing_follow)
-            action = "unfollowed"; is_following = False
+            action = "unfollowed"; is_following = False; followed_at = None
         else:
-            session.add(UserFollow(follower_id=follower_id, following_id=customer_id))
+            # Stamped explicitly (rather than relying on the column's ORM-side default)
+            # so the exact timestamp is known immediately for the response below —
+            # the frontend uses it to know when the "Following" button should hide.
+            followed_at = datetime.utcnow()
+            session.add(UserFollow(follower_id=follower_id, following_id=customer_id, created_at=followed_at))
             action = "followed"; is_following = True
             await award_xp(session, follower_id, "follow_given")
             if await should_notify(session, customer_id, "follows"):
@@ -303,7 +308,7 @@ async def toggle_follow(customer_id: UUID, request: Request, auth: dict = Depend
                 await session.flush()
                 await ws_manager.broadcast_to_user(str(customer_id), {"type": "notification", "data": {"id": str(notif.id), "type": "follow", "actor_id": str(follower_id), "message": message, "link_url": f"/community/users/{follower_id}"}})
         await session.commit()
-        return {"status": "success", "action": action, "is_following": is_following}
+        return {"status": "success", "action": action, "is_following": is_following, "followed_at": iso_utc(followed_at)}
 
 @router.get("/users/{customer_id}/followers")
 async def get_followers(customer_id: UUID, request: Request, limit: int = 20, offset: int = 0, auth: dict | None = Depends(optional_customer)):
