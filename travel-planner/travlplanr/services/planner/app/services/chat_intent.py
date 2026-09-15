@@ -276,10 +276,20 @@ def _canonical_city(raw: str) -> str | None:
     return None
 
 
+# Style adjectives that alone imply "regenerate this day" even with no verb
+# ("Relax day 2", "Adventure day 3" — quick-reply chips, not full sentences).
+_REGEN_STYLE_WORDS_RE = re.compile(
+    r"\b(relax\w*|adventur\w*|chill\w*|cultur\w*|scenic|active|exciting|fun|"
+    r"foodie|local|quiet|easy|slow|romantic|luxur\w*)\b",
+    re.I,
+)
+
+
 def extract_regenerate_day(message: str) -> tuple[int | None, str | None]:
-    """Parse 'make day 3 more relaxing' → (3, 'relaxing')."""
+    """Parse 'make day 3 more relaxing' → (3, 'relaxing'), or a bare
+    'Relax day 2' / 'Adventure day 3' style chip with no verb at all."""
     text = message.lower()
-    if not re.search(r"\b(regenerat|rewrit|redo|make|more)\b", text):
+    if not re.search(r"\b(regenerat|rewrit|redo|make|more)\b", text) and not _REGEN_STYLE_WORDS_RE.search(text):
         return None, None
     day_match = re.search(r"\bday\s*(\d+)\b", text)
     if not day_match:
@@ -480,7 +490,7 @@ def infer_intent(message: str) -> str:
         return "budget_filter"
 
     regen_day, _ = extract_regenerate_day(message)
-    if regen_day and re.search(r"\b(regenerat|rewrit|redo|make|more\s+\w+|relaxing|adventur)\b", text):
+    if regen_day:
         return "regenerate_day"
 
     if extract_multi_city_route(message) and re.search(r"\b(trip|itinerar\w*|vacation|holiday|plan|days?)\b", text):
@@ -496,10 +506,12 @@ def infer_intent(message: str) -> str:
         return "destination_info"
 
     if re.search(
-        r"\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust|tweak)\b.*\b(itinerar\w*|plan|trip|schedule|days)\b",
+        r"\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust|tweak)\b.*"
+        r"\b(itinerar\w*|plan|trip|schedule|days|flights?|transport\w*|route|routing)\b",
         text,
     ) or re.search(
-        r"\b(itinerar\w*|plan|trip)\b.*\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust|tweak)\b",
+        r"\b(itinerar\w*|plan|trip|flights?|transport\w*)\b.*"
+        r"\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust|tweak)\b",
         text,
     ):
         return "fix_itinerary"
@@ -709,6 +721,13 @@ def parse_itinerary_edits(message: str) -> list[dict[str, Any]]:
     swap = _parse_swap_transport(text, day)
     if swap:
         return [swap]
+
+    # "More on day N" / "more for day N" — a quick-reply chip asking for
+    # additional curated activities on that day. Distinct from "make day N
+    # more relaxing" (regenerate with a style — see extract_regenerate_day),
+    # which never has a preposition directly between "more" and "day".
+    if re.search(r"\bmore\s+(?:on|for|about|in)\s+(?:the\s+)?day\s*\d+\b", text):
+        return [{"edit": "add_activity", "day": day or 1, "count": 3, "autoSuggest": True}]
 
     bulk_count = extract_activity_add_count(message)
     if bulk_count and bulk_count > 0 and re.search(

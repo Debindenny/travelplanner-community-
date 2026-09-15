@@ -9,7 +9,6 @@ import {
   viewChild,
   OnDestroy
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DestinationTypeaheadComponent } from '../destination-typeahead/destination-typeahead.component';
 import { SearchPlanAssistComponent } from '../search-plan-assist/search-plan-assist.component';
@@ -446,7 +445,6 @@ export class FloatingChatbotComponent implements OnDestroy {
   readonly chat = inject(TravelChatSessionService);
   readonly eventHost = inject(EventHostAssistantService);
   private readonly destinationSearch = inject(DestinationSearchService);
-  private readonly router = inject(Router);
 
   readonly inputValue = signal('');
   private ignoreOutsideClickUntil = 0;
@@ -643,14 +641,14 @@ export class FloatingChatbotComponent implements OnDestroy {
     const query = this.dockInput()?.nativeElement.value.trim();
     if (!query || this.chat.sending()) return;
 
-    // "Host event" belongs to its own dedicated flow on the Community Events
-    // page, not this general-purpose trip-planning dock — send it straight
-    // there instead of answering as the generic AI.
+    // "Host event" launches the guided Event Hosting Assistant inline in this
+    // same chat thread instead of answering as the generic trip-planning AI.
     if (!this.eventHost.active() && isHostEventRequest(query)) {
       const input = this.dockInput()?.nativeElement;
       if (input) input.value = '';
       this.inputValue.set('');
-      this.router.navigate(['/community/events/host']);
+      this.eventHost.start();
+      this.openChat();
       return;
     }
 

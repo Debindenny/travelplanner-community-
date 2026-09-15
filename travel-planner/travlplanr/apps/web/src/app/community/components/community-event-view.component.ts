@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommunityEventsMockStore } from '../services/community-events-mock.store';
-import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment, journeyActivityToTripSegment } from '../services/community-event-view.model';
 import { EventItineraryService } from '../services/event-itinerary.service';
 import { AuthService } from '../../auth/auth.service';
 import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary-timeline/itinerary-timeline.component';
@@ -186,11 +186,15 @@ type JoinMode = 'full' | 'partial';
                   [displayedDays]="detailDays()"
                   [highlightedDays]="highlightedDaySet()"
                   [getItemKey]="activityItemKey"
+                  [cityNameForAirport]="identityLabel"
+                  [getAirlineIataCode]="getAirlineIataCode"
                   [transportModeOptions]="transportModeOptions"
                   [bookedItemKeys]="bookedActivityKeys()"
                   (dayHeaderClick)="onDayHeaderClick($event)"
                   (book)="onBookActivity($event)"
                   (activitySwap)="onActivitySwap($event)"
+                  (moveUp)="onMoveActivityUp($event)"
+                  (moveDown)="onMoveActivityDown($event)"
                   (transportAdd)="addTransport($event.day, $event.type)"
                 ></app-itinerary-timeline>
 
@@ -235,7 +239,8 @@ type JoinMode = 'full' | 'partial';
                   <button
                     type="button"
                     (click)="setMode('full')"
-                    class="h-9 rounded-lg text-xs font-bold transition-colors"
+                    [disabled]="event.fullJoinAllowed === false"
+                    class="h-9 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     [class.bg-primary]="joinMode === 'full'"
                     [class.text-white]="joinMode === 'full'"
                     [class.bg-slate-100]="joinMode !== 'full'"
@@ -766,6 +771,11 @@ export class CommunityEventDetailViewComponent {
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
     this.event = id ? this.store.getById(id) : null;
+    // Hosts who configured "Partial journey only" disable the Full button —
+    // land on Partial instead of a mode the visitor can't actually pick.
+    if (this.event?.fullJoinAllowed === false) {
+      this.joinMode = 'partial';
+    }
     this.loadItinerary();
   }
 
@@ -808,6 +818,7 @@ export class CommunityEventDetailViewComponent {
 
   setMode(mode: JoinMode): void {
     if (mode === 'partial' && !this.event?.partialJoinAllowed) return;
+    if (mode === 'full' && this.event?.fullJoinAllowed === false) return;
     this.joinMode = mode;
   }
 
@@ -870,24 +881,16 @@ export class CommunityEventDetailViewComponent {
     return this.rangeStart != null && this.rangeEnd != null && day >= this.rangeStart && day <= this.rangeEnd;
   }
 
-  /** Maps this journey's day/activity data onto the shared itinerary-timeline component's shape (see itinerary-page.component.ts DetailDay/DetailActivity). */
+  /** Maps this journey's day/activity data onto the shared itinerary-timeline
+   * component's shape via journeyActivityToTripSegment() — the exact same
+   * mapper TripService.createFromContent() uses when this event becomes a
+   * real trip, so the two never disagree on what an item looks like. */
   detailDays(): DetailDay[] {
     return (this.event?.days ?? []).map((d) => ({
       day: d.day,
       title: d.city,
       dateStr: d.dateLabel,
-      items: d.activities.map((a): DetailActivity => ({
-        id: a.id,
-        type: 'activity',
-        time: a.time,
-        title: a.title,
-        rating: a.rating,
-        location: d.city,
-        refundable: a.price != null ? 'Non-refundable' : 'Free cancellation',
-        image: a.image,
-        price: a.price ?? undefined,
-        duration: a.duration || undefined
-      }))
+      items: d.activities.map((a): DetailItem => journeyActivityToTripSegment(a, d))
     }));
   }
 
@@ -896,6 +899,23 @@ export class CommunityEventDetailViewComponent {
     const activity = item as DetailActivity;
     return activity.id || activity.title;
   };
+
+  /** The shared timeline's flight card derives its heading from
+   * `cityNameForAirport(item.arrCode)` rather than any title field — hosted
+   * events store the destination name itself in `arrCode`/`depCode` (no real
+   * IATA codes exist for them), so this is a passthrough, not a lookup. */
+  readonly identityLabel = (code: string): string => code;
+
+  /** Flight card logo fallback: 2-letter initials from the carrier name (e.g.
+   * "TravlAir" → "TA") for the same box a real airline logo would sit in. */
+  readonly getAirlineIataCode = (carrier: string): string =>
+    (carrier || '')
+      .split(/\s+/)
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
 
   /** `null` in Full mode (nothing dimmed — everything's included); the picked day-number range in Partial mode. */
   highlightedDaySet(): Set<number> | null {
@@ -909,6 +929,23 @@ export class CommunityEventDetailViewComponent {
 
   onDayHeaderClick(day: number): void {
     if (this.joinMode === 'partial') this.selectDay(day);
+  }
+
+  /** Reorders this day's activities — the shared timeline's up/down buttons
+   * (moveUp/moveDown) render on every consumer, but only itinerary-page.component.ts
+   * wired them; this page rendered the buttons inert until now. */
+  onMoveActivityUp(event: { day: number; index: number }): void {
+    const day = (this.event?.days ?? []).find((d) => d.day === event.day);
+    if (!day || event.index <= 0 || event.index >= day.activities.length) return;
+    const items = day.activities;
+    [items[event.index - 1], items[event.index]] = [items[event.index], items[event.index - 1]];
+  }
+
+  onMoveActivityDown(event: { day: number; index: number }): void {
+    const day = (this.event?.days ?? []).find((d) => d.day === event.day);
+    if (!day || event.index < 0 || event.index >= day.activities.length - 1) return;
+    const items = day.activities;
+    [items[event.index], items[event.index + 1]] = [items[event.index + 1], items[event.index]];
   }
 
   /** Maps the shared timeline's generic "Book" click back onto the underlying JourneyActivity by id. */

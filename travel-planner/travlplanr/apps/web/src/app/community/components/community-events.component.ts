@@ -8,6 +8,8 @@ import { CommunityHomeSubnavComponent } from './community-home-subnav.component'
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { AuthService } from '../../auth/auth.service';
 import { apiUrl } from '../../shared/utils/api-url';
+import { ChatContextService } from '../../shared/services/chat-context.service';
+import { EventHostAssistantService } from '../../shared/services/event-host-assistant.service';
 
 export type EventsTab = 'all' | 'hosted' | 'joined';
 
@@ -44,6 +46,8 @@ export class CommunityEventsComponent {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly chatContext = inject(ChatContextService);
+  private readonly eventHost = inject(EventHostAssistantService);
 
   readonly showComposerModal = signal(false);
   readonly currentUserId = CURRENT_USER_ID;
@@ -79,6 +83,14 @@ export class CommunityEventsComponent {
 
   isEventSaved(ev: CommunityEventCard): boolean {
     return this.savedEventIds.has(ev.id);
+  }
+
+  /** "Host Event" reuses the same global AI chatbot used on the Home page —
+   * it opens here in the Event Hosting Assistant mode instead of a separate
+   * page/component (see EventHostAssistantService). */
+  hostEvent(): void {
+    this.eventHost.start();
+    this.chatContext.setChatOpen(true);
   }
 
   /** Toggles this event's Save/Bookmark state — persisted server-side via the same

@@ -312,10 +312,10 @@ type ProfileTab = 'posts' | 'trips';
           <div role="dialog" aria-modal="true" [attr.aria-labelledby]="'editProfileTitle'" class="w-full max-w-[560px] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden animate-fade-in-up max-h-[92vh] flex flex-col" (click)="$event.stopPropagation()">
 
             <!-- Header -->
-            <div class="px-6 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 border-b border-gray-100 flex items-start justify-between gap-4">
+            <div class="px-6 sm:px-8 pt-5 sm:pt-6 pb-4 sm:pb-5 border-b border-gray-100 flex items-start justify-between gap-4">
               <div>
-                <h2 id="editProfileTitle" class="text-[28px] sm:text-[32px] leading-[1.15] font-bold text-gray-900 tracking-tight">{{ 'COMMUNITY.PROFILE.EDIT_TITLE' | translate }}</h2>
-                <p class="text-sm text-gray-500 mt-2">{{ 'COMMUNITY.PROFILE.EDIT_SUBTITLE' | translate }}</p>
+                <h2 id="editProfileTitle" class="text-2xl sm:text-[28px] leading-[1.15] font-bold text-gray-900 tracking-tight">{{ 'COMMUNITY.PROFILE.EDIT_TITLE' | translate }}</h2>
+                <p class="text-sm text-gray-500 mt-1.5">{{ 'COMMUNITY.PROFILE.EDIT_SUBTITLE' | translate }}</p>
               </div>
               <button (click)="closeEditModal()" class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30" [attr.aria-label]="'COMMUNITY.PROFILE.CANCEL' | translate">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -323,71 +323,75 @@ type ProfileTab = 'posts' | 'trips';
             </div>
 
             <!-- Scrollable body -->
-            <div class="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6">
+            <div class="flex-1 overflow-y-auto px-6 sm:px-8 py-5 space-y-4">
 
-              <!-- 1. Profile Photo -->
-              <div class="flex flex-col items-center gap-1 rounded-xl bg-gray-50 border border-gray-200 px-4 py-4">
-                <p class="text-sm font-semibold text-gray-900">{{ 'COMMUNITY.PROFILE.PHOTO_LABEL' | translate }}</p>
-                <p class="text-xs text-gray-500">{{ 'COMMUNITY.PROFILE.PHOTO_HELPER' | translate }}</p>
+              <!-- 1 & 2. Profile Photo (left) + Display Name (right) -->
+              <div class="flex flex-col sm:flex-row rounded-xl border border-gray-200 divide-y sm:divide-y-0 sm:divide-x divide-gray-200 overflow-hidden">
 
-                <div class="relative mt-3">
-                  <img
-                    [src]="avatarRemoved
-                      ? '/assets/images/default-avatar.svg'
-                      : getAvatarUrl(editForm.avatar || profile()?.avatarUrl)"
-                    [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate"
-                    class="w-20 h-20 rounded-full object-cover border border-gray-200 bg-gray-100"
-                  />
+                <!-- 1. Profile Photo -->
+                <div class="flex flex-col items-center gap-1 bg-gray-50 px-4 py-4 sm:w-56 sm:shrink-0">
+                  <p class="text-sm font-semibold text-gray-900">{{ 'COMMUNITY.PROFILE.PHOTO_LABEL' | translate }}</p>
+                  <p class="text-xs text-gray-500 text-center">{{ 'COMMUNITY.PROFILE.PHOTO_HELPER' | translate }}</p>
 
-                  <button
-                    type="button"
-                    (click)="togglePhotoMenu()"
-                    [attr.aria-label]="'COMMUNITY.PROFILE.EDIT_PHOTO_ARIA_LABEL' | translate"
-                    aria-haspopup="true"
-                    [attr.aria-expanded]="showPhotoMenu()"
-                    class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white shadow-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 17a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
-                    </svg>
-                  </button>
+                  <div class="relative mt-3">
+                    <img
+                      [src]="avatarRemoved
+                        ? '/assets/images/default-avatar.svg'
+                        : getAvatarUrl(editForm.avatar || profile()?.avatarUrl)"
+                      [alt]="'COMMUNITY.PROFILE.AVATAR_ALT' | translate"
+                      class="w-20 h-20 rounded-full object-cover border border-gray-200 bg-gray-100"
+                    />
 
-                  @if (showPhotoMenu()) {
-                    <div class="fixed inset-0 z-10" (click)="closePhotoMenu()"></div>
+                    <button
+                      type="button"
+                      (click)="togglePhotoMenu()"
+                      [attr.aria-label]="'COMMUNITY.PROFILE.EDIT_PHOTO_ARIA_LABEL' | translate"
+                      aria-haspopup="true"
+                      [attr.aria-expanded]="showPhotoMenu()"
+                      class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white shadow-sm hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 17a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
+                      </svg>
+                    </button>
 
-                    <div class="absolute z-20 top-full right-0 mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-                      <label class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
-                        {{ 'COMMUNITY.PROFILE.CHANGE_PHOTO' | translate }}
-                        <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onEditAvatarSelected($event)" [disabled]="editAvatarUploading()" />
-                      </label>
-                      @if (!avatarRemoved && (editForm.avatar || profile()?.avatarUrl)) {
-                        <button type="button" (click)="removeAvatar()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
-                          {{ 'COMMUNITY.PROFILE.REMOVE_PHOTO' | translate }}
+                    @if (showPhotoMenu()) {
+                      <div class="fixed inset-0 z-10" (click)="closePhotoMenu()"></div>
+
+                      <div class="absolute z-20 top-full right-0 mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                        <label class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+                          {{ 'COMMUNITY.PROFILE.CHANGE_PHOTO' | translate }}
+                          <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onEditAvatarSelected($event)" [disabled]="editAvatarUploading()" />
+                        </label>
+                        @if (!avatarRemoved && (editForm.avatar || profile()?.avatarUrl)) {
+                          <button type="button" (click)="removeAvatar()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                            {{ 'COMMUNITY.PROFILE.REMOVE_PHOTO' | translate }}
+                          </button>
+                        }
+                        <button type="button" (click)="closePhotoMenu()" class="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 border-t border-gray-100">
+                          {{ 'COMMUNITY.PROFILE.CANCEL' | translate }}
                         </button>
-                      }
-                      <button type="button" (click)="closePhotoMenu()" class="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 border-t border-gray-100">
-                        {{ 'COMMUNITY.PROFILE.CANCEL' | translate }}
-                      </button>
-                    </div>
+                      </div>
+                    }
+                  </div>
+
+                  @if (editAvatarUploading()) {
+                    <span class="inline-flex items-center gap-2 text-xs font-medium text-gray-500 mt-2">
+                      <div class="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                      {{ 'COMMUNITY.PROFILE.SAVING' | translate }}
+                    </span>
                   }
                 </div>
 
-                @if (editAvatarUploading()) {
-                  <span class="inline-flex items-center gap-2 text-xs font-medium text-gray-500 mt-2">
-                    <div class="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                    {{ 'COMMUNITY.PROFILE.SAVING' | translate }}
-                  </span>
-                }
-              </div>
-
-              <!-- 2. Display Name -->
-              <div>
-                <label for="edit-display-name" class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">{{ 'COMMUNITY.PROFILE.DISPLAY_NAME' | translate }}</label>
-                <input id="edit-display-name" [(ngModel)]="editForm.name" (input)="resetNameError()" [class]="'w-full border rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ' + (editFormErrors.name ? 'border-red-400 focus:ring-red-300' : 'border-gray-300')" />
-                @if (editFormErrors.name) {
-                  <p class="text-xs text-red-500 mt-1.5" role="alert">{{ editFormErrors.name }}</p>
-                }
+                <!-- 2. Display Name -->
+                <div class="flex-1 min-w-0 px-4 py-4 flex flex-col justify-center">
+                  <label for="edit-display-name" class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">{{ 'COMMUNITY.PROFILE.DISPLAY_NAME' | translate }}</label>
+                  <input id="edit-display-name" [(ngModel)]="editForm.name" (input)="resetNameError()" [class]="'w-full border rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ' + (editFormErrors.name ? 'border-red-400 focus:ring-red-300' : 'border-gray-300')" />
+                  @if (editFormErrors.name) {
+                    <p class="text-xs text-red-500 mt-1.5" role="alert">{{ editFormErrors.name }}</p>
+                  }
+                </div>
               </div>
 
               <!-- 3. About You -->

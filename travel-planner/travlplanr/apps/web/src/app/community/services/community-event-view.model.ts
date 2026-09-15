@@ -1,5 +1,6 @@
 import { CommunityEvent } from './community-events.service';
 import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
+import type { TripSegment } from '../../trip/trip.service';
 
 /**
  * View model consumed by the Community Events templates (list, detail, host
@@ -55,6 +56,10 @@ export interface CommunityEventCard {
   nights?: number;
   /** Whether travelers can join part of the journey rather than the whole thing. */
   partialJoinAllowed?: boolean;
+  /** Whether travelers can join the entire journey end-to-end. Defaults to true
+   * (every existing event allows it) — set false only for a host who configured
+   * "Partial journey only", which also disables the Full Journey button. */
+  fullJoinAllowed?: boolean;
   /** Host's avatar photo. Falls back to initials when absent. */
   hostAvatarUrl?: string;
   /** Total traveler capacity, shown as "{travelersGoing} / {travelersMax} Travelers". */
@@ -71,6 +76,10 @@ export interface CommunityEventCard {
   travelerAvatars?: string[];
   /** Day-by-day breakdown for a hosted journey, priced individually so travelers can join part of the trip. */
   days?: JourneyDay[];
+  /** Id of the real backend Trip this event's itinerary was published into
+   * (via TripService.createFromContent) — when set, viewing/editing the
+   * itinerary happens on the real /itinerary/:id page, not a separate UI. */
+  tripId?: string;
   /** Fixed cost added on top of the selected days' subtotal — guiding, transfers, group logistics. */
   baseFee?: number;
   /** Fewest consecutive days a partial-join traveler must book. Defaults to 2 when `days` is set. */
@@ -109,6 +118,141 @@ export interface JourneyActivity {
   bookedCount?: number;
   /** Whether the current traveler has an active booking on this activity. */
   booked?: boolean;
+
+  /** Which itinerary-timeline card this renders as — defaults to the plain
+   * activity card when absent. Lets a day's flight/hotel/ground-transport
+   * reservations reuse the same rich flight/hotel/bus/train cards (with
+   * route diagrams, amenities, etc.) that a real trip's itinerary shows,
+   * instead of being flattened into generic activity cards. See
+   * CommunityEventDetailViewComponent.detailDays() for the mapping and
+   * ItineraryTimelineComponent.isLocked() for why these are non-editable. */
+  kind?: 'flight' | 'hotel' | 'bus' | 'train';
+  // Flight fields (kind === 'flight'; `title`/`rating`/`image` unused for this kind)
+  carrier?: string;
+  flightNo?: string;
+  flightClass?: string;
+  refundable?: string;
+  status?: string;
+  depDate?: string;
+  depCode?: string;
+  arrDate?: string;
+  arrTime?: string;
+  arrCode?: string;
+  stops?: string;
+  // Hotel fields (kind === 'hotel'; `title` doubles as the hotel name, `rating` as its star rating)
+  amenities?: string[];
+  hotelDates?: string;
+  roomType?: string;
+  cancellation?: string;
+  // Bus/train fields (kind === 'bus' | 'train'; `title` doubles as the carrier name when `carrier` is unset)
+  route?: string;
+  depLocation?: string;
+  arrLocation?: string;
+}
+
+/**
+ * Falls back to reading the title when `kind` isn't set explicitly — older/
+ * seeded activities (e.g. "Hotel Check-in: Le Marais Boutique Hotel") predate
+ * the `kind` field, so without this they'd render as plain activity cards
+ * (wrong badge/icon/CTA) instead of the real hotel/flight/bus/train card.
+ * Deliberately narrow: a real sightseeing activity that happens to mention
+ * "bus" or "train" (a "Bus Tour of the Old Town", a "Scenic Train Ride")
+ * must NOT get swept into a transfer card, so these require the specific
+ * reservation/transfer wording, not just the mode word alone.
+ */
+function inferSegmentKind(title: string): 'flight' | 'hotel' | 'bus' | 'train' | undefined {
+  const t = title.toLowerCase();
+  if (/\bhotel\b/.test(t) && /check-?in|check-?out|\bstay\b/.test(t)) return 'hotel';
+  if (/^flight\b/.test(t) || (/\bflight\b/.test(t) && /departure|arrival|check-?in|check-?out/.test(t))) return 'flight';
+  if (/\bairport\b.*\bshuttle\b|\bshuttle\b.*\bairport\b/.test(t)) return 'bus';
+  if (/\btrain\b.*\b(transfer|shuttle)\b|\b(transfer|shuttle)\b.*\btrain\b/.test(t)) return 'train';
+  if (/\bbus\b.*\b(transfer|shuttle)\b|\b(transfer|shuttle)\b.*\bbus\b/.test(t)) return 'bus';
+  return undefined;
+}
+
+/**
+ * Maps a JourneyActivity onto the shared itinerary timeline's flight/hotel/
+ * bus/train/activity shape (TripSegment/DetailItem — the two are the exact
+ * same union). Used both to render a hosted event's itinerary locally and to
+ * build the payload for TripService.createFromContent(), so a hosted event
+ * and the real trip it becomes always agree on what each item looks like.
+ */
+export function journeyActivityToTripSegment(a: JourneyActivity, day: JourneyDay): TripSegment {
+  const kind = a.kind ?? inferSegmentKind(a.title);
+  if (kind === 'flight') {
+    return {
+      id: a.id,
+      day: day.day,
+      type: 'flight',
+      carrier: a.carrier || 'TravlAir',
+      flightNo: a.flightNo || '',
+      class: a.flightClass || 'Economy',
+      refundable: a.refundable || 'Partially Refundable',
+      depDate: a.depDate || day.dateLabel,
+      depTime: a.time,
+      depCode: a.depCode || '',
+      arrDate: a.arrDate || day.dateLabel,
+      arrTime: a.arrTime || '',
+      arrCode: a.arrCode || '',
+      duration: a.duration || '',
+      stops: a.stops || 'Direct',
+      status: a.status || 'Confirmed',
+      price: a.price ?? undefined
+    };
+  }
+  if (kind === 'hotel') {
+    return {
+      id: a.id,
+      day: day.day,
+      type: 'hotel',
+      // Strips a leading "Hotel Check-in:"/"Hotel Check-out:" label off
+      // inferred-kind titles so the card shows the property name alone
+      // ("Le Marais Boutique Hotel"), not the full milestone phrase.
+      name: a.title.replace(/^hotel\s+check-?(in|out)\s*:?\s*|^hotel\s+stay\s*:?\s*/i, '').trim() || a.title,
+      rating: a.rating,
+      location: day.city,
+      dates: a.hotelDates || day.dateLabel,
+      amenities: a.amenities || [],
+      roomType: a.roomType,
+      cancellation: a.cancellation,
+      imageUrl: a.image,
+      price: a.price ?? undefined
+    };
+  }
+  if (kind === 'bus' || kind === 'train') {
+    const base = {
+      id: a.id,
+      day: day.day,
+      carrier: a.carrier || a.title,
+      route: a.route || '',
+      depDate: a.depDate || day.dateLabel,
+      depTime: a.time,
+      depLocation: a.depLocation || '',
+      arrDate: a.arrDate || day.dateLabel,
+      arrTime: a.arrTime || '',
+      arrLocation: a.arrLocation || '',
+      duration: a.duration || '',
+      stops: a.stops || 'Direct',
+      price: a.price ?? undefined
+    };
+    return kind === 'bus' ? { ...base, type: 'bus' } : { ...base, type: 'train' };
+  }
+  return {
+    id: a.id,
+    day: day.day,
+    type: 'activity',
+    time: a.time,
+    title: a.title,
+    rating: a.rating,
+    location: day.city,
+    // Host-described, not real bookable inventory — same known phrase the
+    // itinerary UI already uses for AI-suggested activities (see
+    // itinerary-i18n.util.ts's ITINERARY.DAY.AVAILABILITY_UNCONFIRMED).
+    refundable: 'Availability not confirmed — verify before booking',
+    image: a.image,
+    price: a.price ?? undefined,
+    duration: a.duration || undefined
+  };
 }
 
 /** A traveler's personal "Add Transport" addition to the itinerary timeline — see EventItineraryService. */
