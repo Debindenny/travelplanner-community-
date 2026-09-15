@@ -2729,6 +2729,17 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     return `${day} ${month}, ${year}`;
   }
 
+  /** Same "DD Month, YYYY" style as formatHotelDisplayDate, but for an
+   * arbitrary itinerary day rather than always the trip's start date. */
+  private formatHotelDayDate(dayDay: number): string {
+    const d = new Date(this.tripStartDate());
+    d.setDate(d.getDate() + (Number(dayDay) || 1) - 1);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = d.toLocaleDateString('en-GB', { month: 'long' });
+    const year = d.getFullYear();
+    return `${day} ${month}, ${year}`;
+  }
+
   private formatHotelCheckInLabel(): string {
     const start = this.trip?.startDate ? new Date(this.trip.startDate) : new Date();
     return start.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
@@ -5873,6 +5884,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         this.trip.startDate = start;
         this.trip.endDate = end;
         this.tripStartDate.set(parsedStart);
+        this.realignSegmentDatesToTripStart();
         this.syncCustomizationsToBackend();
         this.toast.success(this.translate.instant('ITINERARY.TOAST.DATES_UPDATED'));
         this.showDateEditModal.set(false);
@@ -5882,6 +5894,39 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     } else {
       this.toast.error(this.translate.instant('ITINERARY.TOAST.INVALID_DATES_FORMAT'));
     }
+  }
+
+  /**
+   * Each segment only tracks a relative `day` number — its depDate/arrDate
+   * (flight/train/bus) and `dates` (car/hotel) strings are baked in from
+   * whatever the trip's start date was when the segment was generated or
+   * selected. Moving the start date (saveDates above) would otherwise leave
+   * every booking card showing its old calendar date, so re-derive each of
+   * those strings here from the segment's own day against the new start date.
+   */
+  private realignSegmentDatesToTripStart(): void {
+    if (!this.trip?.segments?.length) return;
+    this.trip.segments = this.trip.segments.map((segment) => {
+      const day = Number((segment as { day?: number }).day) || 1;
+      switch (segment.type) {
+        case 'flight':
+        case 'train':
+        case 'bus': {
+          const label = this.formatItineraryDayDate(day);
+          return { ...segment, depDate: label, arrDate: label };
+        }
+        case 'car': {
+          const suffix = (segment.dates || '').split(' · ').slice(1).join(' · ');
+          const label = this.formatItineraryDayDate(day);
+          return { ...segment, dates: suffix ? `${label} · ${suffix}` : label };
+        }
+        case 'hotel':
+          return { ...segment, dates: this.formatHotelDayDate(day) };
+        default:
+          return segment;
+      }
+    });
+    this.tripSegmentsVersion.update((v) => v + 1);
   }
 
   editTravelers(): void {

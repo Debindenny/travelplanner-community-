@@ -341,6 +341,10 @@ export class DestinationTypeaheadComponent {
   readonly enabled = input(true);
   readonly minChars = input(2);
   readonly limit = input(6);
+  /** Whether to fall back to the shared recent-searches list when the field
+   * is empty. Off for contexts (like the free-text chat dock) where showing
+   * unrelated past destination picks doesn't fit the prompt. */
+  readonly showRecent = input(true);
   readonly presentation = input<TypeaheadPresentation>('chips');
   readonly variant = input<TypeaheadVariant>('glass');
   /**
@@ -385,7 +389,11 @@ export class DestinationTypeaheadComponent {
   /** Shows recent picks when the field is empty/below `minChars` and there's
    * search history, instead of leaving the panel blank until the user types. */
   readonly showingRecent = computed(
-    () => !this.searchTrigger() && this.enabled() && this.destinationSearch.recentSearches().length > 0,
+    () =>
+      this.showRecent() &&
+      !this.searchTrigger() &&
+      this.enabled() &&
+      this.destinationSearch.recentSearches().length > 0,
   );
 
   readonly items = computed(() =>

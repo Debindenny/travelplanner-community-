@@ -4,7 +4,6 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { CommunityPostService } from '../../../../services/community-post.service';
-import { HostWizardPrefillService } from '../../../../services/host-wizard-prefill.service';
 import { CommunityTrip } from '../data/community-trips.data';
 import { CloneTripModalComponent, CloneTripPayload } from './clone-trip-modal/clone-trip-modal.component';
 import { ItineraryPreviewModalComponent } from './itinerary-preview-modal/itinerary-preview-modal.component';
@@ -47,7 +46,6 @@ function comparePrice(a: CommunityTrip, b: CommunityTrip, direction: 'asc' | 'de
 export class CommunityTripsComponent {
   readonly store = inject(CommunityHomeStore);
   private readonly communityPostService = inject(CommunityPostService);
-  private readonly wizardPrefill = inject(HostWizardPrefillService);
   private readonly router = inject(Router);
 
   readonly goHome = output<void>();
@@ -148,23 +146,25 @@ export class CommunityTripsComponent {
     this.cloningTrip.set(null);
   }
 
+  // Skips the multi-step "Host an event" wizard entirely — the modal already
+  // collected everything (destination, dates, travelers) needed to clone the
+  // trip, so we generate the itinerary directly and land on its page.
   onBuildVersion(payload: CloneTripPayload): void {
     const trip = this.cloningTrip();
     if (!trip) {
       return;
     }
     this.cloningTrip.set(null);
-    this.wizardPrefill.set({
-      route: [payload.arrivalDestination || trip.title],
-      startLocation: payload.startingFrom,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      days: trip.days,
-      maxTravelers: payload.travelers,
-      journeyName: trip.title,
-      cloneTripId: trip.id,
-      image: trip.image,
-    });
-    this.router.navigate(['/community/events/host']);
+    this.communityPostService
+      .cloneTrip(trip.id, {
+        destination: payload.arrivalDestination || trip.title,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        travelers: payload.travelers,
+      })
+      .subscribe({
+        next: ({ tripId }) => this.router.navigate(['/itinerary', tripId]),
+        error: () => this.store.showToast('Could not generate the itinerary — please try again'),
+      });
   }
 }

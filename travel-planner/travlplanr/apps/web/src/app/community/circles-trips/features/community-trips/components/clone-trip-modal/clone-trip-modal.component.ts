@@ -67,9 +67,21 @@ export class CloneTripModalComponent {
 
   readonly startDropdownOpen = signal(false);
 
-  // This itinerary is a fixed N-day route, so the end date isn't independently
-  // pickable — it's always start date + (trip length - 1).
+  // Free-typed text isn't a real place until it's picked from the
+  // typeahead — this flips false on every keystroke and back to true
+  // only when `onStartingFromPicked` fires, so "Generate itinerary" can't
+  // be reached with an unresolved location like "wafewdfw".
+  readonly startingFromValid = signal(false);
+
+  // End date defaults to start date + (trip length - 1) so most travelers
+  // never have to touch it, but it's just a starting point — `endDateOverride`
+  // holds a value the traveler typed in directly, and wins over the default
+  // until the start date changes (a new start invalidates the old override).
+  private readonly endDateOverride = signal<string | null>(null);
+
   readonly endDate = computed(() => {
+    const override = this.endDateOverride();
+    if (override) return override;
     const start = this.startDate();
     if (!start) return '';
     const nights = Math.max((this.trip().days || 1) - 1, 0);
@@ -80,6 +92,9 @@ export class CloneTripModalComponent {
     if (!this.startingFrom().trim()) {
       return 'Add where you start from';
     }
+    if (!this.startingFromValid()) {
+      return 'Pick your starting city from the suggestions';
+    }
     if (!this.startDate()) {
       return 'Add your start date';
     }
@@ -89,17 +104,13 @@ export class CloneTripModalComponent {
     if (!this.endDate()) {
       return 'Add your end date';
     }
+    if (this.endDate() < this.startDate()) {
+      return 'End date must be on or after the start date';
+    }
     return null;
   });
 
   readonly canGenerate = computed(() => this.missingFieldHint() === null);
-
-  readonly endDateDisplay = computed(() => {
-    const end = this.endDate();
-    if (!end) return '';
-    const [y, m, d] = end.split('-');
-    return `${d}-${m}-${y}`;
-  });
 
   readonly cancel = output<void>();
   readonly build = output<CloneTripPayload>();
@@ -116,6 +127,7 @@ export class CloneTripModalComponent {
 
   onStartingFromInput(value: string): void {
     this.startingFrom.set(value);
+    this.startingFromValid.set(false);
     this.startTypeahead?.resetActiveIndex();
     this.startDropdownOpen.set(true);
   }
@@ -139,7 +151,19 @@ export class CloneTripModalComponent {
 
   onStartingFromPicked(item: DestinationListItem): void {
     this.startingFrom.set(item.name);
+    this.startingFromValid.set(true);
     this.startDropdownOpen.set(false);
+  }
+
+  // ── Dates ─────────────────────────────────────────────────────────
+
+  onStartDateInput(value: string): void {
+    this.startDate.set(value);
+    this.endDateOverride.set(null);
+  }
+
+  onEndDateInput(value: string): void {
+    this.endDateOverride.set(value);
   }
 
   onBuild(): void {

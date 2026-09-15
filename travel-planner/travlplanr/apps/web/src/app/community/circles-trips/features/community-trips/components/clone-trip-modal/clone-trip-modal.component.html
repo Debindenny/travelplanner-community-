@@ -45,19 +45,24 @@
         type="date"
         [value]="startDate()"
         [attr.min]="todayIso"
-        (input)="startDate.set($any($event.target).value)"
+        (input)="onStartDateInput($any($event.target).value)"
         placeholder="dd-mm-yyyy"
       />
     </label>
     <label class="ctm__field">
       <span class="ctm__label">End date <span class="ctm__required">*</span></span>
-      <div class="ctm__input ctm__input--locked">
-        <app-icon name="lock" [size]="13" />
-        <span>{{ endDateDisplay() || 'Pick a start date first' }}</span>
-      </div>
+      <input
+        class="ctm__input"
+        type="date"
+        [value]="endDate()"
+        [attr.min]="startDate() || todayIso"
+        [disabled]="!startDate()"
+        (input)="onEndDateInput($any($event.target).value)"
+        placeholder="dd-mm-yyyy"
+      />
     </label>
   </div>
-  <p class="ctm__field-hint">This itinerary runs {{ trip().days }} day{{ trip().days === 1 ? '' : 's' }} — end date is calculated for you.</p>
+  <p class="ctm__field-hint">This itinerary runs {{ trip().days }} day{{ trip().days === 1 ? '' : 's' }} by default — pick a start date first, then adjust the end date if you'd like a different length.</p>
 
   <div class="ctm__field">
     <span class="ctm__label">Travelers</span>

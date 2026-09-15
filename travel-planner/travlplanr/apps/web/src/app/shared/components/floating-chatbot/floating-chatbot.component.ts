@@ -182,6 +182,7 @@ import { DestinationListItem } from '../../utils/destination.util';
             listboxId="dock-dest-listbox"
             [query]="inputValue()"
             [enabled]="typeaheadEnabled()"
+            [showRecent]="false"
             presentation="chips"
             variant="dark"
             (picked)="onTypeaheadPicked($event)"
