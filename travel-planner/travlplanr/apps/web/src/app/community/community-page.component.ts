@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, DestroyRef, EventEmitter, Output,computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommunityStoriesBarComponent } from './components/community-stories-bar.component';
 import { CommunityPostService, CommunityPost as CommunityPostType } from './services/community-post.service';
@@ -22,11 +22,11 @@ import { CommunityDestinationTrendingComponent } from './components/community-de
 import { CommunityUpcomingEventsWidgetComponent } from './components/community-upcoming-events-widget.component';
 import { CommunitySimilarTravelersComponent } from './components/community-similar-travelers.component';
 import { CommunityJoinRequestsComponent } from './components/community-join-requests.component';
-import { HttpClient } from '@angular/common/http';
+// import { HttpClient } from '@angular/common/http';
 import { SavedTrip, TripService } from '../trip/trip.service';
 import { CommunityCollectionService } from './services/community-collection.service';
-import { apiUrl } from '../shared/utils/api-url';
-import { catchError,of,forkJoin,Subject } from 'rxjs';
+// import { apiUrl } from '../shared/utils/api-url';
+// import { catchError,of,forkJoin,Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { DestinationSearchService } from '../shared/services/destination-search.service';
 import { DestinationListItem } from '../shared/utils/destination.util';
@@ -673,7 +673,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private auth = inject(AuthService);
   private http = inject(HttpClient);
   private destinationSearch = inject(DestinationSearchService);
-  private http = inject(HttpClient);
+  // private http = inject(HttpClient);
   readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
