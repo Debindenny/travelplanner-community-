@@ -241,9 +241,7 @@ export class CommunityPostCarouselComponent {
 
         <div class="flex items-center gap-1.5 shrink-0">
           @if (isAuthor()) {
-            <button (click)="deletePost()" class="h-8 px-3.5 rounded-lg text-[11.5px] font-semibold whitespace-nowrap border border-slate-200 dark:border-gray-700 text-text-faint bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none">
-              {{ 'COMMUNITY.POST_CARD.DELETE' | translate }}
-            </button>
+           
           } @else if (followButtonState() !== 'hidden') {
             <button
               (click)="onToggleFollow.emit(post)"

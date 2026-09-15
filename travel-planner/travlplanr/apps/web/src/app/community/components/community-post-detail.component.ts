@@ -167,7 +167,7 @@ const BUDGET_TIERS = ['budget', 'economy', 'standard', 'mid', 'premium', 'luxury
                           @if (showOptionsMenu) {
                             <div class="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg z-50 border border-slate-100 divide-y divide-slate-50 overflow-hidden">
                               <button (click)="startEdit()" class="w-full text-left px-4 py-2 text-xs font-bold text-text-secondary hover:bg-slate-50 transition-colors">{{ 'COMMUNITY.POST_DETAIL.EDIT_POST' | translate }}</button>
-                              <button (click)="confirmDelete()" class="w-full text-left px-4 py-2 text-xs font-bold text-danger hover:bg-danger-50 transition-colors">{{ 'COMMUNITY.POST_DETAIL.DELETE' | translate }}</button>
+                             
                             </div>
                           }
                         </div>
