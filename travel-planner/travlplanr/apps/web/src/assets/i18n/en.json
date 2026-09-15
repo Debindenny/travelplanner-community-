@@ -1837,6 +1837,27 @@
       "STAY_FALLBACK": "Dates TBD",
       "TRAIN_FALLBACK": "Train"
     },
+    "REVIEW": {
+      "ACTIVITIES_COUNT": "Activities",
+      "ARRANGEMENTS": "Your Travel Arrangements",
+      "BACK": "Back",
+      "BUSES_COUNT": "Buses",
+      "CANCELLATION_NOTE": "Free cancellation until 7 days before departure. After that, cancellation terms depend on each provider's policy.",
+      "CARS_COUNT": "Rental car days",
+      "CITIES": "Cities",
+      "COST_SUMMARY": "Cost Summary",
+      "DATES": "Dates",
+      "FLIGHTS_COUNT": "Flights",
+      "HOTELS_COUNT": "Hotel stays",
+      "JOURNEY": "Journey",
+      "JOURNEY_DETAILS": "Journey Details",
+      "NIGHTS": "Nights",
+      "PROCEED_TO_PAYMENT": "Proceed to payment",
+      "SUBTITLE": "Confirm your trip details before proceeding to payment.",
+      "TITLE": "Review Your Booking",
+      "TRAINS_COUNT": "Trains",
+      "TRAVELERS": "Travelers"
+    },
     "SIDEBAR": {
       "BOOKING_CONFIRMED": "Booking confirmed",
       "BOOKING_CONFIRMED_DESC": "Your itinerary is ready to download.",
@@ -2060,6 +2081,9 @@
       "UPDATED_FROM_CHAT": "Updated From Chat",
       "BOOKING_INITIATED": "Booking initiated for {{item}}",
       "BOOKING_INITIATED_HINT": " — open a partner offer from Search/Swap when available.",
+      "BOOKING_METADATA_MISSING": "Can't book {{item}} yet — try swapping or reselecting it first.",
+      "COMPLETE_BOOKING_BLOCKED": "Couldn't book {{item}} — fix this item first. Nothing has been charged yet.",
+      "ALL_SEGMENTS_BOOKED": "All {{count}} bookings confirmed — continuing to payment…",
       "NOTE_SAVED_FOR_DAY": "Note saved for Day {{day}}"
     },
     "MAP": {

@@ -136,6 +136,14 @@ async def search(
         return await search_transit_inventory("train", dep, arr, budget)
 
     if type == "bus":
+        # Prefer a real bookable TravelNext Transfers product (carries the
+        # sessionId/product_id the /travelnext-transfers/bookings endpoint
+        # needs); fall back to the Google Routes transit-time estimate (not
+        # bookable) only when no transfer product is available.
+        if has_travelnext_transfers_credentials():
+            results = await search_transfers_travelnext(location, dep, arr, budget, date=date)
+            if results:
+                return results
         return await search_transit_inventory("bus", dep, arr, budget)
 
     if type == "car":

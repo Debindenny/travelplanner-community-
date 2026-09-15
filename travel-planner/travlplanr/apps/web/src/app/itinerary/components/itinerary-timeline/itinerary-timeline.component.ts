@@ -42,7 +42,6 @@ export class ItineraryTimelineComponent {
   @Output() activitySwap = new EventEmitter<{ day: number; index: number }>();
   @Output() trainSwap = new EventEmitter<{ day: number; index: number }>();
   @Output() busSwap = new EventEmitter<{ day: number; index: number }>();
-  @Output() book = new EventEmitter<DetailItem>();
   @Output() activityAdd = new EventEmitter<number>();
   @Output() eventAdd = new EventEmitter<number>();
   @Output() cruiseAdd = new EventEmitter<number>();

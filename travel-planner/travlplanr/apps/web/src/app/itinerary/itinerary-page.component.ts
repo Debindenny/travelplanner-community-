@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ViewChild, ElementRef, OnInit, OnDestroy, effect, HostListener, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, ViewChild, ElementRef, OnInit, OnDestroy, effect, HostListener, DestroyRef, DOCUMENT } from '@angular/core';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -48,6 +48,8 @@ import { TransferPlanService, TransferLegPlan } from './transfer-plan.service';
 import { TravelNextActivitiesService } from '../shared/services/travelnext-activities.service';
 import { TravelomatixHotelsService } from '../shared/services/travelomatix-hotels.service';
 import { TravelNextCarsService } from '../shared/services/travelnext-cars.service';
+import { TravelNextFlightsService } from '../shared/services/travelnext-flights.service';
+import { TravelNextTransfersService } from '../shared/services/travelnext-transfers.service';
 
 interface AlternativeHotel {
   id: string;
@@ -193,6 +195,9 @@ interface AlternativeFlight {
   price: number;
   emission: string;
   logoUrl?: string;
+  provider?: string;
+  bookable?: boolean;
+  partnerMetadata?: Record<string, unknown>;
 }
 
 interface AlternativeTrain {
@@ -308,6 +313,9 @@ interface AlternativeBus {
   refundable: string;
   price: number;
   imageUrl?: string;
+  provider?: string;
+  bookable?: boolean;
+  partnerMetadata?: Record<string, unknown>;
 }
 
 @Component({
@@ -358,6 +366,8 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   private readonly travelNextActivities = inject(TravelNextActivitiesService);
   private readonly travelomatixHotels = inject(TravelomatixHotelsService);
   private readonly travelNextCars = inject(TravelNextCarsService);
+  private readonly travelNextFlights = inject(TravelNextFlightsService);
+  private readonly travelNextTransfers = inject(TravelNextTransfersService);
   readonly generationProgress = inject(GenerationProgressService);
   readonly tripPresence = inject(TripPresenceService);
   readonly versionHistoryOpen = signal(false);
@@ -721,6 +731,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   readonly addedActivities = this.store.addedActivities;
   readonly addedTransport = this.store.addedTransport;
   readonly removedItemKeys = this.store.removedItemKeys;
+  readonly bookedItemKeys = this.store.bookedItemKeys;
   readonly addingTransportRef = this.store.addingTransportRef;
   readonly customItemOrder = this.store.customItemOrder;
 
@@ -2077,9 +2088,10 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       if (searchId !== this.busSearchId) return;
       const mapped = results.map(r => {
         const details = r.details || {};
+        const carrier = String(details['operator'] || details['carrier'] || r.title || r.provider);
         return {
           id: r.id || crypto.randomUUID(),
-          carrier: String(details['operator'] || r.provider),
+          carrier,
           depDate: (item as any).depDate || '2025-05-10',
           depTime: r.start_time || details['start_time'] || '08:00',
           depLocation: String(details['depLocation'] || details['departure'] || (item as any).depLocation),
@@ -2090,7 +2102,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
           stops: 'Direct',
           class: 'Economy',
           seatType: 'Standard Recliner',
-          operator: String(details['operator'] || r.provider),
+          operator: carrier,
           rating: '4.5',
           refundable: 'Non-Refundable',
           price: typeof r.price === 'object' ? (r.price?.amount ?? 0) : (r.price ?? 0),
@@ -2098,6 +2110,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
             r.image_url, r.id || r.title || '',
             String(details['operator'] || r.provider || ''),
             this.busKeywordLogos, this.busImagePool),
+          provider: r.provider,
+          bookable: details['bookable'] === true,
+          partnerMetadata: details,
         };
       }) as AlternativeBus[];
 
@@ -2155,6 +2170,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         price: priced,
         cost: `${CURRENCY_SYMBOLS[this.locale.currentCurrency()]}${priced}`,
         imageUrl: bus.imageUrl,
+        provider: bus.provider,
+        bookable: bus.bookable,
+        partnerMetadata: bus.partnerMetadata,
       });
       this.selectedBusDetail.set(null);
       return;
@@ -3068,6 +3086,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
             status: 'Available',
             price: typeof r.price === 'object' ? (r.price?.amount ?? 0) : (r.price ?? 0),
             emission: '120 kg CO2',
+            provider: r.provider,
+            bookable: details['bookable'] === true,
+            partnerMetadata: details,
           };
         }) as AlternativeFlight[]);
       });
@@ -3119,25 +3140,32 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         arr: route.arrLocation,
         budget: this.budgetOption() || this.trip?.budget || 'standard',
       }).then(results => {
-        this.contextualBuses.set(results.map(r => ({
-          id: r.id || crypto.randomUUID(),
-          carrier: String(r.provider || 'Intercity Bus'),
-          depDate: route.dateLabel,
-          depTime: r.start_time || '07:30',
-          depLocation: route.depLocation,
-          arrDate: route.dateLabel,
-          arrTime: r.end_time || '13:00',
-          arrLocation: route.arrLocation,
-          duration: r.duration || '5h 30m',
-          stops: '1 Stop',
-          class: 'Standard',
-          seatType: 'Standard Recliner',
-          operator: String(r.provider || 'Intercity Bus'),
-          rating: '4.5',
-          refundable: 'Non-Refundable',
-          price: typeof r.price === 'object' ? (r.price?.amount ?? 0) : (r.price ?? 0),
-          imageUrl: this.pickImageByKeyword(r.image_url, r.id || r.title || '', String(r.provider || ''), this.busKeywordLogos, this.busImagePool),
-        })) as AlternativeBus[]);
+        this.contextualBuses.set(results.map(r => {
+          const details = r.details || {};
+          const carrier = String(details['carrier'] || r.title || r.provider || 'Intercity Bus');
+          return {
+            id: r.id || crypto.randomUUID(),
+            carrier,
+            depDate: route.dateLabel,
+            depTime: r.start_time || '07:30',
+            depLocation: route.depLocation,
+            arrDate: route.dateLabel,
+            arrTime: r.end_time || '13:00',
+            arrLocation: route.arrLocation,
+            duration: r.duration || '5h 30m',
+            stops: '1 Stop',
+            class: 'Standard',
+            seatType: 'Standard Recliner',
+            operator: carrier,
+            rating: '4.5',
+            refundable: 'Non-Refundable',
+            price: typeof r.price === 'object' ? (r.price?.amount ?? 0) : (r.price ?? 0),
+            imageUrl: this.pickImageByKeyword(r.image_url, r.id || r.title || '', String(r.provider || ''), this.busKeywordLogos, this.busImagePool),
+            provider: r.provider,
+            bookable: details['bookable'] === true,
+            partnerMetadata: details,
+          };
+        }) as AlternativeBus[]);
       });
       return;
     }
@@ -4339,6 +4367,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
           status: 'Available',
           price: typeof r.price === 'object' ? (r.price?.amount ?? 0) : (r.price ?? 0),
           emission: '150 kg CO2',
+          provider: r.provider,
+          bookable: details['bookable'] === true,
+          partnerMetadata: details,
         };
       }) as AlternativeFlight[];
 
@@ -4396,6 +4427,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         stops: flight.stops,
         status: 'Pending',
         price: flight.price * travelers,
+        provider: flight.provider,
+        bookable: flight.bookable,
+        partnerMetadata: flight.partnerMetadata,
       });
       this.selectedFlightDetail.set(null);
       return;
@@ -5160,6 +5194,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       duration: a.duration, stops: a.stops,
       status: 'Pending',
       price: a.price,
+      provider: a.provider,
+      bookable: a.bookable,
+      partnerMetadata: a.partnerMetadata,
     };
   }
   private toDetailCar(a: AlternativeCar): Partial<DetailCar> {
@@ -5208,6 +5245,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       arrDate: a.arrDate, arrTime: a.arrTime, arrLocation: a.arrLocation,
       duration: a.duration, stops: a.stops,
       cost: `${CURRENCY_SYMBOLS[this.locale.currentCurrency()]}${a.price}`, price: a.price, imageUrl: a.imageUrl,
+      provider: a.provider,
+      bookable: a.bookable,
+      partnerMetadata: a.partnerMetadata,
     };
   }
   private toDetailHotel(a: AlternativeHotel): Partial<DetailHotel> {
@@ -5351,6 +5391,9 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       if (trip.customizations['addedTransport']) this.addedTransport.set(trip.customizations['addedTransport']);
       if (trip.customizations['removedItems']) {
         this.removedItemKeys.set(new Set(trip.customizations['removedItems'] as string[]));
+      }
+      if (trip.customizations['bookedItems']) {
+        this.bookedItemKeys.set(new Set(trip.customizations['bookedItems'] as string[]));
       }
       if (trip.customizations['itemOrder']) this.customItemOrder.set(trip.customizations['itemOrder']);
       if (Array.isArray(trip.customizations['notes'])) {
@@ -5680,6 +5723,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         throw new Error('Unsupported partner booking item');
       }
 
+      this.markItemBooked(item);
       this.toast.success(
         this.translate.instant('ITINERARY.TOAST.PARTNER_BOOKING_SUCCESS', { item: itemName }),
       );
@@ -5694,9 +5738,18 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  bookItem(item: any): void {
+  /**
+   * Main day-card "Book Now" / "Select Bus" / "Book Stay" / "Book Activity" /
+   * "Select Car" action. Dispatches to the same real TravelNext / Travelomatix
+   * booking calls used by the sidebar's bookWithPartner() — flight and bus now
+   * get their own real booking calls instead of falling through to whole-trip
+   * Stripe checkout. Items that genuinely cannot be booked (missing partner
+   * metadata, content-only results) get an honest error toast rather than a
+   * silent no-op or a fake success.
+   */
+  async bookItem(item: any): Promise<void> {
     const deepLink = item?.deepLink || item?.deep_link;
-    const itemName = item?.title || item?.name || item?.model || this.translate.instant('ITINERARY.TOAST.GENERIC_ITEM');
+    const itemName = this.itemDisplayName(item);
 
     // Partner deep link (TravelNext / TripAdvisor / Google) — open partner.
     if (deepLink && typeof deepLink === 'string' && this.isSafeHttpUrl(deepLink)) {
@@ -5715,23 +5768,122 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Content-only / unbookable items must not silently trigger Stripe trip checkout.
+    const type = item?.type;
+    const metadata = this.partnerMetadata(item);
+
+    if (this.BOOKABLE_ITEM_TYPES.includes(type)) {
+      if (!this.isBookableInventoryItem(item, metadata)) {
+        this.toast.error(this.translate.instant('ITINERARY.TOAST.BOOKING_METADATA_MISSING', { item: itemName }));
+        return;
+      }
+
+      try {
+        await this.placeItemBooking(item, metadata);
+        this.toast.success(this.translate.instant('ITINERARY.TOAST.PARTNER_BOOKING_SUCCESS', { item: itemName }));
+        void this.syncCustomizationsToBackend();
+      } catch (err) {
+        console.error('Partner booking attempt failed', err);
+        if (type === 'flight' || type === 'bus') {
+          this.updateSegmentStatus(item, 'Booking Failed');
+        }
+        this.toast.error(
+          apiErrorMessage(
+            err,
+            this.translate.instant('ITINERARY.TOAST.PARTNER_BOOKING_FAILED', { item: itemName }),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Non-inventory checklist-style items (insurance/visa/IDP) have no partner
+    // booking endpoint of their own — this is the only remaining path that
+    // opens whole-trip Stripe checkout.
+    void this.bookCompleteItinerary();
+  }
+
+  /** Item types with a real per-segment provider booking endpoint. */
+  private readonly BOOKABLE_ITEM_TYPES = ['flight', 'bus', 'hotel', 'activity', 'car'];
+
+  /** Whether this inventory item carries what it needs to place a real
+   * provider booking, as opposed to a content-only / deep-link-only entry
+   * (e.g. a Google Places activity with no TravelNext booking behind it). */
+  private isBookableInventoryItem(item: any, metadata: Record<string, unknown>): boolean {
     const contentOnly =
       item?.contentOnly === true ||
       item?.bookable === false ||
       ['google_places', 'google', 'tripadvisor'].includes(
         String(item?.provider || '').toLowerCase(),
       );
-    if (contentOnly || item?.type === 'activity' || item?.type === 'hotel' || item?.type === 'car') {
-      this.toast.info(
-        this.translate.instant('ITINERARY.TOAST.BOOKING_INITIATED', { item: itemName }) +
-          this.translate.instant('ITINERARY.TOAST.BOOKING_INITIATED_HINT'),
-      );
-      return;
-    }
+    return !contentOnly && (item?.bookable === true || metadata['bookable'] === true);
+  }
 
-    // Explicit whole-trip book only for non-inventory checklist-style items.
-    void this.bookCompleteItinerary();
+  /**
+   * Places the real provider booking for one inventory item and, on success,
+   * marks it booked and reflects it on the flight/bus status badge. Throws on
+   * failure — callers (bookItem / bookAllRemainingSegments) decide how to
+   * surface that, since a single-item retry and an all-or-nothing checkout
+   * flow need different messaging.
+   */
+  private async placeItemBooking(item: any, metadata: Record<string, unknown>): Promise<void> {
+    switch (item?.type) {
+      case 'flight':
+        await this.attemptTravelNextFlightBooking(item, metadata);
+        break;
+      case 'bus':
+        await this.attemptTravelNextTransferBooking(item, metadata);
+        break;
+      case 'hotel':
+        await this.attemptTravelomatixHotelBooking(item, metadata);
+        break;
+      case 'activity':
+        await this.attemptTravelNextActivityBooking(item, metadata);
+        break;
+      case 'car':
+        await this.attemptTravelNextCarBooking(item, metadata);
+        break;
+      default:
+        return;
+    }
+    this.markItemBooked(item);
+    if (item?.type === 'flight' || item?.type === 'bus') {
+      this.updateSegmentStatus(item, 'Confirmed');
+    }
+  }
+
+  /** Human-readable label for toasts. Flight/bus/train segments have no
+   * title/name/model of their own (only carrier/flightNo/route), so those
+   * fell through to a generic "Generic Item" label — build a real one from
+   * whatever fields the item actually carries. */
+  private itemDisplayName(item: any): string {
+    if (item?.title) return item.title;
+    if (item?.name) return item.name;
+    if (item?.model) return item.model;
+    if (item?.carrier && item?.flightNo) return `${item.carrier} ${item.flightNo}`;
+    if (item?.carrier && item?.route) return `${item.carrier} · ${item.route}`;
+    if (item?.carrier) return item.carrier;
+    if (item?.route) return item.route;
+    return this.translate.instant('ITINERARY.TOAST.GENERIC_ITEM');
+  }
+
+  /** Marks an item as really booked (drives the timeline's "Booked" badge) and persists it. */
+  private markItemBooked(item: DetailItem | any): void {
+    const key = this.getItemKey(item);
+    const next = new Set(this.bookedItemKeys());
+    next.add(key);
+    this.bookedItemKeys.set(next);
+  }
+
+  /** Reflects a real flight/bus booking attempt's outcome in the segment's status badge. */
+  private updateSegmentStatus(item: { type?: string }, status: string): void {
+    if (!this.trip?.segments?.length || !item?.type) return;
+    const key = this.getItemKey(item as DetailItem);
+    this.trip.segments = this.trip.segments.map((seg) =>
+      seg.type === item.type && this.getItemKey(seg as unknown as DetailItem) === key
+        ? ({ ...seg, status } as typeof seg)
+        : seg,
+    );
+    this.tripSegmentsVersion.update((v) => v + 1);
   }
 
   openPartnerLink(url?: string | null, event?: Event): void {
@@ -5751,8 +5903,17 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   }
 
   private partnerMetadata(item: { partnerMetadata?: Record<string, unknown> } | null | undefined): Record<string, unknown> {
-    const metadata = item?.partnerMetadata;
-    return metadata && typeof metadata === 'object' ? metadata : {};
+    if (!item || typeof item !== 'object') return {};
+    // Segments produced by the initial AI itinerary pipeline (services/ai-worker's
+    // _hydrate_one_segment) carry their provider identifiers — sessionId,
+    // fareSourceCode, product_id, ResultToken, activityCode, referenceId, etc. —
+    // flattened directly onto the segment rather than nested under
+    // partnerMetadata; only the frontend swap/add flows (toDetailFlight etc.)
+    // nest them there. Fall back to the raw item so a still-bookable segment
+    // from initial generation isn't treated as missing its booking metadata.
+    const base = item as unknown as Record<string, unknown>;
+    const metadata = item.partnerMetadata;
+    return metadata && typeof metadata === 'object' ? { ...base, ...metadata } : base;
   }
 
   private metadataString(metadata: Record<string, unknown>, ...keys: string[]): string {
@@ -5779,6 +5940,73 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     const firstName = words[0] || 'Traveler';
     const lastName = words.slice(1).join(' ') || 'Guest';
     return { email, firstName, lastName };
+  }
+
+  private async attemptTravelNextFlightBooking(item: any, metadata: Record<string, unknown>): Promise<void> {
+    const identity = this.customerIdentity();
+    const sessionId = this.metadataString(metadata, 'sessionId', 'session_id', 'flightSessionId');
+    const fareSourceCode = this.metadataString(metadata, 'fareSourceCode', 'fare_source_code');
+    if (!sessionId || !fareSourceCode) {
+      throw new Error('Missing TravelNext flight booking metadata');
+    }
+    // Defaults to "Public" (fare type 1) when the search result did not carry
+    // one — the provider requires a value, and Public is the common case.
+    const fareType = this.metadataString(metadata, 'fareType') || 'Public';
+    const travelers = Math.max(1, this.effectiveTravelers());
+    const adults = Array.from({ length: travelers }, (_, i) => ({
+      title: 'Mr',
+      firstName: i === 0 ? identity.firstName : `${identity.firstName}${i + 1}`,
+      lastName: identity.lastName,
+    }));
+
+    await this.travelNextFlights.book({
+      flightBookingInfo: {
+        sessionId,
+        fareSourceCode,
+        fareType,
+      },
+      paxInfo: {
+        customerEmail: identity.email,
+        customerPhone: this.metadataString(metadata, 'customerPhone') || '0000000000',
+        adults,
+      },
+    });
+  }
+
+  private async attemptTravelNextTransferBooking(item: any, metadata: Record<string, unknown>): Promise<void> {
+    const identity = this.customerIdentity();
+    const sessionId = this.metadataString(metadata, 'sessionId', 'session_id');
+    const productId = this.metadataString(metadata, 'product_id', 'productId');
+    const bookingTypeId = this.metadataString(metadata, 'booking_type_id', 'bookingTypeId') || '1';
+    if (!sessionId || !productId) {
+      throw new Error('Missing TravelNext transfer booking metadata');
+    }
+
+    const destination =
+      (item as { arrLocation?: string })?.arrLocation ||
+      this.metadataString(metadata, 'to') ||
+      this.trip?.destination ||
+      'Destination';
+
+    await this.travelNextTransfers.book({
+      session_id: sessionId,
+      product_id: productId,
+      booking_type_id: bookingTypeId,
+      client_reference: `tp-bus-${Date.now()}`,
+      pax_details: {
+        lead_title: 'Mr',
+        lead_first_name: identity.firstName,
+        lead_last_name: identity.lastName,
+        phone: this.metadataString(metadata, 'customerPhone') || '0000000000',
+        email_id: identity.email,
+        address01: destination,
+        zip_code: '000000',
+      },
+      accomodation_details: {
+        accomodation_name: destination,
+        accomodation_address01: destination,
+      },
+    });
   }
 
   private async attemptTravelNextCarBooking(item: any, metadata: Record<string, unknown>): Promise<void> {
@@ -5952,10 +6180,51 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Counts of each bookable item type currently on the trip, for the
+   * "Your Travel Arrangements" summary on the booking review screen.
+   * Reuses the same tally the PDF export already builds. */
+  readonly bookingReviewInclusions = computed(() => this.countPdfInclusions(this.displayedDays()));
+
+  readonly reviewCitiesLabel = computed(() => this.cities().map((c) => c.name).join(' → '));
+
+  /** "Book Complete Itinerary" opens this review screen instead of booking
+   * immediately — real per-segment booking + payment only happens after the
+   * traveler confirms here via proceedToBookingPayment(). (The floating chat
+   * dock is suppressed reactively off viewMode itself — see the effect in
+   * the constructor — so it stays hidden here regardless of how this
+   * viewMode was reached.) */
+  openBookingReview(): void {
+    this.viewMode.set('review');
+  }
+
+  closeBookingReview(): void {
+    this.viewMode.set('itinerary');
+  }
+
+  /** Confirm action on the review screen — same real book-then-pay flow as
+   * before, just gated behind an explicit review step now. */
+  async proceedToBookingPayment(): Promise<void> {
+    await this.bookCompleteItinerary();
+  }
+
   async bookCompleteItinerary(): Promise<void> {
     if (!this.trip?.id || this.bookingInProgress()) return;
     this.bookingInProgress.set(true);
     try {
+      const outcome = await this.bookAllRemainingSegments();
+      if (!outcome.ok) {
+        // Stop before any payment — a half-booked trip must never get charged.
+        this.toast.error(
+          this.translate.instant('ITINERARY.TOAST.COMPLETE_BOOKING_BLOCKED', { item: outcome.itemName }),
+        );
+        return;
+      }
+      if (outcome.bookedCount > 0) {
+        this.toast.success(
+          this.translate.instant('ITINERARY.TOAST.ALL_SEGMENTS_BOOKED', { count: outcome.bookedCount }),
+        );
+      }
+
       await this.markTripListedInMyTrips();
       const { firstValueFrom } = await import('rxjs');
       const response = await firstValueFrom(this.http.post<any>(apiUrl('/checkout'), {
@@ -5972,6 +6241,48 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     } finally {
       this.bookingInProgress.set(false);
     }
+  }
+
+  /**
+   * Places a real provider booking for every still-unbooked inventory item
+   * (flight/bus/hotel/activity/car) currently shown on the trip, one at a
+   * time, before "Book Complete Itinerary" collects any payment — the
+   * traveler must never be charged for a segment that didn't actually get
+   * booked with the provider. Stops at the first item that's missing
+   * booking metadata or whose booking call fails, so nothing downstream
+   * (Stripe checkout) runs on a half-booked trip.
+   */
+  private async bookAllRemainingSegments(): Promise<{ ok: boolean; itemName?: string; bookedCount: number }> {
+    const items = this.displayedDays().flatMap((day) => day.items);
+    const alreadyBooked = this.bookedItemKeys();
+    let bookedCount = 0;
+
+    for (const item of items) {
+      if (!this.BOOKABLE_ITEM_TYPES.includes(item.type)) continue;
+      if (alreadyBooked.has(this.getItemKey(item))) continue;
+
+      const metadata = this.partnerMetadata(item);
+      const itemName = this.itemDisplayName(item);
+      if (!this.isBookableInventoryItem(item, metadata)) {
+        return { ok: false, itemName, bookedCount };
+      }
+
+      try {
+        await this.placeItemBooking(item, metadata);
+        bookedCount++;
+      } catch (err) {
+        console.error('Complete-itinerary booking attempt failed', err);
+        if (item.type === 'flight' || item.type === 'bus') {
+          this.updateSegmentStatus(item, 'Booking Failed');
+        }
+        return { ok: false, itemName, bookedCount };
+      }
+    }
+
+    if (bookedCount > 0) {
+      void this.syncCustomizationsToBackend();
+    }
+    return { ok: true, bookedCount };
   }
 
   /** Persist itinerary edits and flag the trip for My Trips (Save / Book). */
@@ -5992,6 +6303,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         addedActivities: this.addedActivities(),
         addedTransport: this.addedTransport(),
         removedItems: Array.from(this.removedItemKeys()),
+        bookedItems: Array.from(this.bookedItemKeys()),
         itemOrder: this.customItemOrder(),
         notes: this.tripNotes(),
         savedToMyTrips: true,
@@ -6067,6 +6379,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
         addedActivities: this.addedActivities(),
         addedTransport: this.addedTransport(),
         removedItems: Array.from(this.removedItemKeys()),
+        bookedItems: Array.from(this.bookedItemKeys()),
         itemOrder: this.customItemOrder(),
         notes: this.tripNotes(),
       };
