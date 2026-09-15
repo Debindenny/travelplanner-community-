@@ -18,6 +18,7 @@ export type ChatIntent =
   | 'show_itinerary'
   | 'platform_question'
   | 'destination_info'
+  | 'event_host'
   | 'general';
 
 /** Short user-facing label for intents worth surfacing as a "mode" hint above
@@ -41,6 +42,7 @@ const INTENT_LABELS: Partial<Record<ChatIntent, string>> = {
   book_trip: '🎟️ Booking',
   platform_question: '💬 About Travl Planr',
   destination_info: '📍 Destination info',
+  event_host: '🎉 Hosting an event',
 };
 
 export function intentLabel(intent: ChatIntent | undefined): string | null {
@@ -374,9 +376,16 @@ export function extractMultiCityRoute(message: string): string[] | null {
   return null;
 }
 
+// Style adjectives that alone imply "regenerate this day" even with no verb
+// ("Relax day 2", "Adventure day 3" — quick-reply chips, not full sentences).
+const REGEN_STYLE_WORDS_RE =
+  /\b(relax\w*|adventur\w*|chill\w*|cultur\w*|scenic|active|exciting|fun|foodie|local|quiet|easy|slow|romantic|luxur\w*)\b/i;
+
 export function extractRegenerateDay(message: string): { day: number | null; style: string | null } {
   const text = message.toLowerCase();
-  if (!/\b(regenerat|rewrit|redo|make|more)\b/.test(text)) return { day: null, style: null };
+  if (!/\b(regenerat|rewrit|redo|make|more)\b/.test(text) && !REGEN_STYLE_WORDS_RE.test(text)) {
+    return { day: null, style: null };
+  }
   const dayMatch = text.match(/\bday\s*(\d+)\b/);
   if (!dayMatch) return { day: null, style: null };
   const styleMatch = text.match(/\bmore\s+(\w+)|(\w+)\s+day\s*\d+|(\w+)\s+activities\b/);
@@ -618,6 +627,14 @@ export function parseItineraryEdits(message: string): ItineraryEditPayload[] {
   const swap = parseSwapTransport(text, day);
   if (swap) return [swap];
 
+  // "More on day N" / "more for day N" — a quick-reply chip asking for
+  // additional curated activities on that day. Distinct from "make day N
+  // more relaxing" (regenerate with a style — see extractRegenerateDay),
+  // which never has a preposition directly between "more" and "day".
+  if (/\bmore\s+(?:on|for|about|in)\s+(?:the\s+)?day\s*\d+\b/.test(text)) {
+    return [{ edit: 'add_activity', day: day || 1, count: 3, autoSuggest: true }];
+  }
+
   const bulkCount = extractActivityAddCount(message);
   if (bulkCount && bulkCount > 0 && GENERIC_ACTIVITY_WORDS.test(text)) {
     return [{ edit: 'add_activity', day: day || 1, count: bulkCount, autoSuggest: true }];
@@ -691,11 +708,7 @@ export function inferIntentFromMessage(message: string): ChatIntent {
   }
 
   const { day: regenDay } = extractRegenerateDay(message);
-  if (
-    regenDay &&
-    /\b(regenerat|rewrit|redo|make)\b/.test(text) &&
-    /\b(more\s+(relaxing|adventur\w*|cultural|exciting|active|scenic|food|local|fun)|relaxing|adventur\w*)\b/.test(text)
-  ) {
+  if (regenDay) {
     return 'regenerate_day';
   }
 
@@ -717,8 +730,8 @@ export function inferIntentFromMessage(message: string): ChatIntent {
   }
 
   if (
-    /\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust)\b.*\b(itinerar\w*|plan|trip|schedule|days)\b/.test(text) ||
-    /\b(itinerar\w*|plan|trip)\b.*\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust)\b/.test(text)
+    /\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust)\b.*\b(itinerar\w*|plan|trip|schedule|days|flights?|transport\w*|route|routing)\b/.test(text) ||
+    /\b(itinerar\w*|plan|trip|flights?|transport\w*)\b.*\b(fix|improve|update|change|redo|rebuild|refresh|correct|adjust)\b/.test(text)
   ) {
     return 'fix_itinerary';
   }

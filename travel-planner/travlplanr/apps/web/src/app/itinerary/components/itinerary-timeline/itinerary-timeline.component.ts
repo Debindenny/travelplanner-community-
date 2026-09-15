@@ -10,6 +10,42 @@ import { localizeKnownPhrase, localizeTimeLabel } from '../../itinerary-i18n.uti
 
 type TransportType = 'flight' | 'train' | 'bus' | 'car';
 
+/** Fixed transportation/accommodation reservation milestones — the trip's
+ * schedule depends on these, so "Change"/reorder/drag is locked for them
+ * (activities, restaurants, attractions, tours etc. stay freely changeable).
+ * Matches the exact milestone titles regardless of what else the title says
+ * (e.g. "Hotel Check-in: Le Marais Boutique Hotel" still matches). */
+const LOCKED_RESERVATION_TITLE_RE =
+  /\b(hotel\s+check-?in|hotel\s+check-?out|flight\s+check-?in|flight\s+check-?out|flight\s+departure|flight\s+arrival|train\s+check-?in|train\s+check-?out|train\s+departure|train\s+arrival|bus\s+check-?in|bus\s+check-?out|bus\s+departure|bus\s+arrival)\b/i;
+
+/** Catches generic reservation wording that doesn't fit the exact milestone
+ * phrases above — "Airport Transfer Booking", "Train Reservation", etc. */
+const LOCKED_RESERVATION_KEYWORD_RE =
+  /\b(flight|train|bus|transport|transportation|transfer|hotel|accommodation|stay)\b.*\b(booking|reservation)\b/i;
+
+/** Bare "Arrival"/"Departure" transport-milestone titles with no mode word —
+ * used throughout seeded itinerary data (e.g. day activities titled just
+ * "Arrival" or "Departure") to mark the day's transfer in/out. Matched as a
+ * leading word followed by a separator or end-of-string, so a real activity
+ * that merely starts with "Departure" as a description ("Departure Lounge
+ * Spa Experience") does not get swept up. */
+const LOCKED_STANDALONE_TRANSIT_TITLE_RE = /^(arrival|departure)\s*(?:[—\-:]|$)/i;
+
+/** A title that IS a flight or names a specific hotel property — "Flight to
+ * Teronoh", "Hotel Teronoh Central" — rather than an activity/tour that
+ * merely mentions one in passing. Leading word only, so "Hotel Rooftop Bar
+ * Experience" (an activity hosted at a hotel) isn't caught by this. */
+const LOCKED_LEADING_MODE_TITLE_RE = /^(flight|hotel)\b/i;
+
+/** Airport/bus/train transfer or shuttle services — booked ground transport,
+ * not a sightseeing bus/train tour (a real "Bus Tour of the Old Town" or
+ * "Scenic Train Ride" activity has none of these trigger words). */
+const LOCKED_TRANSFER_TITLE_RE =
+  /\bairport\b.*\b(shuttle|transfer|express|taxi|pickup|drop-?off)\b|\b(bus|train)\b.*\b(transfer|shuttle|express|departure|arrival|check-?in|check-?out|reservation|booking)\b/i;
+
+export const LOCKED_RESERVATION_TOOLTIP =
+  'This booking is fixed and cannot be modified individually.';
+
 @Component({
     selector: 'app-itinerary-timeline',
     imports: [CommonModule, TranslatePipe, DragDropModule, CurrencyConverterPipe],
@@ -64,6 +100,34 @@ export class ItineraryTimelineComponent {
       this.langTick.update((n) => n + 1);
       this.cdr.markForCheck();
     });
+  }
+
+  protected readonly lockedReservationTooltip = LOCKED_RESERVATION_TOOLTIP;
+
+  /** Hotel/flight/train/bus check-in/out and departure/arrival milestones are
+   * fixed reservations — this locks their "Change" button (see LOCKED_RESERVATION_TITLE_RE). */
+  protected isLockedReservation(title: string | null | undefined): boolean {
+    if (!title) return false;
+    const trimmed = title.trim();
+    return (
+      LOCKED_RESERVATION_TITLE_RE.test(trimmed) ||
+      LOCKED_RESERVATION_KEYWORD_RE.test(trimmed) ||
+      LOCKED_STANDALONE_TRANSIT_TITLE_RE.test(trimmed) ||
+      LOCKED_LEADING_MODE_TITLE_RE.test(trimmed) ||
+      LOCKED_TRANSFER_TITLE_RE.test(trimmed)
+    );
+  }
+
+  /** Every flight/hotel/train/bus card IS a fixed, time-dependent reservation
+   * by definition — Change, reorder, and drag are locked unconditionally for
+   * those types. Rental cars and generic activities stay changeable unless
+   * their own title reads as a reservation milestone (see isLockedReservation). */
+  protected isLocked(item: DetailItem): boolean {
+    const anyItem = item as { type?: string; title?: string; model?: string };
+    if (anyItem.type === 'flight' || anyItem.type === 'hotel' || anyItem.type === 'train' || anyItem.type === 'bus') {
+      return true;
+    }
+    return this.isLockedReservation(anyItem.title ?? anyItem.model);
   }
 
   /** Fare display — prices arrive already converted for the active currency. */

@@ -458,6 +458,19 @@ def _dev_assistant_reply(message: str, customer_name: str) -> str:
             "Tell me where you'd like to go, or ask about destinations, budgets, or visas."
         )
 
+    # Itinerary edit/regenerate/fix requests — including quick-reply chips like
+    # "More on day 1", "Relax day 2", "Adventure day 3", "Fix flights" — read as
+    # short, place-name-shaped text but are never destinations. Answer generically
+    # here; enrich_reply layers the real per-intent confirmation on top instead of
+    # letting these fall through to the "unrecognized destination" guess below.
+    edit_intent = infer_intent(message)
+    if edit_intent == "modify_itinerary":
+        return "Done — I've applied that change to your itinerary on the page."
+    if edit_intent == "regenerate_day":
+        return "On it — reworking that part of your itinerary now."
+    if edit_intent == "fix_itinerary":
+        return "Got it — updating your itinerary on the page now."
+
     if re.search(r"\b(paris|france|europe|brussels|belgium|barcelona|madrid|rome|italy|dubai|bali|tokyo|thailand)\b", text):
         return (
             "Great choice! Browse curated packages on the Explore page, or open Start Planning "

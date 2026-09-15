@@ -1693,14 +1693,14 @@ export class HeroSectionComponent implements AfterViewInit, OnDestroy {
     const query = this.searchInput()?.nativeElement.value.trim();
     if (!query || this.chat.sending()) return;
 
-    // "Host event" belongs to its own dedicated flow on the Community Events
-    // page, not the home-page trip-planning chat — send it straight there
-    // instead of opening this chat and answering as the generic AI.
+    // "Host event" launches the guided Event Hosting Assistant inline in this
+    // same chat thread instead of answering as the generic trip-planning AI.
     if (!this.eventHost.active() && isHostEventRequest(query)) {
       const input = this.searchInput()?.nativeElement;
       if (input) input.value = '';
       this.inputValue.set('');
-      this.router.navigate(['/community/events/host']);
+      this.eventHost.start();
+      this.openChat();
       return;
     }
 
