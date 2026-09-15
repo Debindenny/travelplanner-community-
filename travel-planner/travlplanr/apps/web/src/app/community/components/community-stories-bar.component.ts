@@ -322,39 +322,13 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
           <div class="sticky top-0 z-10 rounded-t-2xl bg-white dark:bg-gray-800 flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-gray-700">
             <div class="flex flex-col gap-1 min-w-0">
               <h2 id="create-story-title" class="text-lg font-extrabold text-text-primary">{{ 'COMMUNITY.CREATE_STORY.TITLE' | translate }}</h2>
-              <p class="text-xs font-medium text-text-faint">{{ 'COMMUNITY.COMPOSER_MODAL.FORM_SUBTITLE' | translate }}</p>
+             
             </div>
-            <button
-              type="button"
-              (click)="closeCreateStoryModal()"
-              class="w-7 h-7 rounded-lg border border-slate-200 dark:border-gray-600 flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
-              [attr.aria-label]="'COMMUNITY.CREATE_STORY.CLOSE' | translate"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          </div>
+                      </div>
 
           <div class="p-5 flex flex-col gap-5">
 
-            <!-- Post type row — a story is always Photo/Video-capable, but media is
-                 optional (text-only stories are allowed), so this both confirms the
-                 type and offers a shortcut to swap the selected media. -->
-            <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-primary-50/50 border border-primary-subtle/40">
-              <span class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center shrink-0 shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </span>
-              <span class="flex-1 min-w-0">
-                <span class="block text-xs font-extrabold text-text-primary">{{ 'COMMUNITY.CREATE_STORY.TYPE_ROW_TITLE' | translate }}</span>
-                <span class="block text-[11px] font-medium text-text-faint">{{ 'COMMUNITY.CREATE_STORY.TYPE_ROW_HINT' | translate }}</span>
-              </span>
-              @if (mediaUrl()) {
-                <button
-                  type="button"
-                  (click)="fileInput.click()"
-                  class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-[11px] font-bold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0"
-                >{{ 'COMMUNITY.COMPOSER_MODAL.CHANGE' | translate }}</button>
-              }
-            </div>
+            
 
             <!-- Caption -->
             <div>
@@ -447,9 +421,7 @@ const QUICK_EMOJIS = ['✨', '❤️', '🥳', '🌍', '📷', '☀️', '⛺'];
 
           <!-- Footer -->
           <div class="sticky bottom-0 z-10 rounded-b-2xl bg-white dark:bg-gray-800 flex items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-100 dark:border-gray-700">
-            <p class="text-[11px] font-medium text-text-faint">
-              {{ canShareStory() ? '' : ('COMMUNITY.CREATE_STORY.FOOTER_HINT' | translate) }}
-            </p>
+           
             <div class="flex items-center gap-2 shrink-0">
               <button
                 type="button"

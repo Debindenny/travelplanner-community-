@@ -375,7 +375,7 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
                     (onSave)="openSaveModal($event)"
                     (onToggleCommentsView)="toggleCommentsView($event)"
                     (onCloneTrip)="cloneTrip($event)"
-                    (onPostDeleted)="removePost($event)"
+                    
                   >
                     <!-- Comments Section -->
                     @if (expandedComments.has(post.id)) {
@@ -791,7 +791,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerText.set('');
     this.composerLocation.set('');
     this.composerShowLocationSuggestions.set(false);
-    this.composerLocationSuggestions.set([]);
+   // this.composerLocationSuggestions.set([]);
     this.clearComposerMedia();
   }
 
@@ -799,7 +799,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerType.set(null);
     this.composerText.set('');
     this.composerLocation.set('');
-    this.composerShowLocationSuggestions.set(false);
+    //this.composerShowLocationSuggestions.set(false);
     this.composerLocationSuggestions.set([]);
     this.clearComposerMedia();
   }
@@ -812,7 +812,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerLocation.set(value);
     this.composerShowLocationSuggestions.set(true);
     if (!value.trim()) this.composerLocationSuggestions.set([]);
-    this.composerLocationQuery$.next(value);
+    //this.composerLocationQuery$.next(value);
   }
 
   selectComposerLocation(item: DestinationListItem) {
