@@ -27,7 +27,15 @@
   <div class="trips-grid">
     @for (trip of filteredTrips(); track trip.id) {
       <article class="trip-card">
-        <div class="trip-card__image" [style.background-image]="'url(' + trip.image + ')'">
+        <div class="trip-card__image">
+          <img
+            class="trip-card__image-img"
+            [src]="trip.image"
+            [alt]="trip.title"
+            appImgFallback
+            loading="lazy"
+            decoding="async"
+          />
           <div class="trip-card__image-top">
             <span class="trip-card__saves">{{ trip.saves }}</span>
             <button
