@@ -19,15 +19,6 @@
   box-sizing: border-box;
 }
 
-/* Belt-and-suspenders hide for the floating "Describe your trip" chat dock
-   while the itinerary booking-review screen is open (toggled directly on
-   body by itinerary-page.component.ts) — forces it off regardless of the
-   dock's own internal visibility signal, so nothing can leave it stuck
-   covering the review screen's Back/Proceed to payment bar. */
-body.itinerary-review-active app-floating-chatbot {
-  display: none !important;
-}
-
 /* Accessibility: skip-link — visually hidden until keyboard-focused */
 .skip-link {
   position: absolute;

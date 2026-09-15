@@ -34,9 +34,6 @@ export interface DetailFlight {
   stops: string;
   status: string;
   price?: number;
-  provider?: string;
-  bookable?: boolean;
-  partnerMetadata?: Record<string, unknown>;
 }
 
 export type CarRentalRole = 'single' | 'pickup' | 'active' | 'return';
@@ -171,10 +168,6 @@ export interface DetailBus {
   cost?: string;
   price?: number;
   imageUrl?: string;
-  status?: string;
-  provider?: string;
-  bookable?: boolean;
-  partnerMetadata?: Record<string, unknown>;
 }
 
 export type TripSegment = DetailFlight | DetailHotel | DetailCar | DetailActivity | DetailTrain | DetailBus;

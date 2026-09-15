@@ -1750,27 +1750,6 @@
       "STAY_FALLBACK": "Fechas por confirmar",
       "TRAIN_FALLBACK": "Tren"
     },
-    "REVIEW": {
-      "ACTIVITIES_COUNT": "Activities",
-      "ARRANGEMENTS": "Your Travel Arrangements",
-      "BACK": "Back",
-      "BUSES_COUNT": "Buses",
-      "CANCELLATION_NOTE": "Free cancellation until 7 days before departure. After that, cancellation terms depend on each provider's policy.",
-      "CARS_COUNT": "Rental car days",
-      "CITIES": "Cities",
-      "COST_SUMMARY": "Cost Summary",
-      "DATES": "Dates",
-      "FLIGHTS_COUNT": "Flights",
-      "HOTELS_COUNT": "Hotel stays",
-      "JOURNEY": "Journey",
-      "JOURNEY_DETAILS": "Journey Details",
-      "NIGHTS": "Nights",
-      "PROCEED_TO_PAYMENT": "Proceed to payment",
-      "SUBTITLE": "Confirm your trip details before proceeding to payment.",
-      "TITLE": "Review Your Booking",
-      "TRAINS_COUNT": "Trains",
-      "TRAVELERS": "Travelers"
-    },
     "SIDEBAR": {
       "BOOKING_CONFIRMED": "Reserva confirmada",
       "BOOKING_CONFIRMED_DESC": "Tu itinerario está listo para descargar.",
@@ -1942,9 +1921,6 @@
       "UPDATED_FROM_CHAT": "Updated From Chat",
       "BOOKING_INITIATED": "Reserva iniciada para {{item}}",
       "BOOKING_INITIATED_HINT": " — abra una oferta de socio desde Buscar/Cambiar cuando esté disponible.",
-      "BOOKING_METADATA_MISSING": "Can't book {{item}} yet — try swapping or reselecting it first.",
-      "COMPLETE_BOOKING_BLOCKED": "Couldn't book {{item}} — fix this item first. Nothing has been charged yet.",
-      "ALL_SEGMENTS_BOOKED": "All {{count}} bookings confirmed — continuing to payment…",
       "NOTE_SAVED_FOR_DAY": "Nota guardada para el día {{day}}"
     },
     "MAP": {

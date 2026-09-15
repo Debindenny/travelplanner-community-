@@ -406,22 +406,6 @@ async def stripe_webhook(request: Request):
             metadata = session.get("metadata") or {}
             trip_id = metadata.get("trip_id")
             if trip_id:
-                # TODO(booking-orchestration): TRIP_BOOKED only flips trip.status to
-                # "booked" (see the reporting/trip-status consumer on STREAM_AFFILIATE) —
-                # it does NOT call out to the per-segment provider booking endpoints in
-                # services/affiliate (travelnext bookings, travelnext-transfers bookings,
-                # travelomatix-hotels bookings, travelnext-cars bookings,
-                # travelnext-activities bookings). "Book Complete Itinerary" is Stripe
-                # payment capture only; real per-segment bookings currently happen one at
-                # a time from the itinerary page (bookItem()/bookWithPartner()), each
-                # under the signed-in customer's own JWT (services/affiliate's booking
-                # routes are require_customer-gated with no internal/service-to-service
-                # auth path). Safely orchestrating all remaining unbooked segments here,
-                # server-side, after payment succeeds would need that internal auth path
-                # added to services/affiliate first (mirroring identity's
-                # X-Internal-Secret pattern used by _apply_plan_upgrade()/_is_travel_partner()
-                # above) — deliberately left out of this pass as higher-risk than the
-                # frontend per-item booking wiring.
                 booked_event = DomainEvent(
                     event_type=EventType.TRIP_BOOKED,
                     actor_user_id=session.get("client_reference_id"),
