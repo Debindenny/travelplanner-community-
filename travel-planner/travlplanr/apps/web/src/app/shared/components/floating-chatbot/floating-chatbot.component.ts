@@ -183,6 +183,7 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
             listboxId="dock-dest-listbox"
             [query]="inputValue()"
             [enabled]="typeaheadEnabled()"
+            [showRecent]="false"
             presentation="chips"
             variant="dark"
             (picked)="onTypeaheadPicked($event)"
