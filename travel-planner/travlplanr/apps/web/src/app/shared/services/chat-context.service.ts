@@ -68,6 +68,11 @@ export class ChatContextService {
     return path === '/' || path === '';
   });
 
+  /** The itinerary's day-by-day cards put real action buttons (Change/Book Now)
+   * at the same bottom-center band the idle dock occupies — see
+   * FloatingChatbotComponent's `recede` state, which this drives. */
+  readonly onItineraryRoute = computed(() => this.currentPath().startsWith('/itinerary'));
+
   constructor() {
     this.currentPath.set(this.router.url || '/');
     this.router.events.pipe(

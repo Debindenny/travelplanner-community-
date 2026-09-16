@@ -48,6 +48,7 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
         #dockEl
         class="global-dock-wrap"
         [class.chat-active]="showChatThread()"
+        [class.recede]="recede()"
         (mousedown)="$event.stopPropagation()"
       >
         <div class="chat-thread" [class.visible]="showChatThread()">
@@ -245,6 +246,15 @@ import { isHostEventRequest } from '../../utils/chat-intent.util';
       .global-dock-wrap.chat-active {
         width: min(800px, calc(100vw - 2rem));
         max-width: min(800px, calc(100vw - 2rem));
+      }
+      /* Idle on the itinerary page: sink behind ordinary (non-positioned) page
+         content — e.g. a day card's Change/Book Now row — instead of covering
+         it. A negative z-index is required; 0 still paints above static
+         content. The recede state never applies while chat is active (see the
+         recede computed), so actually engaging the assistant always
+         restores the full 10050 overlay above. */
+      .global-dock-wrap.recede {
+        z-index: -1;
       }
 
       .chat-thread {
@@ -500,6 +510,14 @@ export class FloatingChatbotComponent implements OnDestroy {
       this.chatContext.chatOpen() ||
       this.chat.sending() ||
       this.chat.listening(),
+  );
+
+  /** On the itinerary page, the idle dock sits right where day-card action
+   * rows (Change/Book Now) land — recede behind normal page content there
+   * so those buttons stay clickable, while still overlaying everything the
+   * moment the user actually engages the assistant. */
+  readonly recede = computed(
+    () => this.chatContext.onItineraryRoute() && !this.showChatThread(),
   );
 
   readonly chatInputPlaceholder = computed(() => {

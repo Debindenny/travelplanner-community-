@@ -96,14 +96,14 @@
                 </div>
               </div>
 
-              @if (!readOnly) {
+              @if (!readOnly && !tripBooked) {
                 <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
                   <div class="flex gap-4 text-xs-plus text-text-tertiary">
                     <span>{{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ localizePhrase(item.class) }}</strong></span>
                     <span>•</span>
                     <span>{{ 'ITINERARY.DAY.REF_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
                   </div>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -219,7 +219,7 @@
                 </span>
               </div>
 
-              @if (!readOnly) {
+              @if (!readOnly && !tripBooked) {
                 <div class="flex items-center justify-between gap-4 mt-2">
                   <span class="text-xs-plus text-text-tertiary">
                     @if (item.fromLocation && item.toLocation) {
@@ -228,7 +228,7 @@
                       {{ 'ITINERARY.DAY.UNLIMITED_MILEAGE' | translate }}
                     }
                   </span>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -328,7 +328,7 @@
                 }
               </div>
 
-              @if (!readOnly) {
+              @if (!readOnly && !tripBooked) {
                 <div class="flex items-center justify-between gap-4 mt-2">
                   <span class="text-xs-plus text-text-tertiary">
                     {{ item.roomType || ('ITINERARY.DAY.STANDARD_DOUBLE_ROOM' | translate) }} • {{ item.cancellation || ('ITINERARY.DAY.NON_REFUNDABLE' | translate) }}
@@ -336,7 +336,7 @@
                       • {{ item.bedPreference }}
                     }
                   </span>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -423,10 +423,10 @@
                   </p>
                 </div>
 
-                @if (!readOnly) {
+                @if (!readOnly && !tripBooked) {
                   <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-border-light">
                     <span class="text-xs text-text-tertiary">{{ 'ITINERARY.DAY.TYPE_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
-                    <div class="flex gap-3">
+                    <div class="flex gap-3 ml-auto">
                       <div class="flex items-center border border-border rounded-btn overflow-hidden">
                         <button
                           (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -540,12 +540,12 @@
                 </div>
               </div>
 
-              @if (!readOnly) {
+              @if (!readOnly && !tripBooked) {
                 <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
                   <div class="text-xs-plus text-text-tertiary">
                     {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                   </div>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -640,12 +640,12 @@
                 </div>
               </div>
 
-              @if (!readOnly) {
+              @if (!readOnly && !tripBooked) {
                 <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
                   <div class="text-xs-plus text-text-tertiary">
                     {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                   </div>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"

@@ -74,6 +74,9 @@ export class ItineraryTimelineComponent {
   @Input() transportModeOptions: { id: TransportType; labelKey: string }[] = [];
   /** Keys (via `getItemKey`) of items already booked — shows a persistent "Booked" state on that item's Book button instead of relying on a transient toast. `null`/empty leaves every Book button in its default state. */
   @Input() bookedItemKeys: ReadonlySet<string> | null = null;
+  /** Once the whole trip is paid/booked, per-item "Book Now"/"Change" actions
+   * and the "Add to Day" panel no longer make sense — hide them entirely. */
+  @Input() tripBooked = false;
 
   @Output() itemDropped = new EventEmitter<CdkDragDrop<{ day: number; items: DetailItem[] }>>();
   @Output() moveUp = new EventEmitter<{ day: number; index: number }>();
