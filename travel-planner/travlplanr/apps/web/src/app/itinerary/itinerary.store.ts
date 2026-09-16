@@ -5,7 +5,7 @@ import { SavedTrip, TripSegment } from '../trip/trip.service';
 export class ItineraryStore {
   readonly trip = signal<SavedTrip | null>(null);
 
-  readonly viewMode = signal<'itinerary' | 'swap-flight' | 'swap-train' | 'swap-car' | 'swap-bus' | 'swap-hotel' | 'hotel-detail' | 'swap-activity' | 'activity-detail' | 'car-detail' | 'flight-detail' | 'train-detail' | 'bus-detail' | 'review'>('itinerary');
+  readonly viewMode = signal<'itinerary' | 'swap-flight' | 'swap-train' | 'swap-car' | 'swap-bus' | 'swap-hotel' | 'hotel-detail' | 'swap-activity' | 'activity-detail' | 'car-detail' | 'flight-detail' | 'train-detail' | 'bus-detail' | 'review' | 'payment'>('itinerary');
 
   // Collaboration
   readonly sharePanelOpen = signal(false);
@@ -24,6 +24,7 @@ export class ItineraryStore {
   readonly tripLoading = signal(false);
   readonly tripLoadError = signal<string | null>(null);
   readonly tripSegmentsVersion = signal(0);
+  readonly paymentMethod = signal<'upi' | 'card' | 'wallet'>('upi');
   readonly tripStartDate = signal<Date>(new Date());
   
   // Flight Swapping
@@ -105,6 +106,7 @@ export class ItineraryStore {
     this.tripLoading.set(false);
     this.tripLoadError.set(null);
     this.tripSegmentsVersion.set(0);
+    this.paymentMethod.set('upi');
     this.tripStartDate.set(new Date());
     this.swappingFlightRef.set(null);
     this.swappedFlights.set({});

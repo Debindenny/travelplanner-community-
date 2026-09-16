@@ -1754,6 +1754,29 @@
       "TRAINS_COUNT": "Trains",
       "TRAVELERS": "Travelers"
     },
+    "PAYMENT": {
+      "TITLE": "Payment",
+      "SUBTITLE": "Simulated payment — no card or bank details are sent anywhere.",
+      "ORDER_SUMMARY": "Order Summary",
+      "JOURNEY_PACKAGE": "Journey package",
+      "OUTBOUND_RETURN_FLIGHTS": "Outbound + return flights",
+      "TOTAL_TO_PAY": "Total to pay",
+      "PAYMENT_METHOD": "Payment Method",
+      "METHOD_UPI": "UPI",
+      "METHOD_CARD": "Credit / Debit Card",
+      "METHOD_WALLET": "Wallet",
+      "PAY_NOW": "Pay {{amount}} now"
+    },
+    "CONFIRMATION": {
+      "PAYMENT_METHOD": "Payment method",
+      "BOOKED_FLIGHT": "Booked flight",
+      "PAID_AMOUNT": "Paid amount",
+      "DOWNLOAD_ITINERARY": "Download Itinerary",
+      "SHARE_ITINERARY": "Share Itinerary",
+      "SUPPORT_NOTE": "Questions about your booking, payment or need to make a change? We're here to help.",
+      "CONTACT_SUPPORT": "Contact support",
+      "VISIT_FAQ": "Visit FAQ"
+    },
     "SIDEBAR": {
       "BOOKING_CONFIRMED": "Reserva confirmada",
       "BOOKING_CONFIRMED_DESC": "Tu itinerario está listo para descargar.",
@@ -1927,7 +1950,8 @@
       "BOOKING_INITIATED_HINT": " — abra una oferta de socio desde Buscar/Cambiar cuando esté disponible.",
       "BOOKING_METADATA_MISSING": "Can't book {{item}} yet — try swapping or reselecting it first.",
       "COMPLETE_BOOKING_BLOCKED": "Couldn't book {{item}} — fix this item first. Nothing has been charged yet.",
-      "ALL_SEGMENTS_BOOKED": "All {{count}} bookings confirmed — continuing to payment…",
+      "ALL_SEGMENTS_BOOKED": "All {{count}} bookings confirmed — processing payment…",
+      "PAYMENT_SUCCESS": "Payment successful — your trip is booked!",
       "NOTE_SAVED_FOR_DAY": "Nota guardada para el día {{day}}"
     },
     "MAP": {

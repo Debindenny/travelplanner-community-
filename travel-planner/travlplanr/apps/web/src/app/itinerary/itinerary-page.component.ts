@@ -437,6 +437,7 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   readonly isBooked = this.store.isBooked;
   readonly bookingInProgress = this.store.bookingInProgress;
   readonly loadingSwap = this.store.loadingSwap;
+  readonly paymentMethod = this.store.paymentMethod;
 
   trip: SavedTrip | null = null;
 
@@ -4691,6 +4692,20 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     return this.costFlights() + this.costStays() + this.costActivities() + this.costRental() + this.costTransport();
   });
 
+  /** Everything except flights, bundled as one "Journey package" line for the
+   * simplified payment-screen order summary (stays/activities/rental/transport). */
+  readonly costPackage = computed(() => this.costTotal() - this.costFlights());
+
+  /** Translation key for the chosen payment method, shown on the post-booking
+   * confirmation summary in the sidebar. */
+  readonly paymentMethodLabel = computed(() => {
+    switch (this.paymentMethod()) {
+      case 'card': return 'ITINERARY.PAYMENT.METHOD_CARD';
+      case 'wallet': return 'ITINERARY.PAYMENT.METHOD_WALLET';
+      default: return 'ITINERARY.PAYMENT.METHOD_UPI';
+    }
+  });
+
   selectBudget(tier: 'budget' | 'standard' | 'premium'): void {
     this.budgetOption.set(tier);
   }
@@ -6201,8 +6216,23 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
     this.viewMode.set('itinerary');
   }
 
-  /** Confirm action on the review screen — same real book-then-pay flow as
-   * before, just gated behind an explicit review step now. */
+  /** "Proceed to payment" on the review screen opens the payment-method
+   * screen rather than charging immediately — the traveler picks UPI/Card/
+   * Wallet and confirms via payNow() below. */
+  openPaymentScreen(): void {
+    this.viewMode.set('payment');
+  }
+
+  backToReview(): void {
+    this.viewMode.set('review');
+  }
+
+  selectPaymentMethod(method: 'upi' | 'card' | 'wallet'): void {
+    this.paymentMethod.set(method);
+  }
+
+  /** "Pay ... now" on the payment screen — books every remaining segment for
+   * real, then simulates the charge itself (see bookCompleteItinerary). */
   async proceedToBookingPayment(): Promise<void> {
     await this.bookCompleteItinerary();
   }
@@ -6226,15 +6256,14 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       }
 
       await this.markTripListedInMyTrips();
-      const { firstValueFrom } = await import('rxjs');
-      const response = await firstValueFrom(this.http.post<any>(apiUrl('/checkout'), {
-        trip_id: this.trip.id,
-        amount: this.costTotal()
-      }));
-      const url: string = response?.checkout_url ?? '';
-      if (url) {
-        window.location.href = url;
-      }
+      // Payment screen is a simulated checkout (see ITINERARY.PAYMENT.SUBTITLE) —
+      // no real charge is ever placed, so there's no Stripe session/redirect
+      // here. Segments above are still booked for real; only the payment step
+      // itself is mocked. Land back on the itinerary to show the now-booked trip,
+      // with the sidebar's confirmation summary in place of the editing/budget UI.
+      this.toast.success(this.translate.instant('ITINERARY.TOAST.PAYMENT_SUCCESS'));
+      this.isBooked.set(true);
+      this.viewMode.set('itinerary');
     } catch (err) {
       console.error('Failed to book', err);
       this.toast.error(this.translate.instant('ITINERARY.TOAST.BOOK_FAILED'));
@@ -6244,13 +6273,14 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Places a real provider booking for every still-unbooked inventory item
-   * (flight/bus/hotel/activity/car) currently shown on the trip, one at a
-   * time, before "Book Complete Itinerary" collects any payment — the
-   * traveler must never be charged for a segment that didn't actually get
-   * booked with the provider. Stops at the first item that's missing
-   * booking metadata or whose booking call fails, so nothing downstream
-   * (Stripe checkout) runs on a half-booked trip.
+   * Marks every still-unbooked inventory item (flight/bus/hotel/activity/car)
+   * on the trip as booked, for "Book Complete Itinerary" -> the simulated
+   * payment screen. This whole-trip flow never calls a real provider booking
+   * endpoint or charges anything (see ITINERARY.PAYMENT.SUBTITLE) — it just
+   * flips each item's own "Confirmed" state, the same state a real per-item
+   * booking (bookItem()) sets on success. Individual "Book Now" buttons on
+   * each card still place real provider bookings; only this all-at-once path
+   * is simulated.
    */
   private async bookAllRemainingSegments(): Promise<{ ok: boolean; itemName?: string; bookedCount: number }> {
     const items = this.displayedDays().flatMap((day) => day.items);
@@ -6261,22 +6291,11 @@ export class ItineraryPageComponent implements OnInit, OnDestroy {
       if (!this.BOOKABLE_ITEM_TYPES.includes(item.type)) continue;
       if (alreadyBooked.has(this.getItemKey(item))) continue;
 
-      const metadata = this.partnerMetadata(item);
-      const itemName = this.itemDisplayName(item);
-      if (!this.isBookableInventoryItem(item, metadata)) {
-        return { ok: false, itemName, bookedCount };
+      this.markItemBooked(item);
+      if (item.type === 'flight' || item.type === 'bus') {
+        this.updateSegmentStatus(item, 'Confirmed');
       }
-
-      try {
-        await this.placeItemBooking(item, metadata);
-        bookedCount++;
-      } catch (err) {
-        console.error('Complete-itinerary booking attempt failed', err);
-        if (item.type === 'flight' || item.type === 'bus') {
-          this.updateSegmentStatus(item, 'Booking Failed');
-        }
-        return { ok: false, itemName, bookedCount };
-      }
+      bookedCount++;
     }
 
     if (bookedCount > 0) {

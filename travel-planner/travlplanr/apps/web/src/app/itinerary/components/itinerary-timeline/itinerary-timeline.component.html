@@ -88,7 +88,7 @@
                   <span>•</span>
                   <span>{{ 'ITINERARY.DAY.REF_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex gap-3 ml-auto">
                   <div class="flex items-center border border-border rounded-btn overflow-hidden">
                     <button
                       (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -107,18 +107,22 @@
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                   </div>
-                  <button
-                    (click)="flightSwap.emit({ day: day.day, index: $index })"
-                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                  </button>
-                  <button
-                    (click)="book.emit(item)"
-                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.BOOK_NOW' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="flightSwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                  }
+                  @if (!tripBooked) {
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.BOOK_NOW' | translate }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -200,7 +204,7 @@
                     {{ 'ITINERARY.DAY.UNLIMITED_MILEAGE' | translate }}
                   }
                 </span>
-                <div class="flex gap-3">
+                <div class="flex gap-3 ml-auto">
                   <div class="flex items-center border border-border rounded-btn overflow-hidden">
                     <button
                       (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -219,12 +223,14 @@
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                   </div>
-                  <button
-                    (click)="carSwap.emit({ day: day.day, index: $index })"
-                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="carSwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                  }
                   @if (item.deepLink) {
                     <a
                       [href]="item.deepLink"
@@ -235,12 +241,14 @@
                       {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
                     </a>
                   }
-                  <button
-                    (click)="book.emit(item)"
-                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.SELECT_CAR' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.SELECT_CAR' | translate }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -299,7 +307,7 @@
                     • {{ item.bedPreference }}
                   }
                 </span>
-                <div class="flex gap-3">
+                <div class="flex gap-3 ml-auto">
                   <div class="flex items-center border border-border rounded-btn overflow-hidden">
                     <button
                       (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -318,12 +326,14 @@
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                   </div>
-                  <button
-                    (click)="hotelSwap.emit({ day: day.day, index: $index })"
-                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="hotelSwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                  }
                   @if (item.deepLink) {
                     <a
                       [href]="item.deepLink"
@@ -334,12 +344,14 @@
                       {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
                     </a>
                   }
-                  <button
-                    (click)="book.emit(item)"
-                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.BOOK_STAY' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.BOOK_STAY' | translate }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -373,7 +385,7 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-border-light">
                   <span class="text-xs text-text-tertiary">{{ 'ITINERARY.DAY.TYPE_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 ml-auto">
                     <div class="flex items-center border border-border rounded-btn overflow-hidden">
                       <button
                         (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -392,13 +404,15 @@
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      (click)="activitySwap.emit({ day: day.day, index: $index })"
-                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                    >
-                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                    </button>
+                    @if (!tripBooked) {
+                      <button
+                        type="button"
+                        (click)="activitySwap.emit({ day: day.day, index: $index })"
+                        class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                      >
+                        {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                      </button>
+                    }
                     @if (item.deepLink) {
                       <a
                         [href]="item.deepLink"
@@ -409,12 +423,14 @@
                         {{ 'ITINERARY.SIDEBAR.BOOKING_LINK' | translate }}
                       </a>
                     }
-                    <button
-                      (click)="book.emit(item)"
-                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                    >
-                      {{ 'ITINERARY.DAY.BOOK_ACTIVITY' | translate }}
-                    </button>
+                    @if (!tripBooked) {
+                      <button
+                        (click)="book.emit(item)"
+                        class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                      >
+                        {{ 'ITINERARY.DAY.BOOK_ACTIVITY' | translate }}
+                      </button>
+                    }
                   </div>
                 </div>
               </div>
@@ -471,7 +487,7 @@
                 <div class="text-xs-plus text-text-tertiary">
                   {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex gap-3 ml-auto">
                   <div class="flex items-center border border-border rounded-btn overflow-hidden">
                     <button
                       (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -490,18 +506,22 @@
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                   </div>
-                  <button
-                    (click)="trainSwap.emit({ day: day.day, index: $index })"
-                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                  </button>
-                  <button
-                    (click)="book.emit(item)"
-                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.SELECT_TRAIN' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="trainSwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                  }
+                  @if (!tripBooked) {
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.SELECT_TRAIN' | translate }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -560,7 +580,7 @@
                 <div class="text-xs-plus text-text-tertiary">
                   {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex gap-3 ml-auto">
                   <div class="flex items-center border border-border rounded-btn overflow-hidden">
                     <button
                       (click)="moveUp.emit({ day: day.day, index: $index })"
@@ -579,18 +599,22 @@
                       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                   </div>
-                  <button
-                    (click)="busSwap.emit({ day: day.day, index: $index })"
-                    class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
-                  </button>
-                  <button
-                    (click)="book.emit(item)"
-                    class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {{ 'ITINERARY.DAY.SELECT_BUS' | translate }}
-                  </button>
+                  @if (!tripBooked) {
+                    <button
+                      (click)="busSwap.emit({ day: day.day, index: $index })"
+                      class="px-4 py-2 bg-gradient-to-r from-surface-muted to-white border border-border rounded-btn text-xs-plus font-medium text-text-secondary hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.CHANGE_BUTTON' | translate }}
+                    </button>
+                  }
+                  @if (!tripBooked) {
+                    <button
+                      (click)="book.emit(item)"
+                      class="px-4 py-2 bg-gradient-to-r from-primary to-[#0050C7] hover:from-[#0050C7] hover:to-primary text-white rounded-btn text-xs-plus font-semibold shadow-[0_4px_12px_rgba(0,96,234,0.3)] hover:shadow-[0_6px_16px_rgba(0,96,234,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {{ 'ITINERARY.DAY.SELECT_BUS' | translate }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -599,7 +623,8 @@
           </div>
         }
 
-        <!-- Add Activity / Transportation -->
+        <!-- Add Activity / Transportation — not offered once the trip is paid. -->
+        @if (!tripBooked) {
         <div class="pt-2">
           <div class="rounded-xl border-2 border-dashed border-border bg-surface-muted/50 p-4">
             <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-3">
@@ -698,6 +723,7 @@
             </div>
           </div>
         </div>
+        }
       </div>
     </div>
   }

@@ -32,8 +32,13 @@ export class ItineraryTimelineComponent {
   @Input() getBusImageUrl: (item: any) => string = () => '';
   @Input() isTransferDay: (dayDay: number) => boolean = () => false;
   @Input() transportModeOptions: { id: TransportType; labelKey: string }[] = [];
+  @Input() bookedItemKeys: Set<string> = new Set();
+  /** Once the whole trip is paid/booked, per-item "Book Now" actions no
+   * longer make sense — hide them entirely. */
+  @Input() tripBooked = false;
 
   @Output() itemDropped = new EventEmitter<CdkDragDrop<{ day: number; items: DetailItem[] }>>();
+  @Output() book = new EventEmitter<DetailItem>();
   @Output() moveUp = new EventEmitter<{ day: number; index: number }>();
   @Output() moveDown = new EventEmitter<{ day: number; index: number }>();
   @Output() flightSwap = new EventEmitter<{ day: number; index: number }>();
