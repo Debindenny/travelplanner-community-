@@ -440,6 +440,32 @@ export class FloatingChatbotComponent implements OnDestroy {
     if (this.chat.sending()) {
       this.chat.stopGenerating();
     }
+    this.resizeObserver?.disconnect();
+  }
+
+  private resizeObserver?: ResizeObserver;
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    const el = this.dockEl()?.nativeElement;
+    if (el) this.publishDockClearance(this.measureDockClearance(el));
+  }
+
+  /** Distance from the viewport bottom to the top of the dock — its own
+   * rendered height plus its own `bottom` offset (including safe-area-inset
+   * on notched phones), taken from one real layout measurement instead of a
+   * guessed constant that goes stale whenever the dock's content changes
+   * (chat thread open, slot chips, responsive padding). */
+  private measureDockClearance(el: HTMLElement): number {
+    return Math.max(0, Math.ceil(window.innerHeight - el.getBoundingClientRect().top));
+  }
+
+  /** Exposes the dock's live clearance as a CSS custom property so any page
+   * can reserve exactly enough space below its own bottom-most content —
+   * e.g. the itinerary booking review screen's "Proceed to payment" bar —
+   * without guessing a static pixel value. 0 when the dock isn't mounted. */
+  private publishDockClearance(px: number): void {
+    document.documentElement.style.setProperty('--floating-dock-clearance', `${px}px`);
   }
 
   readonly chatContext = inject(ChatContextService);
@@ -526,6 +552,22 @@ export class FloatingChatbotComponent implements OnDestroy {
       }
       this.inputValue.set(text);
     }, { allowSignalWrites: true });
+
+    // Keeps --floating-dock-clearance live: re-measures whenever the dock
+    // mounts/unmounts (showFloatingChatbot toggling) or its own box resizes
+    // (chat thread opening, slot chips, responsive breakpoints).
+    effect(() => {
+      const el = this.dockEl()?.nativeElement;
+      this.resizeObserver?.disconnect();
+      this.resizeObserver = undefined;
+      if (!el || typeof ResizeObserver === 'undefined') {
+        this.publishDockClearance(0);
+        return;
+      }
+      this.publishDockClearance(this.measureDockClearance(el));
+      this.resizeObserver = new ResizeObserver(() => this.publishDockClearance(this.measureDockClearance(el)));
+      this.resizeObserver.observe(el);
+    });
   }
 
   @HostListener('document:keydown', ['$event'])

@@ -5,7 +5,7 @@ import { SavedTrip, TripSegment } from '../trip/trip.service';
 export class ItineraryStore {
   readonly trip = signal<SavedTrip | null>(null);
 
-  readonly viewMode = signal<'itinerary' | 'swap-flight' | 'swap-train' | 'swap-car' | 'swap-bus' | 'swap-hotel' | 'hotel-detail' | 'swap-activity' | 'activity-detail' | 'car-detail' | 'flight-detail' | 'train-detail' | 'bus-detail'>('itinerary');
+  readonly viewMode = signal<'itinerary' | 'swap-flight' | 'swap-train' | 'swap-car' | 'swap-bus' | 'swap-hotel' | 'hotel-detail' | 'swap-activity' | 'activity-detail' | 'car-detail' | 'flight-detail' | 'train-detail' | 'bus-detail' | 'review'>('itinerary');
 
   // Collaboration
   readonly sharePanelOpen = signal(false);
@@ -74,6 +74,8 @@ export class ItineraryStore {
   readonly addedActivities = signal<{ dayDay: number; activity: any }[]>([]);
   readonly addedTransport = signal<{ dayDay: number; item: any }[]>([]);
   readonly removedItemKeys = signal<Set<string>>(new Set());
+  /** Item keys with a confirmed real partner booking (flight/bus/hotel/activity/car). */
+  readonly bookedItemKeys = signal<Set<string>>(new Set());
   readonly addingTransportRef = signal<{ dayDay: number; transportType: 'flight' | 'train' | 'bus' | 'car' } | null>(null);
   readonly customItemOrder = signal<Record<number, string[]>>({});
   readonly activityPriceFilter = signal<number>(40000);
@@ -141,6 +143,7 @@ export class ItineraryStore {
     this.addedActivities.set([]);
     this.addedTransport.set([]);
     this.removedItemKeys.set(new Set());
+    this.bookedItemKeys.set(new Set());
     this.addingTransportRef.set(null);
     this.customItemOrder.set({});
     this.activityPriceFilter.set(40000);

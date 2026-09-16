@@ -7,6 +7,7 @@ import { CommunityPostService } from '../../../../services/community-post.servic
 import { CommunityTrip } from '../data/community-trips.data';
 import { CloneTripModalComponent, CloneTripPayload } from './clone-trip-modal/clone-trip-modal.component';
 import { ItineraryPreviewModalComponent } from './itinerary-preview-modal/itinerary-preview-modal.component';
+import { ImgFallbackDirective } from '../../../../../shared/directives/img-fallback.directive';
 
 type TripFilter = 'Popular' | 'Recent' | 'Budget' | 'Luxury';
 
@@ -38,7 +39,7 @@ function comparePrice(a: CommunityTrip, b: CommunityTrip, direction: 'asc' | 'de
 
 @Component({
   selector: 'app-community-trips',
-  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, ItineraryPreviewModalComponent, RouterLink],
+  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, ItineraryPreviewModalComponent, RouterLink, ImgFallbackDirective],
   templateUrl: './community-trips-page.component.html',
   styleUrl: './community-trips-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
