@@ -93,6 +93,7 @@ export class ItineraryTimelineComponent {
   @Output() transportAdd = new EventEmitter<{ day: number; type: TransportType }>();
   @Output() openComments = new EventEmitter<number>();
   @Output() dayHeaderClick = new EventEmitter<number>();
+  @Output() book = new EventEmitter<DetailItem>();
 
   constructor() {
     this.translate.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {
