@@ -241,9 +241,9 @@ export class CommunityPhotoComposerComponent {
           },
         });
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
-        this.error.set(this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED'));
+        this.error.set(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED')));
       },
     });
   }

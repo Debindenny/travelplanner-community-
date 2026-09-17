@@ -85,7 +85,7 @@ export class CommunityReportModalComponent {
   @Input({ required: true }) targetId!: string;
   @Input({ required: true }) targetType!: 'post' | 'comment' | 'story' | 'user' | 'message';
   @Output() close = new EventEmitter<void>();
-  @Output() submitted = new EventEmitter<string>();
+  @Output() submitted = new EventEmitter<{ success: boolean; message: string }>();
 
   private moderationService = inject(CommunityModerationService);
   private translate = inject(TranslateService);
@@ -115,11 +115,11 @@ export class CommunityReportModalComponent {
     }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.submitted.emit(this.translate.instant('COMMUNITY.REPORT.SUCCESS'));
+        this.submitted.emit({ success: true, message: this.translate.instant('COMMUNITY.REPORT.SUCCESS') });
       },
       error: () => {
         this.isSubmitting.set(false);
-        this.submitted.emit(this.translate.instant('COMMUNITY.REPORT.FAILED'));
+        this.submitted.emit({ success: false, message: this.translate.instant('COMMUNITY.REPORT.FAILED') });
       }
     });
   }

@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload, joinedload
 from shared.auth_dependencies import optional_customer
 from app.models.community import CommunityPost, UserFollow
 
-from .community_shared import _serialize_posts
+from .community_shared import _serialize_posts, _get_muted_author_ids
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,11 @@ async def get_feed(request: Request, limit: int = 20, cursor: Optional[str] = No
             selectinload(CommunityPost.destination),
             joinedload(CommunityPost.author)
         )
-        
+
+        muted_ids = await _get_muted_author_ids(session, customer_id)
+        if muted_ids:
+            query = query.where(CommunityPost.customer_id.notin_(muted_ids))
+
         if cursor:
             try:
                 decoded = json.loads(base64.b64decode(cursor).decode('utf-8'))
@@ -101,7 +105,11 @@ async def get_explore_feed(request: Request, limit: int = 10, cursor: Optional[s
             selectinload(CommunityPost.destination),
             joinedload(CommunityPost.author)
         )
-        
+
+        muted_ids = await _get_muted_author_ids(session, viewer_id)
+        if muted_ids:
+            query = query.where(CommunityPost.customer_id.notin_(muted_ids))
+
         if cursor:
             try:
                 decoded = json.loads(base64.b64decode(cursor).decode('utf-8'))

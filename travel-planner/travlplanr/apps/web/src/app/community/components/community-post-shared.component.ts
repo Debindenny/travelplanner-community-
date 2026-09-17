@@ -259,17 +259,45 @@ export class CommunityPostCarouselComponent {
               {{ (followButtonState() === 'following' ? 'COMMUNITY.FOLLOWING' : 'COMMUNITY.POST_CARD.FOLLOW') | translate }}
             </button>
           }
-          <div class="relative">
+          <div class="relative" #optionsMenuRef>
             <button (click)="toggleOptionsMenu()" class="w-8 h-8 rounded-lg flex items-center justify-center text-text-faint hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors focus:outline-none" [attr.aria-label]="'COMMUNITY.POST_CARD.MORE_OPTIONS_ARIA' | translate">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
             </button>
             @if (showOptionsMenu) {
-              <div class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-xl shadow-lg z-50 border border-slate-100 dark:border-gray-700/80 divide-y divide-slate-50 dark:divide-gray-700 overflow-hidden text-slate-800 dark:text-slate-100">
+              <div class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg z-50 border border-slate-100 dark:border-gray-700/80 overflow-hidden text-slate-800 dark:text-slate-100 py-1.5">
                 @if (isAuthor()) {
-                  <button (click)="startEdit()" class="w-full text-left px-4 py-2 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">{{ 'COMMUNITY.POST_CARD.EDIT_POST' | translate }}</button>
-                  <button (click)="deletePost()" class="w-full text-left px-4 py-2 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">{{ 'COMMUNITY.POST_CARD.DELETE' | translate }}</button>
+                  <button (click)="startEdit()" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                    {{ 'COMMUNITY.POST_CARD.EDIT_POST' | translate }}
+                  </button>
+                  <button (click)="deletePost()" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                    {{ 'COMMUNITY.POST_CARD.DELETE' | translate }}
+                  </button>
                 } @else {
-                  <button (click)="showOptionsMenu = false; showReportModal.set(true)" class="w-full text-left px-4 py-2 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">🛡️ Report Post</button>
+                  <button (click)="copyPostLink()" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                    {{ 'COMMUNITY.POST_CARD.COPY_LINK' | translate }}
+                  </button>
+                  @if (post.is_following) {
+                    <button (click)="showOptionsMenu = false; onToggleFollow.emit(post)" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {{ 'COMMUNITY.POST_CARD.UNFOLLOW_USER' | translate }}
+                    </button>
+                  } @else {
+                    <button (click)="showOptionsMenu = false; onToggleFollow.emit(post)" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {{ 'COMMUNITY.POST_CARD.FOLLOW_USER' | translate }}
+                    </button>
+                  }
+                  <button (click)="showOptionsMenu = false; onMuteUser.emit(post)" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25M12 6.75l-5.657 5.657a1.5 1.5 0 01-1.06.44H3a.75.75 0 01-.75-.75V9.75a.75.75 0 01.75-.75h2.283a1.5 1.5 0 001.06-.44L12 3v3.75z" /></svg>
+                    {{ 'COMMUNITY.POST_CARD.MUTE_USER' | translate }}
+                  </button>
+                  <button (click)="showOptionsMenu = false; showReportModal.set(true)" class="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-xs font-semibold text-danger hover:bg-danger-50 dark:hover:bg-danger-900/30 transition-colors">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" /></svg>
+                    {{ 'COMMUNITY.POST_CARD.REPORT_POST' | translate }}
+                  </button>
                 }
               </div>
             }
@@ -277,7 +305,85 @@ export class CommunityPostCarouselComponent {
         </div>
       </div>
 
-      <!-- Caption -->
+
+     
+      <!-- Post Images (uploaded photos) — or an uploaded video/reel — or, when there's
+           neither but a trip is attached, the shared trip's own cover image, so a Trip
+           post always shows a real hero image instead of nothing. Reuses the same
+           itinerary.image the "Attached Itinerary" card below already gets from the
+           backend (CommunityPost.itinerary.image). -->
+      @if (post.images?.length) {
+        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
+          <app-community-post-carousel [images]="post.images" [matchTripImageSize]="true" />
+          @if (post.destination && !isEditing) {
+            <a
+              [routerLink]="['/destinations', post.destination.id]"
+              class="absolute left-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold hover:bg-black/70 transition-colors"
+            >
+              <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+              {{ post.destination.name }}
+            </a>
+          }
+        </div>
+      } @else if (post.video_url) {
+        <div class="relative border-y border-slate-100 dark:border-gray-700/70 bg-black">
+          <video
+            [src]="post.video_url"
+            controls
+            playsinline
+            preload="metadata"
+            class="w-full max-h-[420px] object-cover"
+          ></video>
+        </div>
+      } @else if (post.itinerary?.image && !itineraryImageFailed) {
+        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
+          <img
+            [src]="post.itinerary.image"
+            [alt]="post.itinerary.title"
+            class="w-full max-h-[420px] object-cover"
+            loading="lazy"
+            decoding="async"
+            (error)="itineraryImageFailed = true"
+          />
+        </div>
+      }
+
+
+
+      <!-- Attached Itinerary -->
+      @if (post.itinerary) {
+        <div class="mx-4 my-4 border border-slate-100 dark:border-gray-700 bg-slate-50/60 dark:bg-gray-900/30 rounded-2xl p-3.5 flex items-center gap-3.5">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-sm text-text-primary truncate">{{ post.itinerary.title }}</h4>
+            <p class="text-xs text-text-secondary truncate mt-0.5">{{ post.itinerary.destination }}</p>
+            <p class="text-xs font-semibold text-primary mt-1 flex items-center gap-2">
+              <span class="bg-primary-50 text-primary px-2 py-0.5 rounded-full text-2xs border border-primary-subtle/50">
+                {{ (getDayCount(post.itinerary) === 1 ? 'COMMUNITY.POST_CARD.DAY_COUNT' : 'COMMUNITY.POST_CARD.DAYS_COUNT') | translate: { count: getDayCount(post.itinerary) } }}
+              </span>
+              <span class="text-text-tertiary font-normal">·</span>
+              <span class="text-text-secondary font-normal">{{ getBudgetTierLabel(post.itinerary.budget) }}</span>
+            </p>
+          </div>
+          <button
+            (click)="onCloneTrip.emit(post.itinerary.id)"
+            class="shrink-0 bg-primary hover:bg-primary-hover text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            >
+            {{ 'COMMUNITY.POST_CARD.CLONE_TRIP' | translate }}
+          </button>
+        </div>
+      }   
+
+       <!-- Destination badge (inline pill only when there's no image to overlay it on) -->
+      @if (post.destination && !isEditing && !post.images?.length) {
+        <div class="px-4 pb-3">
+          <a [routerLink]="['/destinations', post.destination.id]" class="inline-flex items-center gap-1.5 bg-primary-50 border border-primary-subtle/40 rounded-full px-3 py-1 hover:bg-primary-100 transition-colors">
+            <svg class="w-3 h-3 text-primary fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+            <span class="text-xs font-semibold text-primary">{{ post.destination.name }}</span>
+          </a>
+        </div>
+      }
+
+            <!-- Caption -->
       <div class="px-4 pb-3">
         @if (!isEditing) {
           @if (captionHeadline()) {
@@ -324,77 +430,54 @@ export class CommunityPostCarouselComponent {
         }
       </div>
 
-      <!-- Destination badge (inline pill only when there's no image to overlay it on) -->
-      @if (post.destination && !isEditing && !post.images?.length) {
-        <div class="px-4 pb-3">
-          <a [routerLink]="['/destinations', post.destination.id]" class="inline-flex items-center gap-1.5 bg-primary-50 border border-primary-subtle/40 rounded-full px-3 py-1 hover:bg-primary-100 transition-colors">
-            <svg class="w-3 h-3 text-primary fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-            <span class="text-xs font-semibold text-primary">{{ post.destination.name }}</span>
-          </a>
-        </div>
-      }
 
-      <!-- Post Images (uploaded photos) — or, when there are none but a trip is attached,
-           the shared trip's own cover image, so a Trip post always shows a real hero image
-           instead of nothing. Reuses the same itinerary.image the "Attached Itinerary" card
-           below already gets from the backend (CommunityPost.itinerary.image). -->
-      @if (post.images?.length) {
-        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
-          <app-community-post-carousel [images]="post.images" [matchTripImageSize]="true" />
-          @if (post.destination && !isEditing) {
-            <a
-              [routerLink]="['/destinations', post.destination.id]"
-              class="absolute left-3.5 bottom-3.5 z-10 inline-flex items-center gap-1.5 h-[26px] px-2.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[11px] font-semibold hover:bg-black/70 transition-colors"
-            >
-              <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-              {{ post.destination.name }}
-            </a>
-          }
-        </div>
-      } @else if (post.itinerary?.image && !itineraryImageFailed) {
-        <div class="relative border-y border-slate-100 dark:border-gray-700/70">
-          <img
-            [src]="post.itinerary.image"
-            [alt]="post.itinerary.title"
-            class="w-full max-h-[420px] object-cover"
-            loading="lazy"
-            decoding="async"
-            (error)="itineraryImageFailed = true"
-          />
-        </div>
-      }
 
-      <!-- Attached Itinerary -->
-      @if (post.itinerary) {
-        <div class="mx-4 my-4 border border-slate-100 dark:border-gray-700 bg-slate-50/60 dark:bg-gray-900/30 rounded-2xl p-3.5 flex items-center gap-3.5">
-          <div class="flex-1 min-w-0">
-            <h4 class="font-semibold text-sm text-text-primary truncate">{{ post.itinerary.title }}</h4>
-            <p class="text-xs text-text-secondary truncate mt-0.5">{{ post.itinerary.destination }}</p>
-            <p class="text-xs font-semibold text-primary mt-1 flex items-center gap-2">
-              <span class="bg-primary-50 text-primary px-2 py-0.5 rounded-full text-2xs border border-primary-subtle/50">
-                {{ (getDayCount(post.itinerary) === 1 ? 'COMMUNITY.POST_CARD.DAY_COUNT' : 'COMMUNITY.POST_CARD.DAYS_COUNT') | translate: { count: getDayCount(post.itinerary) } }}
-              </span>
-              <span class="text-text-tertiary font-normal">·</span>
-              <span class="text-text-secondary font-normal">{{ getBudgetTierLabel(post.itinerary.budget) }}</span>
-            </p>
-          </div>
+
+      <!-- Actions: Like / Comment / Share -->
+      <div class="flex items-center gap-6 px-4 py-3 border-t border-slate-100 dark:border-gray-700 text-text-secondary">
+        <button
+          (click)="reactPost()"
+          class="inline-flex items-center gap-1.5 text-sm font-medium transition-colors focus:outline-none hover:text-primary"
+          [class.text-primary]="post.isLiked"
+          [class.text-text-secondary]="!post.isLiked"
+          [attr.aria-label]="'COMMUNITY.POST_CARD.HELPFUL' | translate"
+          >
+          <svg class="w-5 h-5" [attr.fill]="post.isLiked ? 'currentColor' : 'none'" viewBox="0 0 24 24" [attr.stroke]="post.isLiked ? 'none' : 'currentColor'" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+          </svg>
+          {{ post.likes }}
+        </button>
+        <button
+          (click)="isDetailView ? onCommentFocus.emit() : onToggleCommentsView.emit(post.id)"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary transition-colors focus:outline-none hover:text-primary"
+          [attr.aria-label]="'COMMUNITY.POST_CARD.DISCUSS' | translate"
+          >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          {{ post.comments }}
+        </button>
+        <button
+          (click)="sharePost()"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary transition-colors focus:outline-none hover:text-primary"
+          >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          {{ 'COMMUNITY.POST_CARD.SHARE' | translate }}
+        </button>
+        @if (post.itinerary) {
           <button
-            (click)="onCloneTrip.emit(post.itinerary.id)"
-            class="shrink-0 bg-primary hover:bg-primary-hover text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            (click)="toggleSavePost()"
+            class="inline-flex items-center transition-colors focus:outline-none"
+            [class.text-primary]="post.isSaved"
+            [class.text-text-secondary]="!post.isSaved"
+            [class.hover:text-primary]="!post.isSaved"
+            [attr.aria-label]="(post.isSaved ? 'COMMUNITY.POST_CARD.SAVED' : 'COMMUNITY.POST_CARD.SAVE') | translate"
+            [title]="(post.isSaved ? 'COMMUNITY.POST_CARD.SAVED' : 'COMMUNITY.POST_CARD.SAVE') | translate"
             >
-            {{ 'COMMUNITY.POST_CARD.CLONE_TRIP' | translate }}
+            <svg class="w-5 h-5" [attr.fill]="post.isSaved ? 'currentColor' : 'none'" viewBox="0 0 24 24" [attr.stroke]="post.isSaved ? 'none' : 'currentColor'" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
+            </svg>
           </button>
-        </div>
-      }
-
-      <!-- Social line -->
-      <div class="px-4 pt-3 text-[11.5px] font-semibold text-text-faint">
-        {{ (post.likes === 1 ? 'COMMUNITY.POST_CARD.HELPFUL_COUNT' : 'COMMUNITY.POST_CARD.HELPFUL_COUNT_PLURAL') | translate: { count: post.likes } }}
-        ·
-        @if (!isDetailView) {
-          <button (click)="onToggleCommentsView.emit(post.id)" class="hover:text-primary hover:underline focus:outline-none transition-colors">{{ (post.comments === 1 ? 'COMMUNITY.POST_CARD.COMMENT_COUNT' : 'COMMUNITY.POST_CARD.COMMENTS_COUNT') | translate: { count: post.comments } }}</button>
-        } @else {
-          {{ (post.comments === 1 ? 'COMMUNITY.POST_CARD.COMMENT_COUNT' : 'COMMUNITY.POST_CARD.COMMENTS_COUNT') | translate: { count: post.comments } }}
         }
       </div>
 
@@ -416,59 +499,9 @@ export class CommunityPostCarouselComponent {
         </div>
       }
 
-      <!-- Actions -->
-      <div class="flex items-center gap-2 mx-4 mt-3 mb-4 pt-3 border-t border-slate-100 dark:border-gray-700 flex-wrap">
-        <button
-          (click)="toggleSavePost()"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
-          [class.border-primary]="post.isSaved"
-          [class.bg-primary-50]="post.isSaved"
-          [class.text-primary]="post.isSaved"
-          [class.border-slate-200]="!post.isSaved"
-          [class.dark:border-gray-700]="!post.isSaved"
-          [class.bg-white]="!post.isSaved"
-          [class.dark:bg-gray-800]="!post.isSaved"
-          [class.text-text-secondary]="!post.isSaved"
-          >
-          <svg class="w-4 h-4" [attr.fill]="post.isSaved ? 'currentColor' : 'none'" viewBox="0 0 24 24" [attr.stroke]="post.isSaved ? 'none' : 'currentColor'" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
-          </svg>
-          {{ (post.isSaved ? 'COMMUNITY.POST_CARD.SAVED' : 'COMMUNITY.POST_CARD.SAVE') | translate }}
-        </button>
-        <button
-          (click)="reactPost()"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
-          [class.border-primary]="post.isLiked"
-          [class.bg-primary-50]="post.isLiked"
-          [class.text-primary]="post.isLiked"
-          [class.border-slate-200]="!post.isLiked"
-          [class.dark:border-gray-700]="!post.isLiked"
-          [class.bg-white]="!post.isLiked"
-          [class.dark:bg-gray-800]="!post.isLiked"
-          [class.text-text-secondary]="!post.isLiked"
-          >
-          <svg class="w-4 h-4" [attr.fill]="post.isLiked ? 'currentColor' : 'none'" viewBox="0 0 24 24" [attr.stroke]="post.isLiked ? 'none' : 'currentColor'" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
-          </svg>
-          {{ 'COMMUNITY.POST_CARD.HELPFUL' | translate }} · {{ post.likes }}
-        </button>
-        <button
-          (click)="isDetailView ? onCommentFocus.emit() : onToggleCommentsView.emit(post.id)"
-          class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none"
-          [class.border-primary]="commentsOpen"
-          [class.text-primary]="commentsOpen"
-          [class.bg-primary-50]="commentsOpen"
-          [class.border-slate-200]="!commentsOpen"
-          [class.dark:border-gray-700]="!commentsOpen"
-          [class.bg-white]="!commentsOpen"
-          [class.dark:bg-gray-800]="!commentsOpen"
-          [class.text-text-secondary]="!commentsOpen"
-          >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-          {{ 'COMMUNITY.POST_CARD.DISCUSS' | translate }}
-        </button>
-        @if (!post.itinerary) {
-          <span class="flex-1"></span>
+      <!-- Add to Trip (Save now lives in the Like/Comment/Share/Save row above, for Trip Posts only) -->
+      @if (!post.itinerary) {
+        <div class="flex items-center justify-end mx-4 mt-1 mb-4">
           <button
             (click)="onSave.emit(post.id)"
             class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors focus:outline-none"
@@ -476,8 +509,8 @@ export class CommunityPostCarouselComponent {
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             {{ 'COMMUNITY.POST_CARD.ADD_TO_TRIP' | translate }}
           </button>
-        }
-      </div>
+        </div>
+      }
 
       <ng-content></ng-content>
     </article>
@@ -512,7 +545,7 @@ export class CommunityPostCarouselComponent {
         [targetId]="post.id"
         targetType="post"
         (close)="showReportModal.set(false)"
-        (submitted)="showReportModal.set(false); toast.success($event)"
+        (submitted)="showReportModal.set(false); $event.success ? toast.success($event.message) : toast.error($event.message)"
         />
     }
     `,
@@ -528,6 +561,9 @@ export class CommunityPostCardComponent {
   @Output() onCloneTrip = new EventEmitter<string>();
   @Output() onCommentFocus = new EventEmitter<void>();
   @Output() onPostDeleted = new EventEmitter<string>();
+  @Output() onMuteUser = new EventEmitter<any>();
+
+  @ViewChild('optionsMenuRef') optionsMenuRef?: ElementRef<HTMLElement>;
 
   private router = inject(Router);
   toast = inject(ToastService);
@@ -592,6 +628,25 @@ export class CommunityPostCardComponent {
 
   toggleOptionsMenu() {
     this.showOptionsMenu = !this.showOptionsMenu;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.showOptionsMenu) return;
+    const target = event.target as Node;
+    if (this.optionsMenuRef && !this.optionsMenuRef.nativeElement.contains(target)) {
+      this.showOptionsMenu = false;
+    }
+  }
+
+  copyPostLink() {
+    this.showOptionsMenu = false;
+    const url = `${window.location.origin}/community/posts/${this.post.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.toast.success(this.translate.instant('COMMUNITY.POST_CARD.TOAST_LINK_COPIED'));
+    }).catch(() => {
+      this.toast.error(this.translate.instant('COMMUNITY.POST_CARD.TOAST_LINK_COPY_ERROR'));
+    });
   }
 
   startEdit() {
@@ -686,6 +741,20 @@ export class CommunityPostCardComponent {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     } catch {
       return dateString;
+    }
+  }
+
+  sharePost() {
+    const url = `${window.location.origin}/community/posts/${this.post.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: this.translate.instant('COMMUNITY.POST_CARD.SHARE_TITLE'),
+        url
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        this.toast.success(this.translate.instant('COMMUNITY.POST_CARD.TOAST_LINK_COPIED'));
+      });
     }
   }
 
@@ -788,11 +857,11 @@ export class CommunityPostCardComponent {
       <!-- Comment Composer -->
       <div class="flex items-center gap-2.5">
         <img [src]="myAvatar || '/assets/images/default-avatar.svg'" [attr.alt]="'COMMUNITY.AVATAR_ALT' | translate" class="w-8 h-8 rounded-full object-cover shrink-0 bg-slate-100" />
-        <div class="flex-1 flex items-center bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-full px-3.5 focus-within:border-primary transition-colors">
+        <div class="flex-1 flex items-center bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-full px-3.5 focus-within:border-slate-350 dark:focus-within:border-gray-500 transition-colors">
           <input
             type="text"
             [attr.placeholder]="'COMMUNITY.ADD_COMMENT_PLACEHOLDER' | translate"
-            class="flex-1 h-10 text-[13px] bg-transparent border-none outline-none focus:ring-0 placeholder:text-text-faint"
+            class="flex-1 h-10 text-[13px] bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 placeholder:text-text-faint"
             #commentInput
             (keyup.enter)="submitComment(commentInput)"
             [disabled]="loadingSubmit()"
@@ -805,7 +874,7 @@ export class CommunityPostCardComponent {
           type="button"
           (click)="submitComment(commentInput)"
           [disabled]="!commentInput.value.trim() || loadingSubmit()"
-          class="shrink-0 h-10 px-4 rounded-full text-xs font-semibold bg-primary hover:bg-primary-hover text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
+          class="shrink-0 h-10 px-4 rounded-full text-xs font-semibold bg-primary hover:bg-primary-hover text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:outline-none"
         >
           {{ 'COMMUNITY.POST_COMMENT_BUTTON' | translate }}
         </button>
@@ -1426,7 +1495,8 @@ export class CommunityCreatePostComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        this.error = this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED');
+        console.error('Failed to upload media:', err);
+        this.error = apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED'));
         this.isLoading = false;
       }
     });

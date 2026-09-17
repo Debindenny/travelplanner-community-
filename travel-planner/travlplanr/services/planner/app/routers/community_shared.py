@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 from app.models.community import (
     CommunityPost, PostReaction, Hashtag, PostHashtag, CommunityProfile, NotificationPreference,
-    CommunityCollection, CommunityCollectionItem
+    CommunityCollection, CommunityCollectionItem, Block
 )
 
 
@@ -78,6 +78,14 @@ class CommentResponse(BaseModel):
 class PaginatedCommentsResponse(BaseModel):
     comments: list[CommentResponse]; total_count: int; has_more: bool
 class ReactRequest(BaseModel): reaction_type: str
+
+async def _get_muted_author_ids(session, customer_id: uuid.UUID | None) -> set[uuid.UUID]:
+    """Authors the viewer has muted, reusing the existing block relationship (community_blocks)
+    as the persistence for "mute" — hides their posts from the main feed/explore listings."""
+    if not customer_id:
+        return set()
+    result = await session.execute(select(Block.blocked_id).where(Block.blocker_id == customer_id))
+    return set(result.scalars().all())
 
 async def _get_posts_reactions(session, post_ids: list[uuid.UUID], customer_id: uuid.UUID | None):
     if not post_ids: return {}, {}
