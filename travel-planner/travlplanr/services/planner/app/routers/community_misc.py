@@ -333,10 +333,11 @@ def _format_time_12h(time_str: str | None) -> str:
 
 @router.get("/trips/templates/{trip_id}")
 async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict = Depends(require_customer)):
-    """Read-only day-by-day summary for a trip template preview: the trip
-    length, which city each day is spent in, and the places visited that day
-    — title, image, and time of day only, no flights/hotels/prices/booking status.
+    """Full trip template preview: everything the browse-page card shows
+    (author, saves, price, stats) plus the day-by-day breakdown — title,
+    image, and time of day only, no flights/hotels/prices/booking status.
     """
+    customer_id = UUID(auth["customer_id"])
     from app.models.trips import Trip
 
     async with request.app.state.session_factory() as session:
@@ -350,6 +351,22 @@ async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict =
         city_days = trip.city_days or []
         segments = trip.segments or []
         total_days = sum(max(int(c.get("nights", 1)), 1) for c in city_days) + 1 if city_days else 0
+
+        default_collection_id = (await session.execute(
+            select(CommunityCollection.id).where(
+                CommunityCollection.customer_id == customer_id,
+                CommunityCollection.is_default == True,
+            )
+        )).scalar_one_or_none()
+        is_saved = False
+        if default_collection_id:
+            is_saved = (await session.execute(
+                select(CommunityCollectionItem.id).where(
+                    CommunityCollectionItem.collection_id == default_collection_id,
+                    CommunityCollectionItem.item_type == "itinerary",
+                    CommunityCollectionItem.item_id == trip.id,
+                )
+            )).scalar_one_or_none() is not None
 
         def _places_for_day(day: int) -> list[dict]:
             places = []
@@ -381,9 +398,21 @@ async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict =
         return {
             "id": str(trip.id),
             "title": trip.title,
+            "destination": trip.destination,
             "subtitle": meta.get("subtitle", ""),
+            "tier": meta.get("tier", "Mid-range"),
+            "savesLabel": meta.get("saves_label", "0 saves"),
+            "savesCount": meta.get("saves_count", 0),
+            "perPerson": meta.get("per_person", ""),
+            "perPersonAmountInr": _to_inr(meta.get("per_person_amount"), meta.get("per_person_currency")),
+            "updatedLabel": meta.get("updated_label", ""),
             "image": trip.image,
+            "author": trip.customer_name,
+            "authorId": str(trip.customer_id),
             "days": total_days,
+            "cities": len(city_days),
+            "activities": sum(1 for s in segments if s.get("type") == "activity"),
+            "isSaved": is_saved,
             "dayCities": day_cities,
         }
 

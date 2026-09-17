@@ -81,22 +81,10 @@
           </div>
 
           <div class="trip-card__actions">
-            <button type="button" class="trip-card__ghost" (click)="onViewItinerary(trip)">View itinerary</button>
+            <a class="trip-card__ghost" [routerLink]="['/community/trips', trip.id, 'preview']">View itinerary</a>
           </div>
         </div>
       </article>
     }
   </div>
-}
-
-@if (cloningTrip(); as trip) {
-  <app-modal-shell heading="Plan your version" subtitle="Tell us your route and dates — TRAVL AI builds the itinerary." backdrop="light" (close)="onCancelClone()">
-    <app-clone-trip-modal [trip]="trip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
-  </app-modal-shell>
-}
-
-@if (previewingTrip(); as trip) {
-  <app-modal-shell [showHeader]="false" width="620px" maxHeight="760px" backdrop="light" (close)="onClosePreview()">
-    <app-itinerary-preview-modal [trip]="trip" (back)="onClosePreview()" (makeVersion)="onMakeVersionFromPreview()" />
-  </app-modal-shell>
 }
