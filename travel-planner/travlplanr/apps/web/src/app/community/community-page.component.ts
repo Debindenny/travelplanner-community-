@@ -674,8 +674,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
   private http = inject(HttpClient);
-  private destinationSearch = inject(DestinationSearchService);
-  // private http = inject(HttpClient);
   readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
