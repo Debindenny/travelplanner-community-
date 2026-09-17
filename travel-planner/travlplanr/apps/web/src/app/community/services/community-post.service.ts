@@ -108,9 +108,21 @@ export interface TripTemplateDayCity {
 export interface TripTemplateDetail {
   id: string;
   title: string;
+  destination: string;
   subtitle: string;
+  tier: string;
+  savesLabel: string;
+  savesCount: number;
+  perPerson: string;
+  perPersonAmountInr: number | null;
+  updatedLabel: string;
   image: string;
+  author: string;
+  authorId: string;
   days: number;
+  cities: number;
+  activities: number;
+  isSaved: boolean;
   dayCities: TripTemplateDayCity[];
 }
 

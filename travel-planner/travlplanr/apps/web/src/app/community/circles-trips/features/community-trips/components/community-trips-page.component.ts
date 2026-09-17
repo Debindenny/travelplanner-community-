@@ -1,12 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { ModalShellComponent } from '../../community-home/components/overlays/modal-shell/modal-shell.component';
 import { CommunityHomeStore } from '../../community-home/store/community-home.store';
 import { CommunityPostService } from '../../../../services/community-post.service';
 import { CommunityTrip } from '../data/community-trips.data';
-import { CloneTripModalComponent, CloneTripPayload } from './clone-trip-modal/clone-trip-modal.component';
-import { ItineraryPreviewModalComponent } from './itinerary-preview-modal/itinerary-preview-modal.component';
 import { ImgFallbackDirective } from '../../../../../shared/directives/img-fallback.directive';
 
 type TripFilter = 'Popular' | 'Recent' | 'Budget' | 'Luxury';
@@ -39,7 +36,7 @@ function comparePrice(a: CommunityTrip, b: CommunityTrip, direction: 'asc' | 'de
 
 @Component({
   selector: 'app-community-trips',
-  imports: [IconComponent, ModalShellComponent, CloneTripModalComponent, ItineraryPreviewModalComponent, RouterLink, ImgFallbackDirective],
+  imports: [IconComponent, RouterLink, ImgFallbackDirective],
   templateUrl: './community-trips-page.component.html',
   styleUrl: './community-trips-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,15 +44,11 @@ function comparePrice(a: CommunityTrip, b: CommunityTrip, direction: 'asc' | 'de
 export class CommunityTripsComponent {
   readonly store = inject(CommunityHomeStore);
   private readonly communityPostService = inject(CommunityPostService);
-  private readonly router = inject(Router);
 
   readonly goHome = output<void>();
 
   readonly filterOptions: TripFilter[] = ['Popular', 'Recent', 'Budget', 'Luxury'];
   readonly filter = signal<TripFilter>('Popular');
-
-  readonly cloningTrip = signal<CommunityTrip | null>(null);
-  readonly previewingTrip = signal<CommunityTrip | null>(null);
 
   private readonly trips = signal<CommunityTrip[]>([]);
 
@@ -112,23 +105,6 @@ export class CommunityTripsComponent {
     this.store.openComposerMenu();
   }
 
-  onViewItinerary(trip: CommunityTrip): void {
-    this.previewingTrip.set(trip);
-  }
-
-  onClosePreview(): void {
-    this.previewingTrip.set(null);
-  }
-
-  onMakeVersionFromPreview(): void {
-    const trip = this.previewingTrip();
-    if (!trip) {
-      return;
-    }
-    this.previewingTrip.set(null);
-    this.cloningTrip.set(trip);
-  }
-
   isSaved(trip: CommunityTrip): boolean {
     return trip.isSaved;
   }
@@ -141,31 +117,5 @@ export class CommunityTripsComponent {
       },
       error: () => this.store.showToast('Could not update saved status'),
     });
-  }
-
-  onCancelClone(): void {
-    this.cloningTrip.set(null);
-  }
-
-  // Skips the multi-step "Host an event" wizard entirely — the modal already
-  // collected everything (destination, dates, travelers) needed to clone the
-  // trip, so we generate the itinerary directly and land on its page.
-  onBuildVersion(payload: CloneTripPayload): void {
-    const trip = this.cloningTrip();
-    if (!trip) {
-      return;
-    }
-    this.cloningTrip.set(null);
-    this.communityPostService
-      .cloneTrip(trip.id, {
-        destination: payload.arrivalDestination || trip.title,
-        startDate: payload.startDate,
-        endDate: payload.endDate,
-        travelers: payload.travelers,
-      })
-      .subscribe({
-        next: ({ tripId }) => this.router.navigate(['/itinerary', tripId]),
-        error: () => this.store.showToast('Could not generate the itinerary — please try again'),
-      });
   }
 }

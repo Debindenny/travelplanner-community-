@@ -1,7 +1,7 @@
 <div class="preview">
   <button type="button" class="preview__back" (click)="goBack()">
     <app-icon name="arrow-left" [size]="16" />
-    Back
+    Back to trips
   </button>
 
   @if (loading()) {
@@ -12,64 +12,130 @@
     @let t = trip()!;
 
     <div class="preview__hero" [style.backgroundImage]="'url(' + t.image + ')'">
+      <div class="preview__hero-top">
+        @for (tag of tags(); track tag) {
+          <span class="preview__tag">{{ tag }}</span>
+        }
+        <button
+          type="button"
+          class="preview__save-toggle"
+          [class.is-active]="t.isSaved"
+          (click)="onToggleSave()"
+          [attr.aria-label]="t.isSaved ? 'Remove from saved' : 'Save this trip'"
+          [attr.aria-pressed]="t.isSaved"
+        >
+          <app-icon name="bookmark" [size]="15" />
+        </button>
+      </div>
       <div class="preview__hero-overlay">
         <h1 class="preview__title">{{ t.title }}</h1>
-        @if (t.subtitle) {
-          <p class="preview__subtitle">{{ t.subtitle }}</p>
-        }
+        <div class="preview__author-row">
+          <span class="preview__author-avatar">{{ t.author.charAt(0).toUpperCase() }}</span>
+          <div class="preview__author-info">
+            <span class="preview__author-name">{{ t.author }}</span>
+            <span class="preview__author-updated">{{ t.updatedLabel }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="preview__summary">
-      <app-icon name="calendar-check" [size]="18" />
-      <span>{{ t.days }} {{ t.days === 1 ? 'day' : 'days' }}</span>
+    <div class="preview__stats">
+      <div class="preview__stat">
+        <span class="preview__stat-value">{{ t.days }}</span>
+        <span class="preview__stat-label">Days</span>
+      </div>
+      <div class="preview__stat">
+        <span class="preview__stat-value">{{ t.cities }}</span>
+        <span class="preview__stat-label">Cities</span>
+      </div>
+      <div class="preview__stat">
+        <span class="preview__stat-value">{{ t.activities }}</span>
+        <span class="preview__stat-label">Activities</span>
+      </div>
+      <div class="preview__stat">
+        <span class="preview__stat-value">{{ t.perPerson || '—' }}</span>
+        <span class="preview__stat-label">Per person</span>
+      </div>
+    </div>
+
+    <div class="preview__days-header">
+      <div>
+        <h2 class="preview__days-title">Day by day</h2>
+        <p class="preview__days-subtitle">Tap a day to see the stops, timings and notes.</p>
+      </div>
+      <button type="button" class="preview__expand-all" (click)="toggleExpandAll()">
+        {{ allExpanded() ? 'Collapse all' : 'Expand all' }}
+      </button>
     </div>
 
     <ol class="preview__days">
-      @for (entry of t.dayCities; track entry.day) {
-        <li class="preview__day">
-          <div class="preview__day-header">
-            <span class="preview__day-number">Day {{ entry.day }}</span>
-            <span class="preview__day-city">
-              <app-icon name="map-pin" [size]="14" />
-              {{ entry.city }}
+      @for (entry of days(); track entry.day) {
+        <li class="preview__day" [class.is-expanded]="isExpanded(entry.day)">
+          <button type="button" class="preview__day-header" (click)="toggleDay(entry.day)">
+            <span class="preview__day-dot" [class.is-expanded]="isExpanded(entry.day)"></span>
+            <span class="preview__day-heading">
+              <span class="preview__day-number">Day {{ entry.day }} — {{ entry.city }}</span>
+              <span class="preview__day-highlights">{{ entry.highlights.join(' · ') }}</span>
             </span>
-          </div>
-          @if (entry.places.length) {
-            <ul class="preview__day-places">
-              @for (place of entry.places; track place.title) {
-                <li class="preview__place">
-                  @if (place.image) {
-                    <img class="preview__place-image" [src]="place.image" [alt]="place.title" />
-                  }
-                  <div class="preview__place-info">
-                    @if (place.timeOfDay) {
-                      <span class="preview__place-time">{{ place.timeOfDay }}</span>
-                    }
-                    <h3 class="preview__place-title">{{ place.title }}</h3>
-                    @if (place.duration || place.refundable) {
-                      <div class="preview__place-meta">
-                        @if (place.duration) {
-                          <span class="preview__place-meta-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                            {{ place.duration }}
-                          </span>
-                        }
-                        @if (place.refundable) {
-                          <span class="preview__place-meta-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5" /></svg>
-                            {{ place.refundable }}
-                          </span>
+            @if (!isExpanded(entry.day)) {
+              <span class="preview__day-stopcount">{{ stopCount(entry.places.length) }}</span>
+            }
+            <span class="preview__day-chevron" [class.is-expanded]="isExpanded(entry.day)">
+              <app-icon name="chevron-down" [size]="16" />
+            </span>
+          </button>
+
+          @if (isExpanded(entry.day)) {
+            @if (entry.places.length) {
+              <ol class="preview__timeline">
+                @for (place of entry.places; track place.title) {
+                  <li class="preview__timeline-item">
+                    <div class="preview__timeline-marker"></div>
+                    <div class="preview__timeline-body">
+                      <div class="preview__timeline-meta">
+                        <span class="preview__timeline-time">{{ place.time }}</span>
+                        @if (place.timeOfDay) {
+                          <span class="preview__timeline-timeofday">{{ place.timeOfDay }}</span>
                         }
                       </div>
-                    }
-                  </div>
-                </li>
-              }
-            </ul>
+                      <h3 class="preview__timeline-title">{{ place.title }}</h3>
+                      @if (place.duration || place.refundable) {
+                        <div class="preview__timeline-tags">
+                          @if (place.duration) {
+                            <span>{{ place.duration }}</span>
+                          }
+                          @if (place.refundable) {
+                            <span>{{ place.refundable }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </li>
+                }
+              </ol>
+            } @else {
+              <p class="preview__timeline-empty">Free day to explore {{ entry.city }}.</p>
+            }
           }
         </li>
       }
     </ol>
+
+    <div class="preview__cta">
+      <div>
+        <h3 class="preview__cta-title">Make this trip yours</h3>
+        <p class="preview__cta-subtitle">TRAVL AI reshapes every day to your dates, pace and travelers.</p>
+      </div>
+      <button type="button" class="preview__cta-button" (click)="onCloneClick()">
+        <app-icon name="sparkles" [size]="15" />
+        Clone this itinerary
+      </button>
+    </div>
+
+    @if (cloning() && asCommunityTrip(); as cloneTrip) {
+      <app-modal-shell heading="Plan your version" subtitle="Tell us your route and dates — TRAVL AI builds the itinerary." backdrop="light" (close)="onCancelClone()">
+        <app-clone-trip-modal [trip]="cloneTrip" (cancel)="onCancelClone()" (build)="onBuildVersion($event)" />
+      </app-modal-shell>
+    }
   }
 </div>
