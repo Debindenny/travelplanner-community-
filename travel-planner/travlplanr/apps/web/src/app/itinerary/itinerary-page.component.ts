@@ -344,6 +344,14 @@ interface AlternativeBus {
     .cdk-drag-item:active {
       cursor: grabbing;
     }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
   `]
 })
 export class ItineraryPageComponent implements OnInit, OnDestroy {

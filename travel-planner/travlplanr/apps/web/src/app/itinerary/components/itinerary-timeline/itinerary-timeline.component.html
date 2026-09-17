@@ -89,24 +89,26 @@
                   <span>{{ 'ITINERARY.DAY.REF_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
                 </div>
                 <div class="flex gap-3 ml-auto">
-                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                    <button
-                      (click)="moveUp.emit({ day: day.day, index: $index })"
-                      [disabled]="$first"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button
-                      (click)="moveDown.emit({ day: day.day, index: $index })"
-                      [disabled]="$last"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                  </div>
+                  @if (!tripBooked) {
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                  }
                   @if (!tripBooked) {
                     <button
                       (click)="flightSwap.emit({ day: day.day, index: $index })"
@@ -205,24 +207,26 @@
                   }
                 </span>
                 <div class="flex gap-3 ml-auto">
-                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                    <button
-                      (click)="moveUp.emit({ day: day.day, index: $index })"
-                      [disabled]="$first"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button
-                      (click)="moveDown.emit({ day: day.day, index: $index })"
-                      [disabled]="$last"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                  </div>
+                  @if (!tripBooked) {
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                  }
                   @if (!tripBooked) {
                     <button
                       (click)="carSwap.emit({ day: day.day, index: $index })"
@@ -308,24 +312,26 @@
                   }
                 </span>
                 <div class="flex gap-3 ml-auto">
-                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                    <button
-                      (click)="moveUp.emit({ day: day.day, index: $index })"
-                      [disabled]="$first"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button
-                      (click)="moveDown.emit({ day: day.day, index: $index })"
-                      [disabled]="$last"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                  </div>
+                  @if (!tripBooked) {
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                  }
                   @if (!tripBooked) {
                     <button
                       (click)="hotelSwap.emit({ day: day.day, index: $index })"
@@ -386,24 +392,26 @@
                 <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-border-light">
                   <span class="text-xs text-text-tertiary">{{ 'ITINERARY.DAY.TYPE_LABEL' | translate }} <strong>{{ localizePhrase(item.refundable) }}</strong></span>
                   <div class="flex gap-3 ml-auto">
-                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                      <button
-                        (click)="moveUp.emit({ day: day.day, index: $index })"
-                        [disabled]="$first"
-                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                      >
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                      </button>
-                      <button
-                        (click)="moveDown.emit({ day: day.day, index: $index })"
-                        [disabled]="$last"
-                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                      >
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                      </button>
-                    </div>
+                    @if (!tripBooked) {
+                      <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                        <button
+                          (click)="moveUp.emit({ day: day.day, index: $index })"
+                          [disabled]="$first"
+                          class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                          [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                        >
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                        </button>
+                        <button
+                          (click)="moveDown.emit({ day: day.day, index: $index })"
+                          [disabled]="$last"
+                          class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                          [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                        >
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                      </div>
+                    }
                     @if (!tripBooked) {
                       <button
                         type="button"
@@ -488,24 +496,26 @@
                   {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                 </div>
                 <div class="flex gap-3 ml-auto">
-                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                    <button
-                      (click)="moveUp.emit({ day: day.day, index: $index })"
-                      [disabled]="$first"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button
-                      (click)="moveDown.emit({ day: day.day, index: $index })"
-                      [disabled]="$last"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                  </div>
+                  @if (!tripBooked) {
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                  }
                   @if (!tripBooked) {
                     <button
                       (click)="trainSwap.emit({ day: day.day, index: $index })"
@@ -581,24 +591,26 @@
                   {{ 'ITINERARY.DAY.CLASS_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.STANDARD_CLASS' | translate }}</strong> • {{ 'ITINERARY.DAY.FARE_LABEL' | translate }} <strong>{{ 'ITINERARY.DAY.COST_INCLUDED' | translate: { cost: fareCost(item) } }}</strong>
                 </div>
                 <div class="flex gap-3 ml-auto">
-                  <div class="flex items-center border border-border rounded-btn overflow-hidden">
-                    <button
-                      (click)="moveUp.emit({ day: day.day, index: $index })"
-                      [disabled]="$first"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button
-                      (click)="moveDown.emit({ day: day.day, index: $index })"
-                      [disabled]="$last"
-                      class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
-                      [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
-                    >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                  </div>
+                  @if (!tripBooked) {
+                    <div class="flex items-center border border-border rounded-btn overflow-hidden">
+                      <button
+                        (click)="moveUp.emit({ day: day.day, index: $index })"
+                        [disabled]="$first"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors border-r border-border"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_UP' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        (click)="moveDown.emit({ day: day.day, index: $index })"
+                        [disabled]="$last"
+                        class="p-2 hover:bg-surface-muted text-text-tertiary disabled:opacity-30 transition-colors"
+                        [attr.aria-label]="'ITINERARY.DAY.MOVE_DOWN' | translate"
+                      >
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                    </div>
+                  }
                   @if (!tripBooked) {
                     <button
                       (click)="busSwap.emit({ day: day.day, index: $index })"
