@@ -12,6 +12,7 @@ import { apiErrorMessage } from '../shared/utils/api-error.util';
 import { CommunityAnalyticsService } from './services/community-analytics.service';
 import { AuthService } from '../auth/auth.service';
 import { CommunityProfileService, MyCommunityProfile } from './services/community-profile.service';
+import { CommunityModerationService } from './services/community-moderation.service';
 import { CommunityNotificationsService } from './services/community-notifications.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommunityQaThreadComponent } from './components/community-qa-thread.component';
@@ -26,7 +27,6 @@ import { CommunityCollectionService } from './services/community-collection.serv
 import { apiUrl } from '../shared/utils/api-url';
 import { catchError,of,forkJoin,Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { DestinationSearchService } from '../shared/services/destination-search.service';
 import { DestinationListItem } from '../shared/utils/destination.util';
 import { HttpClient } from '@angular/common/http';
 type PostCategory = 'forYou' | 'following' | 'nearTrip' | 'questions' | 'tripPlans' | 'tips' | 'photos';
@@ -369,13 +369,14 @@ const FEED_COMPOSER_TYPE_META: Record<string, FeedComposerTypeMeta> = {
               <!-- Posts -->
               @for (post of visiblePosts(); track post.id; let i = $index) {
                 <div class="animate-fade-in-up" [style.animation-delay]="getPostAnimationDelay(i)">
-                  <app-community-post-card 
+                  <app-community-post-card
                     [post]="post"
                     (onToggleFollow)="toggleFollow($event)"
                     (onSave)="openSaveModal($event)"
                     (onToggleCommentsView)="toggleCommentsView($event)"
                     (onCloneTrip)="cloneTrip($event)"
-                    
+                    (onMuteUser)="muteUser($event)"
+
                   >
                     <!-- Comments Section -->
                     @if (expandedComments.has(post.id)) {
@@ -558,6 +559,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
  
   myProfile = signal<MyCommunityProfile | null>(null);
   profileService = inject(CommunityProfileService);
+  private moderationService = inject(CommunityModerationService);
   notificationsService = inject(CommunityNotificationsService);
   posts: CommunityPostType[] = [];
 
@@ -586,9 +588,9 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     return type ? FEED_COMPOSER_TYPE_META[type] ?? null : null;
   });
   readonly composerHasMedia = computed(() => this.composerImages().length > 0 || !!this.composerVideoFile());
-  // Dynamic worldwide location autocomplete (destinations catalog + Google Places, via the
-  // same DestinationSearchService the post composer's own destination picker already uses) —
-  // replaces the old hardcoded 5-city list. Manual free-text entry still always works.
+  // Location autocomplete: searches only our own `destinations` table (GET /destinations?search=),
+  // the same DB-backed keyword+semantic search the Discover page uses — no Google Places, no paid
+  // external API. Manual free-text entry always still works when there's no match.
   composerLocationSuggestions = signal<DestinationListItem[]>([]);
   private composerLocationQuery$ = new Subject<string>();
   readonly canSubmitComposer = computed(() => {
@@ -631,7 +633,6 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   private collectionService = inject(CommunityCollectionService);
   private auth = inject(AuthService);
   private http = inject(HttpClient);
-  private destinationSearch = inject(DestinationSearchService);
   readonly user = this.auth.user;
 
   private route = inject(ActivatedRoute);
@@ -666,7 +667,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerLocationQuery$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(query => query.trim().length >= 2 ? this.destinationSearch.search(query, 6) : of([])),
+      switchMap(query => query.trim().length >= 2 ? this.searchDestinationsOnly(query, 6) : of([])),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(results => this.composerLocationSuggestions.set(results));
     if (this.auth.user()) {
@@ -812,7 +813,7 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerLocation.set(value);
     this.composerShowLocationSuggestions.set(true);
     if (!value.trim()) this.composerLocationSuggestions.set([]);
-    //this.composerLocationQuery$.next(value);
+    this.composerLocationQuery$.next(value);
   }
 
   selectComposerLocation(item: DestinationListItem) {
@@ -820,6 +821,14 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
     this.composerLocation.set(place ? `${item.name}, ${place}` : item.name);
     this.composerShowLocationSuggestions.set(false);
     this.composerLocationSuggestions.set([]);
+  }
+
+  /** Destinations-table-only search (GET /destinations?search=) — keyword + local semantic
+      fallback, both scoped to our own DB. No Google Places, no paid external API. */
+  private searchDestinationsOnly(query: string, limit = 6) {
+    return this.http.get<DestinationListItem[]>(
+      apiUrl(`/destinations?search=${encodeURIComponent(query)}&limit=${limit}`)
+    ).pipe(catchError(() => of([] as DestinationListItem[])));
   }
 
   onComposerFileSelect(event: Event): void {
@@ -897,9 +906,9 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
             },
           });
         },
-        error: () => {
+        error: (err) => {
           this.composerSubmitting.set(false);
-          this.showToast(this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED'));
+          this.showToast(apiErrorMessage(err, this.translate.instant('COMMUNITY.CREATE_POST.UPLOAD_FAILED')));
         },
       });
       return;
@@ -1097,6 +1106,28 @@ export class CommunityPageComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   // Code migrated to CommunityPostCardComponent
+
+  muteUser(post: CommunityPostType) {
+    const authorId = post.author?.id;
+    if (!authorId) return;
+
+    this.moderationService.toggleBlock(authorId).subscribe({
+      next: (res) => {
+        if (res.is_blocked) {
+          // Muting reuses the existing block relationship: drop every already-loaded
+          // post by this author immediately, then the backend excludes them from
+          // future /feed and /explore pages too.
+          this.posts = this.posts.filter(p => p.author?.id !== authorId);
+          this.showToast(this.translate.instant('COMMUNITY.TOAST_MUTE_SUCCESS'));
+        } else {
+          this.showToast(this.translate.instant('COMMUNITY.TOAST_UNMUTE_SUCCESS'));
+        }
+      },
+      error: () => {
+        this.showToast(this.translate.instant('COMMUNITY.TOAST_MUTE_ERROR'));
+      }
+    });
+  }
 
   openSaveModal(postId: string) {
     this.savePostId = postId;
