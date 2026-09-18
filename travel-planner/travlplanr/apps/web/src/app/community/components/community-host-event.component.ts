@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
 import { CommunityEventCard, unsplashUrl } from '../services/community-event-view.model';
 import { CommunityPostService } from '../services/community-post.service';
+import { CommunityEventsService } from '../services/community-events.service';
 import { HostWizardPrefillService } from '../services/host-wizard-prefill.service';
 import { DestinationTypeaheadComponent } from '../../shared/components/destination-typeahead/destination-typeahead.component';
 import { DestinationListItem } from '../../shared/utils/destination.util';
@@ -633,7 +634,9 @@ function defaultAnswers(): WizardAnswers {
 })
 export class CommunityHostEventComponent {
   private readonly store = inject(CommunityEventsMockStore);
-  private readonly router = inject(Router);
+  private readonly communityPostService = inject(CommunityPostService);
+  private readonly eventsService = inject(CommunityEventsService);
+  private readonly wizardPrefill = inject(HostWizardPrefillService);
 
   @ViewChild('routeSearchShell') private routeSearchShellRef?: ElementRef<HTMLDivElement>;
   @ViewChild('routeTypeahead') private routeTypeahead?: DestinationTypeaheadComponent;
@@ -658,11 +661,13 @@ export class CommunityHostEventComponent {
   endLocationDropdownOpen = false;
 
   publishing = false;
+  publishedCard: CommunityEventCard | null = null;
+  shareLink = '';
 
   coverImageUrl: string | null = null;
 
   showResumePrompt = false;
-  private pendingDraft: { answers: Answers; coverImageUrl: string | null } | null = null;
+  private pendingDraft: { answers: WizardAnswers; coverImageUrl: string | null } | null = null;
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
@@ -955,23 +960,18 @@ export class CommunityHostEventComponent {
     else this.answers.transportation.splice(i, 1);
   }
 
-  onCoverFileSelected(event: Event): void {
-    const step = this.currentStep;
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file || !step) return;
-    if (this.coverImageUrl) URL.revokeObjectURL(this.coverImageUrl);
-    this.coverImageUrl = URL.createObjectURL(file);
-    this.commitAnswer(step, 'Upload Image');
+  // ── Step 5: journey details ───────────────────────────────────────
+
+  useSuggestedName(): void {
+    this.answers.journeyName = `${this.primaryCity} Journey`;
   }
 
-  skipCoverImage(): void {
-    const step = this.currentStep;
-    if (!step) return;
-    if (this.coverImageUrl) {
-      URL.revokeObjectURL(this.coverImageUrl);
-      this.coverImageUrl = null;
-    }
-    this.commitAnswer(step, 'Skip');
+  adjustMinimumStay(delta: number): void {
+    this.answers.minimumStayDays = Math.max(0, Math.min(30, this.answers.minimumStayDays + delta));
+  }
+
+  adjustMaxTravelers(delta: number): void {
+    this.answers.maxTravelers = Math.max(1, Math.min(50, this.answers.maxTravelers + delta));
   }
 
   // ── Formatting helpers ────────────────────────────────────────────
@@ -1031,7 +1031,7 @@ export class CommunityHostEventComponent {
     return days === 1 ? '1 day' : `${days} days`;
   }
 
-  private buildEventCard(): CommunityEventCard {
+  private buildEventCard(id: string, imageUrl: string): CommunityEventCard {
     const a = this.answers;
     const nights = this.tripNights;
     const start = a.startDate ? new Date(`${a.startDate}T00:00:00`) : new Date();
@@ -1060,7 +1060,7 @@ export class CommunityHostEventComponent {
       tag: 'Meetup',
       joined: false,
       followed: false,
-      imageUrl: this.coverImageUrl || unsplashUrl('1488646953014-85cb44e25828'),
+      imageUrl,
       hostId: CURRENT_USER_ID,
       hostName: 'You',
       hostRole: '',
@@ -1068,8 +1068,14 @@ export class CommunityHostEventComponent {
       description: descriptionParts.join('\n'),
       groupMax: `${a.maxTravelers} max`,
       schedule: [],
-      locationName: a.startLocation.trim() || a.destination.trim(),
-      locationNote: `Min travelers: ${a.minTravelers || '—'} · Max travelers: ${a.maxTravelers || '—'}`
+      locationName: a.startLocation.trim() || cities[0],
+      locationNote: `Minimum stay: ${a.minimumStayDays > 0 ? a.minimumStayDays + ' day(s)' : 'No minimum'}`,
+      cities,
+      dateRangeLabel:
+        a.startDate && a.endDate ? `${this.formatDateShort(a.startDate).toUpperCase()} - ${this.formatDateShort(a.endDate).toUpperCase()}` : '',
+      nights,
+      partialJoinAllowed: a.allowPartialParticipation,
+      travelersMax: a.maxTravelers,
     };
   }
 
@@ -1077,27 +1083,18 @@ export class CommunityHostEventComponent {
    * Publishes to the real backend (POST /community/meetups) so the event
    * survives a refresh and is visible to other travelers — previously this
    * only called store.addEvent(), a client-memory-only list that vanished on
-   * reload and was never visible to anyone else. The cover photo is likewise
-   * uploaded for real (POST /community/upload) instead of staying a local
-   * blob: URL, which died the same way. Mirrors the same
-   * upload-then-create-then-local-fallback pattern already used by the
-   * chat-based Event Hosting Assistant (event-host-assistant.service.ts).
+   * reload and was never visible to anyone else. Falls back to a local-only
+   * id if the call fails (offline, not logged in), matching the same
+   * create-then-local-fallback pattern the chat-based Event Hosting
+   * Assistant uses (event-host-assistant.service.ts).
    */
   async publish(): Promise<void> {
     if (this.publishing) return;
     this.publishing = true;
 
-    let imageUrl = FALLBACK_IMAGE;
-    if (this.coverImageFile) {
-      try {
-        const uploaded = await firstValueFrom(this.profileService.uploadImage(this.coverImageFile));
-        imageUrl = uploaded.url;
-      } catch (err) {
-        console.error('Cover image upload failed — publishing without a custom photo', err);
-      }
-    }
-
     const a = this.answers;
+    const imageUrl = this.coverImageUrl || unsplashUrl('1488646953014-85cb44e25828');
+    const cities = a.route.length ? a.route : [this.primaryCity];
     const startsAt = a.startDate ? new Date(`${a.startDate}T09:00:00`) : new Date();
     const endsAt = a.endDate ? new Date(`${a.endDate}T18:00:00`) : undefined;
 
@@ -1107,7 +1104,7 @@ export class CommunityHostEventComponent {
         this.eventsService.createEvent({
           title: a.journeyName.trim(),
           description: a.description.trim(),
-          location: a.destination.trim(),
+          location: cities.join(', '),
           image_url: imageUrl,
           starts_at: startsAt.toISOString(),
           ends_at: endsAt?.toISOString()

@@ -77,6 +77,10 @@ export class ItineraryTimelineComponent {
   /** Once the whole trip is paid/booked, per-item "Book Now"/"Change" actions
    * and the "Add to Day" panel no longer make sense — hide them entirely. */
   @Input() tripBooked = false;
+  /** Keys (via `getItemKey`) of optional activities currently opted into the
+   * traveler's plan — consumed by callers (e.g. CommunityEventDetailViewComponent)
+   * that drive their own include/exclude checkbox off this state. */
+  @Input() includedItemKeys: ReadonlySet<string> | null = null;
 
   @Output() itemDropped = new EventEmitter<CdkDragDrop<{ day: number; items: DetailItem[] }>>();
   @Output() moveUp = new EventEmitter<{ day: number; index: number }>();
@@ -97,6 +101,7 @@ export class ItineraryTimelineComponent {
   @Output() openComments = new EventEmitter<number>();
   @Output() dayHeaderClick = new EventEmitter<number>();
   @Output() book = new EventEmitter<DetailItem>();
+  @Output() toggleInclude = new EventEmitter<DetailItem>();
 
   constructor() {
     this.translate.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {
