@@ -748,14 +748,14 @@ export class CommunityHomeStore {
     this._inCrew.set(true);
     this._crewInvite.set(false);
     this._crewChatOpen.set(true);
-    this.showToast('You’re in · Paris Crew, 03–09 Jun');
+    this.showToast('You’re in · Paris Circle, 03–09 Jun');
   }
 
   acceptCrewInvite(): void {
     this._inCrew.set(true);
     this._crewInvite.set(false);
     this._crewChatOpen.set(true);
-    this.showToast('You’re in · Paris Crew, 03–09 Jun');
+    this.showToast('You’re in · Paris Circle, 03–09 Jun');
   }
 
   declineCrewInvite(): void {
@@ -820,7 +820,7 @@ export class CommunityHomeStore {
     this._crewMessages.set([...this._crewMessages(), cardByKind[kind]]);
 
     const toastByKind: Record<CrewCardKind, string> = {
-      place: 'Place shared with the crew',
+      place: 'Place shared with the circle',
       poll: 'Poll posted',
       meet: 'Meet-up proposed',
       split: 'Cost added to split',

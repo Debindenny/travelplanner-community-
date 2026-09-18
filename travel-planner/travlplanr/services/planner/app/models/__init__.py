@@ -14,7 +14,7 @@ from app.models.community import (
     Conversation, DirectMessage, CommunityProfile, CommunityShortcut, CommunityNews, CommunityAd,
     CommunityCollection, CommunityCollectionItem, PostReaction, Hashtag, PostHashtag, HashtagFollow,
     CommunityEvent, Report, Block, GamificationProfile, XpEvent, UserBadge, ChallengeProgress,
-    CommunityMeetup, MeetupRsvp, Journal, CommunitySpace, SpaceMember,
+    CommunityMeetup, MeetupRsvp, Journal, CommunitySpace, SpaceMember, CrewInvitation,
 )
 from app.models.collaboration import TripCollaborator, TripInvite, TripActivity, TripExpense, ExpenseShare
 from app.models.event_bookings import (
@@ -38,7 +38,7 @@ __all__ = [
     "CommunityAd", "CommunityCollection", "CommunityCollectionItem", "PostReaction", "Hashtag",
     "PostHashtag", "HashtagFollow", "CommunityEvent", "Report", "Block", "GamificationProfile",
     "XpEvent", "UserBadge", "ChallengeProgress", "CommunityMeetup", "MeetupRsvp", "Journal",
-    "CommunitySpace", "SpaceMember", "TripCollaborator", "TripInvite",
+    "CommunitySpace", "SpaceMember", "CrewInvitation", "TripCollaborator", "TripInvite",
     "TripActivity", "TripExpense", "ExpenseShare", "TravelBuddyProfile", "TravelBuddyRequest",
     "ChatInteraction", "ActivityOutcome", "ActivityAcceptanceStat", "CustomerTravelProfile", "PromptVersion",
     "EventItineraryDay", "EventItineraryActivity", "EventActivitySelection",
