@@ -375,6 +375,12 @@ class CommunityMeetup(Base):
     starts_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Raw Event Hosting Assistant answers that have no dedicated column here
+    # (eventType, travelStyle, participantLimit, budget, activities,
+    # accommodation, transportation, joinOption, joinRange) — kept as one
+    # flexible blob so they survive a refresh instead of only living in the
+    # frontend form/card object. Null for a meetup created any other way.
+    host_preferences: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
 class MeetupRsvp(Base):

@@ -688,6 +688,35 @@
           </div>
         }
 
+        @if (!readOnly) {
+          <div class="flex flex-wrap gap-2 mt-4">
+            @if (activityAdd.observed) {
+              <button type="button" (click)="activityAdd.emit(day.day)" class="flex items-center gap-1.5 rounded-full border border-border-light px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-primary hover:border-primary transition-colors dark:border-gray-700 dark:text-gray-300">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                {{ 'ITINERARY.DAY.ADD_ACTIVITY' | translate }}
+              </button>
+            }
+            @if (hotelAdd.observed) {
+              <button type="button" (click)="hotelAdd.emit(day.day)" class="flex items-center gap-1.5 rounded-full border border-border-light px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-primary hover:border-primary transition-colors dark:border-gray-700 dark:text-gray-300">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                {{ 'ITINERARY.DAY.ADD_HOTEL' | translate }}
+              </button>
+            }
+            @for (mode of transportModeOptions; track mode.id) {
+              <button type="button" (click)="transportAdd.emit({ day: day.day, type: mode.id })" class="flex items-center gap-1.5 rounded-full border border-border-light px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-primary hover:border-primary transition-colors dark:border-gray-700 dark:text-gray-300">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                {{ mode.labelKey | translate }}
+              </button>
+            }
+            @if (transferAdd.observed) {
+              <button type="button" (click)="transferAdd.emit(day.day)" class="flex items-center gap-1.5 rounded-full border border-border-light px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-primary hover:border-primary transition-colors dark:border-gray-700 dark:text-gray-300">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                {{ 'ITINERARY.DAY.ADD_TRANSFER' | translate }}
+              </button>
+            }
+          </div>
+        }
+
       </div>
     </div>
   }

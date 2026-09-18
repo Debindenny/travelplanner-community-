@@ -248,6 +248,33 @@ export class ChatApiService {
     }
   }
 
+  /** One turn of the fully-conversational Event Hosting Assistant
+   * (POST /api/v1/chat/extract-event) — the model decides both what's still
+   * missing and how to ask for it; there is no fixed question script on
+   * either side. Reuses the same free local model as the main chat
+   * endpoint. Returns null when the assistant is unreachable/failed — the
+   * caller shows an honest "unavailable" message rather than a scripted
+   * fallback question, by design. */
+  async runEventHostingTurn(
+    message: string,
+    knownSlots: Record<string, unknown>,
+  ): Promise<{ slots: Record<string, unknown>; reply: string; ready: boolean } | null> {
+    try {
+      const res = await firstValueFrom(
+        this.http
+          .post<{ slots: Record<string, unknown>; reply: string | null; ready: boolean }>(
+            `${environment.apiBase || ''}/api/v1/chat/extract-event`,
+            { message, known_slots: knownSlots },
+          )
+          .pipe(timeout(15000), catchError(() => throwError(() => null))),
+      );
+      if (!res?.reply) return null;
+      return { slots: res.slots ?? {}, reply: res.reply, ready: res.ready ?? false };
+    } catch {
+      return null;
+    }
+  }
+
   async appendSessionMessage(
     sessionId: string,
     role: 'user' | 'assistant',

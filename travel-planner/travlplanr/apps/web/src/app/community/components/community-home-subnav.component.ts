@@ -6,6 +6,7 @@ import { AuthService } from '../../auth/auth.service';
 import { CommunityEventsService } from '../services/community-events.service';
 import { DiscoverSavedStore } from '../discover-saved/discover-saved.store';
 import { CommunityProfileService, MyCommunityProfile } from '../services/community-profile.service';
+import { resolveAvatarUrl } from '../../shared/utils/avatar-url.util';
  
 interface SubnavItem {
   label: string;
@@ -101,13 +102,7 @@ export class CommunityHomeSubnavComponent implements OnInit {
   ];
  
   getAvatarUrl(url: string | null | undefined): string {
-    if (!url) {
-      return '/assets/images/default-avatar.svg';
-    }
-    if (url.startsWith('http')) {
-      return url;
-    }
-    return `http://localhost:8080${url}`;
+    return resolveAvatarUrl(url) ?? '/assets/images/default-avatar.svg';
   }
 
   ngOnInit(): void {

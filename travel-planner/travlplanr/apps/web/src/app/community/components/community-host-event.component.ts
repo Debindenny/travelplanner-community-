@@ -2,9 +2,11 @@ import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
 import { CommunityEventCard, unsplashUrl } from '../services/community-event-view.model';
 import { CommunityPostService } from '../services/community-post.service';
+import { CommunityEventsService } from '../services/community-events.service';
 import { HostWizardPrefillService } from '../services/host-wizard-prefill.service';
 import { DestinationTypeaheadComponent } from '../../shared/components/destination-typeahead/destination-typeahead.component';
 import { DestinationListItem } from '../../shared/utils/destination.util';
@@ -633,6 +635,7 @@ function defaultAnswers(): WizardAnswers {
 export class CommunityHostEventComponent {
   private readonly store = inject(CommunityEventsMockStore);
   private readonly communityPostService = inject(CommunityPostService);
+  private readonly eventsService = inject(CommunityEventsService);
   private readonly wizardPrefill = inject(HostWizardPrefillService);
 
   @ViewChild('routeSearchShell') private routeSearchShellRef?: ElementRef<HTMLDivElement>;
@@ -660,6 +663,11 @@ export class CommunityHostEventComponent {
   publishing = false;
   publishedCard: CommunityEventCard | null = null;
   shareLink = '';
+
+  coverImageUrl: string | null = null;
+
+  showResumePrompt = false;
+  private pendingDraft: { answers: WizardAnswers; coverImageUrl: string | null } | null = null;
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
@@ -1015,7 +1023,15 @@ export class CommunityHostEventComponent {
 
   // ── Publish ───────────────────────────────────────────────────────
 
-  private buildEventCard(): CommunityEventCard {
+  private tripDurationLabel(): string {
+    if (!this.answers.startDate || !this.answers.endDate) return '';
+    const start = new Date(`${this.answers.startDate}T00:00:00`);
+    const end = new Date(`${this.answers.endDate}T00:00:00`);
+    const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
+    return days === 1 ? '1 day' : `${days} days`;
+  }
+
+  private buildEventCard(id: string, imageUrl: string): CommunityEventCard {
     const a = this.answers;
     const nights = this.tripNights;
     const start = a.startDate ? new Date(`${a.startDate}T00:00:00`) : new Date();
@@ -1032,7 +1048,7 @@ export class CommunityHostEventComponent {
     ].filter(Boolean);
 
     return {
-      id: `evt-${Date.now()}`,
+      id,
       title: a.journeyName.trim(),
       location: cities.join(', '),
       time: '',
@@ -1044,7 +1060,7 @@ export class CommunityHostEventComponent {
       tag: 'Meetup',
       joined: false,
       followed: false,
-      imageUrl: this.templateImage || unsplashUrl('1488646953014-85cb44e25828'),
+      imageUrl,
       hostId: CURRENT_USER_ID,
       hostName: 'You',
       hostRole: '',
@@ -1063,11 +1079,43 @@ export class CommunityHostEventComponent {
     };
   }
 
-  publish(): void {
+  /**
+   * Publishes to the real backend (POST /community/meetups) so the event
+   * survives a refresh and is visible to other travelers — previously this
+   * only called store.addEvent(), a client-memory-only list that vanished on
+   * reload and was never visible to anyone else. Falls back to a local-only
+   * id if the call fails (offline, not logged in), matching the same
+   * create-then-local-fallback pattern the chat-based Event Hosting
+   * Assistant uses (event-host-assistant.service.ts).
+   */
+  async publish(): Promise<void> {
     if (this.publishing) return;
     this.publishing = true;
 
-    const card = this.buildEventCard();
+    const a = this.answers;
+    const imageUrl = this.coverImageUrl || unsplashUrl('1488646953014-85cb44e25828');
+    const cities = a.route.length ? a.route : [this.primaryCity];
+    const startsAt = a.startDate ? new Date(`${a.startDate}T09:00:00`) : new Date();
+    const endsAt = a.endDate ? new Date(`${a.endDate}T18:00:00`) : undefined;
+
+    let id = `evt-${Date.now()}`;
+    try {
+      const meetup = await firstValueFrom(
+        this.eventsService.createEvent({
+          title: a.journeyName.trim(),
+          description: a.description.trim(),
+          location: cities.join(', '),
+          image_url: imageUrl,
+          starts_at: startsAt.toISOString(),
+          ends_at: endsAt?.toISOString()
+        })
+      );
+      id = meetup.id;
+    } catch (err) {
+      console.error('Could not create the real community meetup — event will be local-only', err);
+    }
+
+    const card = this.buildEventCard(id, imageUrl);
     this.store.addEvent(card);
     this.store.setPendingToast(`"${card.title}" is live — visible to the community`);
     this.clearDraft();
