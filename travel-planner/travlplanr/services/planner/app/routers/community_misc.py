@@ -174,7 +174,7 @@ async def get_collection_detail(collection_id: UUID, request: Request, auth: dic
         posts_map = {}
         if post_ids:
             post_rows = (await session.execute(select(CommunityPost).where(CommunityPost.id.in_(post_ids)))).scalars().all()
-            posts_map = {p.id: p for p in post_rows}
+            posts_map = {str(p.id): p for p in post_rows}
 
         serialized_items = []
         for item in items:
@@ -220,9 +220,7 @@ async def add_collection_item(collection_id: UUID, data: AddCollectionItemReques
     async with request.app.state.session_factory() as session:
         collection = (await session.execute(select(CommunityCollection).where(CommunityCollection.id == collection_id, CommunityCollection.customer_id == customer_id))).scalar_one_or_none()
         if not collection: raise HTTPException(status_code=404, detail="Collection not found")
-        try: item_uuid = UUID(data.item_id)
-        except ValueError: raise HTTPException(status_code=400, detail="Invalid item ID")
-        session.add(CommunityCollectionItem(collection_id=collection_id, item_type=data.item_type, item_id=item_uuid))
+        session.add(CommunityCollectionItem(collection_id=collection_id, item_type=data.item_type, item_id=data.item_id))
         await session.commit()
         return {"status": "success"}
 
@@ -241,7 +239,7 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
             select(Trip).where(Trip.is_template == True).order_by(desc(Trip.updated_at))
         )).scalars().all()
 
-        saved_ids: set[UUID] = set()
+        saved_ids: set[str] = set()
         if trips:
             default_collection_id = (await session.execute(
                 select(CommunityCollection.id).where(
@@ -254,7 +252,7 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
                     select(CommunityCollectionItem.item_id).where(
                         CommunityCollectionItem.collection_id == default_collection_id,
                         CommunityCollectionItem.item_type == "itinerary",
-                        CommunityCollectionItem.item_id.in_([t.id for t in trips]),
+                        CommunityCollectionItem.item_id.in_([str(t.id) for t in trips]),
                     )
                 )).scalars().all())
 
@@ -280,7 +278,7 @@ async def list_trip_templates(request: Request, auth: dict = Depends(require_cus
                 "days": total_days,
                 "cities": len(city_days),
                 "activities": sum(1 for s in (t.segments or []) if s.get("type") == "activity"),
-                "isSaved": t.id in saved_ids,
+                "isSaved": str(t.id) in saved_ids,
             })
         return {"items": items}
 
@@ -364,7 +362,7 @@ async def get_trip_template_detail(trip_id: UUID, request: Request, auth: dict =
                 select(CommunityCollectionItem.id).where(
                     CommunityCollectionItem.collection_id == default_collection_id,
                     CommunityCollectionItem.item_type == "itinerary",
-                    CommunityCollectionItem.item_id == trip.id,
+                    CommunityCollectionItem.item_id == str(trip.id),
                 )
             )).scalar_one_or_none() is not None
 

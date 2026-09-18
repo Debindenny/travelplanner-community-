@@ -79,6 +79,9 @@ def _serialize_space(space: CommunitySpace, member_count: int, role: str | None,
         "audience": space.audience,
         "accent": space.accent,
         "accent2": space.accent2,
+        "detail_note": space.detail_note,
+        "destination": space.destination,
+        "capacity": space.capacity,
         "last_activity_at": iso_utc(space.last_activity_at),
         "created_at": space.created_at.isoformat() if space.created_at else None,
         "created_by": {
@@ -241,11 +244,18 @@ async def get_space_members(space_id: UUID, request: Request, limit: int = 50, o
         result = []
         for m in members:
             prof = profiles.get(m.customer_id)
+            # A membership row with no profile at all is an anonymous seed
+            # row that only exists to back a large `member_count` (e.g. a
+            # community too large to give every member a real seeded
+            # persona) — skip it here so the roster only ever lists real
+            # people; the count itself is unaffected (separate query).
+            if not prof:
+                continue
             result.append({
                 "customer_id": str(m.customer_id),
-                "name": prof.name if prof and prof.name else "Traveler",
-                "avatar": prof.avatar_url if prof else None,
-                "location": prof.local_in if prof else None,
+                "name": prof.name or "Traveler",
+                "avatar": prof.avatar_url,
+                "location": prof.local_in,
                 "role": m.role,
                 "joined_at": m.joined_at.isoformat() if m.joined_at else None,
             })

@@ -31,7 +31,7 @@ _SORT_COLUMN = {
 }
 
 
-async def _saved_tip_ids(session, customer_id: UUID | None) -> set[UUID]:
+async def _saved_tip_ids(session, customer_id: UUID | None) -> set[str]:
     if customer_id is None:
         return set()
     default_collection_id = (
@@ -55,7 +55,7 @@ async def _saved_tip_ids(session, customer_id: UUID | None) -> set[UUID]:
     return set(rows)
 
 
-def _serialize_tip(tip: CommunityPost, saved_ids: set[UUID]) -> dict:
+def _serialize_tip(tip: CommunityPost, saved_ids: set[str]) -> dict:
     return {
         "id": str(tip.id),
         "tag": tip.tag,
@@ -72,7 +72,7 @@ def _serialize_tip(tip: CommunityPost, saved_ids: set[UUID]) -> dict:
         "image": (tip.images or [None])[0],
         "useCount": tip.use_count,
         "saveCount": tip.save_count,
-        "isSaved": tip.id in saved_ids,
+        "isSaved": str(tip.id) in saved_ids,
         "createdAt": iso_utc(tip.created_at),
     }
 

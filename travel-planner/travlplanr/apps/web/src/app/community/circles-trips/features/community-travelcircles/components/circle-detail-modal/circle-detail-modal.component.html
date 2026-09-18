@@ -16,8 +16,57 @@
 <div class="circle-detail__body">
   <p class="circle-detail__description">{{ circle().description }}</p>
 
+  <div class="circle-detail__stats">
+    <div class="circle-detail__stat">
+      <span class="circle-detail__stat-label"><app-icon name="users" [size]="11" [strokeWidth]="2.5" /> WHO IS IT FOR</span>
+      <span class="circle-detail__stat-value">{{ whoIsItFor() }}</span>
+    </div>
+    <div class="circle-detail__stat">
+      <span class="circle-detail__stat-label"><app-icon name="lock" [size]="11" [strokeWidth]="2.5" /> WHO CAN JOIN</span>
+      <span class="circle-detail__stat-value">{{ whoCanJoin() }}</span>
+    </div>
+    <div class="circle-detail__stat">
+      <span class="circle-detail__stat-label"><app-icon name="compass" [size]="11" [strokeWidth]="2.5" /> FOCUS</span>
+      <span class="circle-detail__stat-value">{{ focus() }}</span>
+    </div>
+    @if (circle().destination) {
+      <div class="circle-detail__stat">
+        <span class="circle-detail__stat-label"><app-icon name="map-pin" [size]="11" [strokeWidth]="2.5" /> DESTINATION</span>
+        <span class="circle-detail__stat-value">{{ circle().destination }}</span>
+      </div>
+    }
+    @if (circle().createdBy) {
+      <div class="circle-detail__stat">
+        <span class="circle-detail__stat-label"><app-icon name="user" [size]="11" [strokeWidth]="2.5" /> CREATED BY</span>
+        <span class="circle-detail__stat-value">{{ circle().createdBy }}</span>
+      </div>
+    }
+    <div class="circle-detail__stat">
+      <span class="circle-detail__stat-label">
+        <span class="circle-detail__activity-dot" [class.circle-detail__activity-dot--live]="isRecentlyActive()"></span>
+        LAST ACTIVE
+      </span>
+      <span class="circle-detail__stat-value">{{ circle().activity }}</span>
+    </div>
+  </div>
+
+  @if (circle().capacity) {
+    <div class="circle-detail__capacity">
+      <div class="circle-detail__capacity-row">
+        <span class="circle-detail__capacity-label">CAPACITY</span>
+        <span class="circle-detail__capacity-value">{{ circle().memberCount }} of {{ circle().capacity }} spots taken</span>
+      </div>
+      <div class="circle-detail__capacity-track">
+        <div class="circle-detail__capacity-fill" [style.width.%]="capacityPercent()"></div>
+      </div>
+    </div>
+  }
+
   <div class="circle-detail__members">
-    <span class="circle-detail__members-label">MEMBERS</span>
+    <span class="circle-detail__members-header">
+      <span class="circle-detail__members-label">MEMBERS</span>
+      <span class="circle-detail__members-shown">{{ membersShownLabel() }}</span>
+    </span>
     @for (member of circle().members; track member.name) {
       <div class="circle-detail__member">
         <span class="circle-detail__member-copy">

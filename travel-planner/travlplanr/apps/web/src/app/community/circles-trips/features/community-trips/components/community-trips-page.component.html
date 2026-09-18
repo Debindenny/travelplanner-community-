@@ -15,7 +15,16 @@
   }
 </div>
 
-@if (filteredTrips().length === 0) {
+@if (loadError()) {
+  <div class="empty-state">
+    <span class="empty-state__icon">
+      <app-icon name="compass" [size]="22" />
+    </span>
+    <div class="empty-state__title">Could not load trips</div>
+    <p class="empty-state__copy">Sign in or check your connection, then try again.</p>
+    <button type="button" class="trips-filters__pill" (click)="retry()">Try again</button>
+  </div>
+} @else if (filteredTrips().length === 0) {
   <div class="empty-state">
     <span class="empty-state__icon">
       <app-icon name="compass" [size]="22" />

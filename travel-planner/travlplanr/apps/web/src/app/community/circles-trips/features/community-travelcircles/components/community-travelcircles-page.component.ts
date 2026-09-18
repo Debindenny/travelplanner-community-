@@ -9,6 +9,7 @@ import { CircleDetailModalComponent } from './circle-detail-modal/circle-detail-
 import { CreateCircleModalComponent, CreateCirclePayload, CircleAudience, CircleVisibility } from './create-circle-modal/create-circle-modal.component';
 import { CommunityCrewChatModalComponent } from '../../../../components/community-crew-chat-modal.component';
 import { ChatCircleContext, PARIS_CREW_CHAT_MOCK } from '../../../../components/community-crew-chat.mock';
+import { SearchFieldComponent } from '../../../../../shared/components/search-field/search-field.component';
 import {
   CommunitySpacesService,
   SpaceAudience,
@@ -16,6 +17,9 @@ import {
   SpaceMemberSummary,
   SpaceVisibility,
 } from '../../../../services/community-spaces.service';
+
+export type CircleTab = 'discover' | 'my-circles';
+export type CircleFilter = 'All' | 'Recommended' | 'Destination Circles' | 'Interest Circles' | 'Popular';
 
 const ACCENT_PALETTE: Array<[string, string]> = [
   ['#0060ea', '#2aa98b'],
@@ -77,9 +81,24 @@ function toCircleMember(m: SpaceMemberSummary): CircleMember {
     name: m.name,
     customer_id: m.customer_id,
     location: m.location ?? 'Traveler',
+    avatar: m.avatar,
     role: m.role === 'admin' ? 'Host' : undefined,
     joinedLabel: m.joined_at ? `joined ${formatRelativeShort(m.joined_at)} ago` : undefined,
   };
+}
+
+/** "2.4K" for large counts, otherwise the plain number. */
+function formatMemberCount(count: number): string {
+  if (count >= 1000) {
+    const thousands = count / 1000;
+    return `${thousands.toFixed(thousands >= 10 ? 0 : 1)}K`;
+  }
+  return `${count}`;
+}
+
+function formatMeta(count: number, note?: string | null): string {
+  const label = `${formatMemberCount(count)} member${count === 1 ? '' : 's'}`;
+  return note ? `${label} · ${note}` : label;
 }
 
 function minutesSinceActivity(activity: string): number {
@@ -106,7 +125,7 @@ function minutesSinceActivity(activity: string): number {
 
 @Component({
   selector: 'app-community-travelcircles',
-  imports: [ModalShellComponent, CreateCircleModalComponent, CircleDetailModalComponent, CommunityCrewChatModalComponent],
+  imports: [ModalShellComponent, CreateCircleModalComponent, CircleDetailModalComponent, CommunityCrewChatModalComponent, SearchFieldComponent],
   templateUrl: './community-travelcircles-page.component.html',
   styleUrl: './community-travelcircles-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +141,47 @@ export class CommunityTravelCirclesComponent {
 
   readonly isLoading = signal(true);
   readonly loadError = signal<string | null>(null);
+
+  readonly activeTab = signal<CircleTab>('discover');
+  readonly searchQuery = signal('');
+  readonly activeFilter = signal<CircleFilter>('All');
+  readonly filterOptions: CircleFilter[] = ['All', 'Recommended', 'Destination Circles', 'Interest Circles', 'Popular'];
+
+  /** Discover/My Circles + search + category pill, applied on top of the
+   * loaded cards. Every pill SORTS the full list rather than hiding
+   * circles — every circle stays visible in every tab, just reordered,
+   * matching the pill pattern used on the Community Trips page.
+   * "Destination Circles" vs "Interest Circles" has no real category field
+   * to key off yet, so it uses the closest real signal we have: invite-only
+   * circles are small crews planning one trip together (a destination),
+   * public circles are ongoing topic communities (an interest). */
+  readonly filteredCards = computed(() => {
+    let list = this.cards();
+
+    if (this.activeTab() === 'my-circles') {
+      list = list.filter((card) => this.isMember(card.id));
+    }
+
+    const query = this.searchQuery().trim().toLowerCase();
+    if (query) {
+      list = list.filter(
+        (card) => card.title.toLowerCase().includes(query) || card.description.toLowerCase().includes(query),
+      );
+    }
+
+    switch (this.activeFilter()) {
+      case 'Destination Circles':
+        return [...list].sort((a, b) => Number(b.visibility === 'Invite only') - Number(a.visibility === 'Invite only'));
+      case 'Interest Circles':
+        return [...list].sort((a, b) => Number(a.visibility === 'Invite only') - Number(b.visibility === 'Invite only'));
+      case 'Popular':
+        return [...list].sort((a, b) => b.memberCount - a.memberCount);
+      case 'Recommended':
+      case 'All':
+      default:
+        return list;
+    }
+  });
 
   readonly showCreateModal = signal(false);
   readonly viewedCircleId = signal<string | null>(null);
@@ -190,7 +250,11 @@ export class CommunityTravelCirclesComponent {
     return {
       id: space.id,
       title: space.name,
-      meta: `${space.memberCount} member${space.memberCount === 1 ? '' : 's'}`,
+      meta: formatMeta(space.memberCount, space.detailNote),
+      memberCount: space.memberCount,
+      detailNote: space.detailNote,
+      destination: space.destination,
+      capacity: space.capacity,
       visibility,
       description: space.description ?? 'A new circle for planning together.',
       activity: formatActivity(space.lastActivityAt),
@@ -200,13 +264,14 @@ export class CommunityTravelCirclesComponent {
       image: space.coverImage ?? NEW_CIRCLE_IMAGE,
       members: members.map(toCircleMember),
       audience: space.audience ? AUDIENCE_FROM_WIRE[space.audience] : undefined,
+      createdBy: space.createdBy.name,
       initialStatus,
     };
   }
 
   private updateCardMemberCount(id: string, memberCount: number): void {
     this._cards.set(
-      this._cards().map((c) => (c.id === id ? { ...c, meta: `${memberCount} member${memberCount === 1 ? '' : 's'}` } : c)),
+      this._cards().map((c) => (c.id === id ? { ...c, meta: formatMeta(memberCount, c.detailNote), memberCount } : c)),
     );
   }
 
@@ -224,6 +289,17 @@ export class CommunityTravelCirclesComponent {
 
   buttonLabel(card: TravelCircleCard): string {
     return circleCtaLabel(card, this.isMember(card.id));
+  }
+
+  /** First two members' first names plus a "+N" count for the rest, e.g.
+   * "Priya, Marco +16" — a lighter-weight roster preview than listing everyone.
+   * The "+N" is against the circle's true member count, not `card.members`
+   * (capped at the roster fetch's page size), so it stays correct even when
+   * a circle has far more members than one page can return. */
+  memberNamesPreview(card: TravelCircleCard): string {
+    const names = card.members.slice(0, 2).map((m) => m.name.split(' ')[0]);
+    const remaining = card.memberCount - names.length;
+    return remaining > 0 ? `${names.join(', ')} +${remaining}` : names.join(', ');
   }
 
   onToggleMembership(card: TravelCircleCard): void {
