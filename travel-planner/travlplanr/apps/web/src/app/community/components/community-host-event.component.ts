@@ -1166,7 +1166,21 @@ export class CommunityHostEventComponent {
           location: cities.join(', '),
           image_url: imageUrl,
           starts_at: startsAt.toISOString(),
-          ends_at: endsAt?.toISOString()
+          ends_at: endsAt?.toISOString(),
+          // Same blob shape the chat-based Event Hosting Assistant sends
+          // (event-host-assistant.service.ts#createRealMeetup) — without
+          // this, toEventCard() has nothing to rebuild groupMax/cities/
+          // partialJoinAllowed/interestTags from after a refresh, and
+          // Partial-journey join silently becomes unavailable.
+          host_preferences: {
+            eventType: a.tripType || undefined,
+            startLocation: a.startLocation.trim() || undefined,
+            viaLocations: a.route,
+            travelStyle: a.travelStyle,
+            participantLimit: a.maxTravelers,
+            transportation: a.transportation.length ? a.transportation.join(', ') : undefined,
+            joinOption: a.allowPartialParticipation ? 'both' : 'full'
+          }
         })
       );
       id = meetup.id;
