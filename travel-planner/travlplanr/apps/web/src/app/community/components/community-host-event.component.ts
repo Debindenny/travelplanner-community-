@@ -4,9 +4,10 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
-import { CommunityEventCard, unsplashUrl } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyDay, unsplashUrl } from '../services/community-event-view.model';
 import { CommunityPostService } from '../services/community-post.service';
 import { CommunityEventsService } from '../services/community-events.service';
+import { EventItineraryService } from '../services/event-itinerary.service';
 import { HostWizardPrefillService } from '../services/host-wizard-prefill.service';
 import { DestinationTypeaheadComponent } from '../../shared/components/destination-typeahead/destination-typeahead.component';
 import { DestinationListItem } from '../../shared/utils/destination.util';
@@ -636,6 +637,7 @@ export class CommunityHostEventComponent {
   private readonly store = inject(CommunityEventsMockStore);
   private readonly communityPostService = inject(CommunityPostService);
   private readonly eventsService = inject(CommunityEventsService);
+  private readonly itineraryService = inject(EventItineraryService);
   private readonly wizardPrefill = inject(HostWizardPrefillService);
 
   @ViewChild('routeSearchShell') private routeSearchShellRef?: ElementRef<HTMLDivElement>;
@@ -1031,7 +1033,61 @@ export class CommunityHostEventComponent {
     return days === 1 ? '1 day' : `${days} days`;
   }
 
-  private buildEventCard(id: string, imageUrl: string): CommunityEventCard {
+  /** Day-by-day skeleton distributed across the chosen route the same way
+   * `citySchedule` already previews it (nights split evenly across cities,
+   * remainder to the earliest ones) — without this, a wizard-published event
+   * has no rows in event_itinerary_days/_activities at all, so its detail
+   * page's Itinerary Overview renders blank for every viewer, unlike an
+   * event created through the chat-based Event Hosting Assistant (which
+   * always builds and persists one via buildItineraryDays() +
+   * EventItineraryService.createItinerary()). This wizard collects no
+   * budget/accommodation/activity-pool answers, so each day gets a single
+   * unpriced placeholder activity rather than invented costs. */
+  private buildItineraryDays(id: string): JourneyDay[] {
+    const a = this.answers;
+    if (!a.startDate || !a.endDate) return [];
+    const start = new Date(`${a.startDate}T00:00:00`);
+    const cities = a.route.length ? a.route : [this.primaryCity];
+    const nights = Math.max(this.tripNights, 1);
+    const dayCount = nights + 1;
+    const base = Math.floor(nights / cities.length);
+    const remainder = nights % cities.length;
+
+    const days: JourneyDay[] = [];
+    let idSeq = 0;
+    let dayNum = 1;
+    for (let i = 0; i < cities.length && dayNum <= dayCount; i++) {
+      const isLastCity = i === cities.length - 1;
+      const cityNights = base + (i < remainder ? 1 : 0);
+      const cityDayCount = isLastCity ? cityNights + 1 : Math.max(cityNights, 1);
+      for (let d = 0; d < cityDayCount && dayNum <= dayCount; d++, dayNum++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + (dayNum - 1));
+        days.push({
+          day: dayNum,
+          city: cities[i],
+          dateLabel: date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).toUpperCase(),
+          price: 0,
+          activities: [
+            {
+              id: `${id}-item-${++idSeq}`,
+              title: 'Free time to explore',
+              time: '10:00',
+              category: 'Planned Activity',
+              duration: '',
+              rating: 0,
+              image: unsplashUrl('1499856871958-5b9627545d1a', 400),
+              price: null,
+              included: true,
+            },
+          ],
+        });
+      }
+    }
+    return days;
+  }
+
+  private buildEventCard(id: string, imageUrl: string, days: JourneyDay[]): CommunityEventCard {
     const a = this.answers;
     const nights = this.tripNights;
     const start = a.startDate ? new Date(`${a.startDate}T00:00:00`) : new Date();
@@ -1076,6 +1132,9 @@ export class CommunityHostEventComponent {
       nights,
       partialJoinAllowed: a.allowPartialParticipation,
       travelersMax: a.maxTravelers,
+      days: days.length ? days : undefined,
+      startDateIso: a.startDate,
+      endDateIso: a.endDate,
     };
   }
 
@@ -1115,10 +1174,26 @@ export class CommunityHostEventComponent {
       console.error('Could not create the real community meetup — event will be local-only', err);
     }
 
-    const card = this.buildEventCard(id, imageUrl);
+    const days = this.buildItineraryDays(id);
+    const card = this.buildEventCard(id, imageUrl, days);
     this.store.addEvent(card);
     this.store.setPendingToast(`"${card.title}" is live — visible to the community`);
     this.clearDraft();
+
+    // Best-effort, independent of the meetup create above: persists the
+    // itinerary skeleton so GET /community/meetups/:id/itinerary returns
+    // real rows on every later visit (and for every other traveler), not
+    // just this locally-held card. Without this, only events created
+    // through the chat-based Event Hosting Assistant ever get a real
+    // itinerary — the Itinerary Overview stays blank for anyone but the
+    // host viewing straight from this session's in-memory card.
+    if (days.length) {
+      try {
+        await this.itineraryService.createItinerary(id, days);
+      } catch (err) {
+        console.error('Could not persist the hosted event itinerary', err);
+      }
+    }
 
     if (this.cloneTripId) {
       // Best-effort: also seeds a real itinerary from the cloned trip. Failure here
