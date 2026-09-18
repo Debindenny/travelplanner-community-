@@ -25,7 +25,13 @@ import { EventItineraryService } from '../services/event-itinerary.service';
   selector: 'app-community-event-summary',
   imports: [CommonModule, RouterLink, ItineraryTimelineComponent, EventDayTabsComponent],
   template: `
-    @if (!event) {
+    @if (loading) {
+      <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 font-manrope">
+        <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
+          <p class="text-eventText-mid dark:text-gray-300 text-xs">Loading event…</p>
+        </div>
+      </div>
+    } @else if (!event) {
       <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 font-manrope">
         <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-12 text-center shadow-sm">
           <h3 class="font-manrope font-extrabold text-base text-eventText-deep dark:text-white mb-1">Event not found</h3>
@@ -206,6 +212,12 @@ export class CommunityEventSummaryComponent {
   private readonly itineraryService = inject(EventItineraryService);
 
   event: CommunityEventCard | null = null;
+  /** True only while the fetchById() fallback is in flight — lets the
+   * template show a neutral "Loading…" state instead of flashing "Event not
+   * found" for the brief window before a perfectly valid event's fetch
+   * resolves. False by default since the synchronous getById() path (the
+   * common case once the store is warm) never needs it. */
+  loading = false;
   selection: BookingSelection = { mode: 'full', rangeStart: null, rangeEnd: null };
   selectedDays: JourneyDay[] = [];
   costs: EventCostBreakdown = { accommodation: 0, activities: 0, food: 0, transport: 0, serviceCharges: 0, estimatedTotal: 0 };
@@ -240,7 +252,9 @@ export class CommunityEventSummaryComponent {
     // Overview renders empty for anyone whose browser tab hasn't already
     // warmed the store — regardless of whether they're the host.
     if (id) {
+      this.loading = true;
       void this.store.fetchById(id).then((ev) => {
+        this.loading = false;
         this.event = ev;
         if (!ev) return;
         this.selectedDays = selectedDaysFor(ev, this.selection);
