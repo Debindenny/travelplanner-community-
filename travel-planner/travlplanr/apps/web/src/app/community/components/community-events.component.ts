@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
-import { CommunityEventCard } from '../services/community-event-view.model';
+import { CommunityEventCard, eventDateRangeLabel } from '../services/community-event-view.model';
 import { CommunityHomeSubnavComponent } from './community-home-subnav.component';
 import { CommunityComposerModalComponent } from './community-composer-modal.component';
 import { AuthService } from '../../auth/auth.service';
@@ -22,9 +22,9 @@ interface FilterDef {
 }
 
 const FILTER_DEFS: FilterDef[] = [
-  { key: 'destination', label: 'Destination', options: ['Paris', 'Tokyo', 'Lisbon', 'Online'] },
+  { key: 'destination', label: 'Destination', options: ['Paris', 'Tokyo', 'Lisbon', 'Madrid', 'Goa', 'Gokarna', 'Online'] },
   { key: 'date', label: 'Date', options: ['This Week', 'This Month', 'On My Trip Dates'] },
-  { key: 'style', label: 'Travel Style', options: ['Photography', 'Food', 'Culture', 'Nature'] },
+  { key: 'style', label: 'Travel Style', options: ['Adventure', 'Beach', 'Culture', 'Food', 'Nature', 'Photography', 'Sightseeing', 'Trekking'] },
   { key: 'duration', label: 'Duration', options: ['Under 2 Hours', '2-4 Hours', 'Half Day'] },
   { key: 'budget', label: 'Budget', options: ['Free', 'Paid'] },
   { key: 'spots', label: 'Available Spots', options: ['Spots Left', 'Almost Full'] }
@@ -50,7 +50,14 @@ export class CommunityEventsComponent {
   private readonly eventHost = inject(EventHostAssistantService);
 
   readonly showComposerModal = signal(false);
-  readonly currentUserId = CURRENT_USER_ID;
+
+  /** Real logged-in customer id — matches the backend organizer id a hosted
+   * event's card carries after a refresh (GET /community/meetups), unlike
+   * the mock CURRENT_USER_ID placeholder, so "My Hosted" keeps working once
+   * the event reloads from the server instead of the in-session card. */
+  get currentUserId(): string {
+    return this.auth.user()?.id ?? CURRENT_USER_ID;
+  }
 
   toastMessage: string | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
@@ -61,6 +68,11 @@ export class CommunityEventsComponent {
   savePendingIds = new Set<string>();
 
   constructor() {
+    // Hydrates the list from the real backend (community_meetups) — the
+    // `events` getter below reads the store's signal, so the template
+    // re-renders on its own once this resolves; no local state to update here.
+    void this.store.load();
+
     // Set by the host wizard right before it navigates back here.
     const pending = this.store.consumePendingToast();
     if (pending) this.showToast(pending);
@@ -154,9 +166,9 @@ export class CommunityEventsComponent {
     return parts.length ? [parts[parts.length - 1]] : [];
   }
 
-  /** Trip-window label shown in blue at the top of the card, e.g. "03 - 12 JUN". */
+  /** Trip-window label shown in blue at the top of the card, e.g. "03 - 12 JUN (9 NIGHTS)". */
   dateRangeFor(ev: CommunityEventCard): string {
-    return ev.dateRangeLabel || `${ev.month} ${ev.day}`;
+    return eventDateRangeLabel(ev);
   }
 
   /** Interest/theme chips at the bottom of a journey card; falls back to destination + price. */
@@ -173,6 +185,16 @@ export class CommunityEventsComponent {
       .slice(0, 2)
       .join('')
       .toUpperCase();
+  }
+
+  /** A broken/expired avatar URL (404, etc.) falls back to initials instead of a broken-image icon. */
+  onHostAvatarError(ev: CommunityEventCard): void {
+    ev.hostAvatarUrl = undefined;
+  }
+
+  /** A broken banner URL (404, offline fallback host, etc.) falls back to the plain gradient instead of leaving just the darkening overlay visible. */
+  onBannerImageError(ev: CommunityEventCard): void {
+    ev.imageUrl = '';
   }
 
   // ── Advanced filters ─────────────────────────────────────────────
@@ -260,7 +282,7 @@ export class CommunityEventsComponent {
     return (
       this.matchesOption(this.selected.destination, (opt) => this.matchesDestination(ev, opt)) &&
       this.matchesOption(this.selected.date, (opt) => this.matchesDate(ev, opt)) &&
-      this.matchesOption(this.selected.style, (opt) => this.styleFor(ev) === opt) &&
+      this.matchesOption(this.selected.style, (opt) => this.matchesStyle(ev, opt)) &&
       this.matchesOption(this.selected.duration, (opt) => this.matchesDuration(ev, opt)) &&
       this.matchesOption(this.selected.budget, (opt) => (opt === 'Free' ? ev.price === 'Free' : ev.price !== 'Free')) &&
       this.matchesOption(this.selected.spots, (opt) => this.matchesSpots(ev, opt))
@@ -305,7 +327,20 @@ export class CommunityEventsComponent {
     return false;
   }
 
-  /** Simple keyword classification over mock event copy — there's no dedicated travel-style field. */
+  /** Prefers the host's own real travel-style tags (host_preferences.travelStyle,
+   * persisted server-side and surfaced as ev.interestTags) when present — an
+   * exact, case-insensitive match against the selected option. Falls back to a
+   * keyword guess over the title/description only for the rare event with no
+   * interestTags at all (e.g. a plain meetup created outside the Event Hosting
+   * Assistant, which never collects a travel style). */
+  private matchesStyle(ev: CommunityEventCard, option: string): boolean {
+    if (ev.interestTags?.length) {
+      return ev.interestTags.some((tag) => tag.toLowerCase() === option.toLowerCase());
+    }
+    return this.styleFor(ev) === option;
+  }
+
+  /** Simple keyword classification over mock event copy — fallback for events with no real interestTags. */
   private styleFor(ev: CommunityEventCard): string {
     const text = `${ev.title} ${ev.description}`.toLowerCase();
     if (ev.tag === 'Food' || /food|ramen|eat|drink|cuisine|meal/.test(text)) return 'Food';

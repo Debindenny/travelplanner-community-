@@ -25,6 +25,9 @@ class CreateMeetupRequest(BaseModel):
     image_url: str | None = None
     starts_at: datetime
     ends_at: datetime | None = None
+    # Raw Event Hosting Assistant answers with no dedicated column (see
+    # CommunityMeetup.host_preferences) — opaque to this endpoint, stored as-is.
+    host_preferences: dict | None = None
 
     @field_validator("title")
     @classmethod
@@ -99,6 +102,7 @@ def _serialize_meetup(
         },
         "attendee_count": attendee_count,
         "rsvp_status": rsvp_status,
+        "host_preferences": meetup.host_preferences,
     }
 
 
@@ -149,6 +153,7 @@ async def create_meetup(data: CreateMeetupRequest, request: Request, auth: dict 
             image_url=data.image_url,
             starts_at=starts_at,
             ends_at=ends_at,
+            host_preferences=data.host_preferences,
         )
         session.add(meetup)
         await session.commit()

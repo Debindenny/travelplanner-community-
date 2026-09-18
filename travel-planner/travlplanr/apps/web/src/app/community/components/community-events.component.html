@@ -203,14 +203,19 @@
       <!-- Banner: links to the Event Summary page (informational recap before the traveler reaches the full detail/booking flow) -->
       <a
         [routerLink]="['/community/events', ev.id, 'summary']"
-        class="relative h-44 bg-cover bg-center bg-gradient-to-br from-primary-50 to-slate-50 dark:from-gray-700 dark:to-gray-800"
+        class="relative h-44 bg-cover bg-center bg-gradient-to-br from-slate-600 to-slate-800"
         [style.background-image]="ev.imageUrl ? ('linear-gradient(180deg, rgba(255,255,255,0) 50%, rgba(11,18,32,.45) 100%), url(' + ev.imageUrl + ')') : null"
-      ></a>
+      >
+        <!-- Invisible probe: background-image has no onerror, so this shares the same
+             URL purely to detect a failed load and clear it — otherwise a 404'd photo
+             leaves just the darkening overlay gradient visible with nothing behind it. -->
+        <img *ngIf="ev.imageUrl" [src]="ev.imageUrl" (error)="onBannerImageError(ev)" class="hidden" alt="" aria-hidden="true" />
+      </a>
 
       <div class="p-4 flex flex-col flex-1">
         <div class="flex items-center justify-between gap-2 mb-1.5">
           <span class="text-[11.5px] font-bold text-primary">
-            {{ dateRangeFor(ev) }}<ng-container *ngIf="ev.nights"> ({{ ev.nights }} NIGHTS)</ng-container>
+            {{ dateRangeFor(ev) }}
           </span>
           <span *ngIf="ev.partialJoinAllowed" class="px-2 py-1 rounded-full bg-primary-50 dark:bg-primary/10 text-[10.5px] font-bold text-primary shrink-0">
             Partial Join Allowed
@@ -236,6 +241,7 @@
             <img
               *ngIf="ev.hostAvatarUrl; else hostInitialsTpl"
               [src]="ev.hostAvatarUrl"
+              (error)="onHostAvatarError(ev)"
               class="w-8 h-8 rounded-full object-cover shrink-0"
               alt=""
             />

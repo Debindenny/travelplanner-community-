@@ -1,6 +1,8 @@
-import { CommunityEvent } from './community-events.service';
+import { CommunityEvent, EventHostPreferences } from './community-events.service';
+import { resolveAvatarUrl } from '../../shared/utils/avatar-url.util';
 import { mockCustomerId } from '../circles-trips/core/data/community-mock-users';
 import type { TripSegment } from '../../trip/trip.service';
+import { formatEventDateRange } from '../../shared/utils/event-date-range.util';
 
 /**
  * View model consumed by the Community Events templates (list, detail, host
@@ -80,12 +82,28 @@ export interface CommunityEventCard {
    * (via TripService.createFromContent) — when set, viewing/editing the
    * itinerary happens on the real /itinerary/:id page, not a separate UI. */
   tripId?: string;
+  /** Real start/end dates (ISO) — set for any event created through the Event
+   * Hosting Assistant or loaded from the backend (toEventCard() reads them
+   * off starts_at/ends_at), which is what lets eventDateRangeLabel() format
+   * the full date range live instead of a pre-baked label. Seeded/demo
+   * journeys are the one exception (no real dates at all), so joining one of
+   * those doesn't produce a real Trip either (see
+   * CommunityEventSuccessComponent.publishJoinedTrip) — there's no reliable
+   * real date to give the backend. */
+  startDateIso?: string;
+  endDateIso?: string;
   /** Fixed cost added on top of the selected days' subtotal — guiding, transfers, group logistics. */
   baseFee?: number;
   /** Fewest consecutive days a partial-join traveler must book. Defaults to 2 when `days` is set. */
   minConsecutiveDays?: number;
   /** Most consecutive days a partial-join traveler may book. Defaults to the full trip length when unset. */
   maxConsecutiveDays?: number;
+  /** Raw Event Hosting Assistant answers this card was built from (see EventHostPreferences)
+   * — round-tripped through the backend so they survive a refresh even though most of them
+   * (eventType, travelStyle, accommodation, transportation, etc.) are only ever read back into
+   * this same card's derived fields (interestTags, travelersMax, groupMax, ...) rather than
+   * shown directly. Undefined for an event created any other way. */
+  hostPreferences?: EventHostPreferences;
 }
 
 export interface JourneyDay {
@@ -110,6 +128,12 @@ export interface JourneyActivity {
   image: string;
   /** null means free / no booking needed — the card shows "Free" + "Options" instead of a price + "Book". */
   price: number | null;
+  /** Which Cost Breakdown category this item's price was allocated against
+   * (see event-cost-allocation.util.ts) — set for anything the Event
+   * Hosting Assistant generates. Undefined for legacy/seeded/backend-loaded
+   * activities, which fall back to keyword bucketing in
+   * buildEventCostBreakdown(). */
+  costCategory?: 'accommodation' | 'activities' | 'food' | 'transport';
   /** Whether this activity is part of the traveler's plan by default — optional extras can be unchecked. */
   included: boolean;
   /** Max bookings the host allows — null/undefined means uncapped. Populated from the backend. */
@@ -271,7 +295,13 @@ export function unsplashUrl(photoId: string, width = 800): string {
   return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=${width}&q=80`;
 }
 
-const FALLBACK_IMAGE = unsplashUrl('1488646953014-85cb44e25828');
+// Last-resort, network-independent placeholder (bundled with the app, not
+// fetched from an external host) — the previous fallback depended on
+// outbound network access to images.unsplash.com, which silently fails in
+// offline/restricted environments — the banner's dark-overlay gradient still
+// rendered (it's plain CSS), just with no photo underneath it, since a failed
+// background-image url() doesn't invalidate the sibling gradient layer.
+export const FALLBACK_IMAGE = '/assets/images/default-event-cover.svg';
 
 function formatDuration(start: Date, end: Date | null): string {
   if (!end) return '';
@@ -370,6 +400,22 @@ export function toEventCard(ev: CommunityEvent): CommunityEventCard {
   const end = ev.ends_at ? new Date(ev.ends_at) : null;
   const location = ev.location?.trim() || '';
   const { description, schedule, locationNote, meetingPoint } = splitDescription(ev.description || '');
+  const prefs = ev.host_preferences ?? undefined;
+
+  // Restores the same derived fields buildEventCard() computed when this
+  // event was hosted via the Event Hosting Assistant (participant cap, join
+  // mode/range, travel-style chips, budget) — without host_preferences
+  // (an event created any other way) every one of these stays at its
+  // previous default.
+  const partialJoinAllowed = prefs ? prefs.joinOption !== 'full' : undefined;
+  const fullJoinAllowed = prefs ? prefs.joinOption !== 'partial' : undefined;
+  // Route trail (Start → Via → Destination) — same fields buildEventCard()
+  // used to build `cities` for the same-session optimistic card; without
+  // rebuilding it here too, the trail collapsed to just the destination
+  // after every refresh, since it was never round-tripped any other way.
+  const cities = [prefs?.startLocation, ...(prefs?.viaLocations ?? []), location].filter(
+    (city): city is string => !!city
+  );
 
   return {
     id: ev.id,
@@ -377,23 +423,38 @@ export function toEventCard(ev: CommunityEvent): CommunityEventCard {
     location: location || 'Online',
     time: start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
     duration: formatDuration(start, end),
-    price: 'Free',
+    price: prefs?.budget || 'Free',
     travelersGoing: ev.attendee_count,
+    travelersMax: prefs?.participantLimit ?? undefined,
     month: start.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
     day: start.getDate().toString().padStart(2, '0'),
+    partialJoinAllowed,
+    fullJoinAllowed,
+    minConsecutiveDays: partialJoinAllowed ? Math.max(1, prefs?.joinRange?.min ?? 1) : undefined,
+    maxConsecutiveDays: partialJoinAllowed ? (prefs?.joinRange?.max ?? undefined) : undefined,
     tag: location ? 'Meetup' : 'Online',
     joined: ev.rsvp_status === 'going',
     followed: false,
-    imageUrl: ev.image_url || FALLBACK_IMAGE,
+    imageUrl: resolveAvatarUrl(ev.image_url) || FALLBACK_IMAGE,
     hostId: ev.organizer.id,
     hostName: ev.organizer.name,
+    hostAvatarUrl: resolveAvatarUrl(ev.organizer.avatar),
     hostRole: '',
     reason: '',
     description,
-    groupMax: '',
+    groupMax: prefs?.participantLimit ? `${prefs.participantLimit} max` : '',
     schedule,
     locationName: meetingPoint || location,
-    locationNote
+    locationNote: prefs?.participantLimit ? `Max participants: ${prefs.participantLimit}` : locationNote,
+    interestTags: prefs?.travelStyle,
+    cities: cities.length ? cities : undefined,
+    hostPreferences: prefs,
+    // Always real for a backend-sourced event (starts_at/ends_at are
+    // required columns) — this is what lets eventDateRangeLabel() compute
+    // the full "DD - DD MON (N NIGHTS)" label after a refresh, instead of
+    // falling back to the bare month/day above with no range or nights.
+    startDateIso: ev.starts_at,
+    endDateIso: ev.ends_at ?? undefined
   };
 }
 
@@ -401,6 +462,27 @@ export function toEventCard(ev: CommunityEvent): CommunityEventCard {
 export function eventDestination(ev: CommunityEventCard): string {
   const parts = ev.location.split(',');
   return parts[parts.length - 1].trim();
+}
+
+/**
+ * The one shared "DD - DD MON (N NIGHTS)" label for an event card/detail
+ * header — every surface that shows an event's date range (list cards,
+ * detail hero, booking summaries, search results) should call this instead
+ * of reading `dateRangeLabel`/`month`/`day` directly, so a real hosted
+ * event and a seeded/demo event render identically. Prefers computing live
+ * from real ISO dates (formatEventDateRange) when available — which is
+ * every event created through the Event Hosting Assistant or loaded from
+ * the backend — and only falls back to a pre-baked label for content that
+ * predates ISO dates entirely (seed/demo events).
+ */
+export function eventDateRangeLabel(
+  ev: Pick<CommunityEventCard, 'startDateIso' | 'endDateIso' | 'dateRangeLabel' | 'month' | 'day' | 'nights'>
+): string {
+  if (ev.startDateIso) {
+    return formatEventDateRange(ev.startDateIso, ev.endDateIso);
+  }
+  const base = ev.dateRangeLabel || `${ev.month} ${ev.day}`;
+  return ev.nights ? `${base} (${ev.nights} NIGHTS)` : base;
 }
 
 export interface EventAttendee {

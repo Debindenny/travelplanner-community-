@@ -74,6 +74,11 @@ export class ItineraryTimelineComponent {
   @Input() transportModeOptions: { id: TransportType; labelKey: string }[] = [];
   /** Keys (via `getItemKey`) of items already booked — shows a persistent "Booked" state on that item's Book button instead of relying on a transient toast. `null`/empty leaves every Book button in its default state. */
   @Input() bookedItemKeys: ReadonlySet<string> | null = null;
+  /** Keys (via `getItemKey`) of activity items currently opted into the plan — only meaningful for
+   * hosted-event journeys, where a traveler can include/exclude individual optional activities
+   * (see EventActivitySelection). `null` (the default, used by every other consumer including real
+   * trips) hides the include/exclude checkbox entirely instead of showing it unchecked. */
+  @Input() includedItemKeys: ReadonlySet<string> | null = null;
 
   @Output() itemDropped = new EventEmitter<CdkDragDrop<{ day: number; items: DetailItem[] }>>();
   @Output() moveUp = new EventEmitter<{ day: number; index: number }>();
@@ -85,6 +90,7 @@ export class ItineraryTimelineComponent {
   @Output() trainSwap = new EventEmitter<{ day: number; index: number }>();
   @Output() busSwap = new EventEmitter<{ day: number; index: number }>();
   @Output() book = new EventEmitter<DetailItem>();
+  @Output() toggleInclude = new EventEmitter<DetailItem>();
   @Output() activityAdd = new EventEmitter<number>();
   @Output() eventAdd = new EventEmitter<number>();
   @Output() cruiseAdd = new EventEmitter<number>();

@@ -2,7 +2,31 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { apiUrl } from '../../shared/utils/api-url';
-import { JourneyDay, TransportSegment } from './community-event-view.model';
+import { JourneyActivity, JourneyDay, TransportSegment } from './community-event-view.model';
+
+/** Packs a JourneyActivity's flat kind-specific fields (carrier, flightNo,
+ * amenities, etc.) into the single `extra` object the backend's
+ * EventItineraryActivity.extra (JSONB) column expects — `null` for a plain
+ * activity, which has no kind-specific fields to carry. */
+function activityExtraFields(a: JourneyActivity): Record<string, unknown> | null {
+  if (a.kind === 'flight') {
+    return {
+      carrier: a.carrier, flightNo: a.flightNo, flightClass: a.flightClass, refundable: a.refundable,
+      status: a.status, depDate: a.depDate, depCode: a.depCode, arrDate: a.arrDate, arrTime: a.arrTime,
+      arrCode: a.arrCode, stops: a.stops
+    };
+  }
+  if (a.kind === 'hotel') {
+    return { amenities: a.amenities, hotelDates: a.hotelDates, roomType: a.roomType, cancellation: a.cancellation };
+  }
+  if (a.kind === 'bus' || a.kind === 'train') {
+    return {
+      carrier: a.carrier, route: a.route, depDate: a.depDate, depLocation: a.depLocation,
+      arrDate: a.arrDate, arrTime: a.arrTime, arrLocation: a.arrLocation, stops: a.stops
+    };
+  }
+  return null;
+}
 
 export interface EventItineraryResponse {
   days: JourneyDay[];
@@ -33,6 +57,36 @@ export class EventItineraryService {
   getItinerary(eventId: string): Promise<EventItineraryResponse> {
     return firstValueFrom(
       this.http.get<EventItineraryResponse>(apiUrl(`/community/meetups/${eventId}/itinerary`))
+    );
+  }
+
+  /** Host publishes (or republishes) the day-by-day itinerary — see
+   * EventHostAssistantService.createEvent(). Replaces whatever was there
+   * before for this event id. */
+  createItinerary(eventId: string, days: JourneyDay[]): Promise<{ eventId: string; days: number }> {
+    const body = {
+      days: days.map((d) => ({
+        day: d.day,
+        city: d.city,
+        dateLabel: d.dateLabel,
+        price: d.price,
+        activities: d.activities.map((a) => ({
+          title: a.title,
+          time: a.time,
+          category: a.category,
+          duration: a.duration,
+          rating: a.rating,
+          image: a.image,
+          price: a.price,
+          capacity: a.capacity ?? null,
+          included: a.included,
+          kind: a.kind ?? null,
+          extra: activityExtraFields(a)
+        }))
+      }))
+    };
+    return firstValueFrom(
+      this.http.post<{ eventId: string; days: number }>(apiUrl(`/community/meetups/${eventId}/itinerary`), body)
     );
   }
 

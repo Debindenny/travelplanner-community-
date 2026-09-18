@@ -17,6 +17,7 @@ from app.models.event_bookings import (
     EventItineraryDay, EventItineraryActivity, EventActivitySelection,
     EventActivityBooking, EventTransportSegment, EventJourneyParticipation,
 )
+from app.utils.lock_rules import is_locked_activity
 
 router = APIRouter()
 
@@ -52,12 +53,41 @@ class LinkTripRequest(BaseModel):
     tripId: UUID
 
 
+class ActivityInput(BaseModel):
+    title: str
+    time: str
+    category: str
+    duration: str
+    rating: float
+    image: str
+    price: int | None = None
+    capacity: int | None = None
+    included: bool = True
+    # Card-type discriminator + its kind-specific fields — see
+    # EventItineraryActivity.kind/.extra and journeyActivityToTripSegment()
+    # on the frontend for what `extra` holds per kind.
+    kind: str | None = None
+    extra: dict | None = None
+
+
+class DayInput(BaseModel):
+    day: int
+    city: str
+    dateLabel: str
+    price: int
+    activities: list[ActivityInput]
+
+
+class CreateItineraryRequest(BaseModel):
+    days: list[DayInput]
+
+
 def _serialize_activity(
     activity: EventItineraryActivity,
     selection: EventActivitySelection | None,
     booking: EventActivityBooking | None,
 ) -> dict:
-    return {
+    result = {
         "id": str(activity.id),
         "title": activity.title,
         "time": activity.time,
@@ -71,6 +101,15 @@ def _serialize_activity(
         "included": selection.included if selection else activity.default_included,
         "booked": bool(booking and booking.status == "booked"),
     }
+    # Flight/hotel/bus/train card fields — flattened onto the response (not
+    # nested) to match the frontend's flat JourneyActivity shape. Absent
+    # (None) for a plain activity, so old rows with no `kind`/`extra` still
+    # serialize exactly as before.
+    if activity.kind:
+        result["kind"] = activity.kind
+    if activity.extra:
+        result.update(activity.extra)
+    return result
 
 
 def _serialize_transport(t: EventTransportSegment) -> dict:
@@ -96,6 +135,63 @@ def _serialize_participation(p: EventJourneyParticipation) -> dict:
         "bookingReference": p.booking_reference,
         "tripId": str(p.trip_id) if p.trip_id else None,
     }
+
+
+@router.post("/{event_id}/itinerary")
+async def create_itinerary(
+    event_id: str,
+    body: CreateItineraryRequest,
+    request: Request,
+    auth: dict = Depends(require_customer),
+):
+    """Host publishes (or republishes) the day-by-day itinerary for a hosted
+    event — see EventHostAssistantService.createEvent() on the frontend.
+    Replaces any existing days/activities for this event_id outright (a host
+    resubmitting the same event should overwrite, not duplicate); the CASCADE
+    on event_itinerary_activities.day_id takes any selections/bookings against
+    the old activity rows with it. That's fine today since nothing calls this
+    a second time for an event travelers have already interacted with — if
+    that changes, this should diff instead of replace.
+    """
+    async with request.app.state.session_factory() as session:
+        existing_days = (
+            await session.execute(
+                select(EventItineraryDay).where(EventItineraryDay.event_id == event_id)
+            )
+        ).scalars().all()
+        for d in existing_days:
+            await session.delete(d)
+        await session.flush()
+
+        for day_in in body.days:
+            day = EventItineraryDay(
+                event_id=event_id,
+                day_number=day_in.day,
+                city=day_in.city,
+                date_label=day_in.dateLabel,
+                price=day_in.price,
+            )
+            session.add(day)
+            await session.flush()
+            for a in day_in.activities:
+                session.add(EventItineraryActivity(
+                    day_id=day.id,
+                    title=a.title,
+                    time=a.time,
+                    category=a.category,
+                    duration=a.duration,
+                    rating=a.rating,
+                    image=a.image,
+                    price=a.price,
+                    capacity=a.capacity,
+                    default_included=a.included,
+                    kind=a.kind,
+                    extra=a.extra,
+                ))
+
+        await session.commit()
+
+    return {"eventId": event_id, "days": len(body.days)}
 
 
 @router.get("/{event_id}/itinerary")
@@ -290,6 +386,8 @@ async def change_activity(
             raise HTTPException(status_code=404, detail="Activity not found")
         if old_activity.day_id != new_activity.day_id:
             raise HTTPException(status_code=400, detail="Replacement activity must be on the same day")
+        if is_locked_activity(old_activity.kind, old_activity.title) or is_locked_activity(new_activity.kind, new_activity.title):
+            raise HTTPException(status_code=403, detail="This booking is fixed and cannot be modified individually.")
 
         for target_id, included in ((activity_id, False), (data.newActivityId, True)):
             selection = (

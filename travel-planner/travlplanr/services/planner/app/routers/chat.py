@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import re
@@ -30,6 +31,7 @@ from app.services.chat_intent import (
 )
 from app.services.llm_slot_extraction import extract_slots_via_llm
 from app.services.llm_edit_extraction import extract_edit_via_llm
+from app.services.llm_event_extraction import run_event_turn
 from app.services.llm_intent_router import route_intent_and_slots
 from app.services.chat_learning_service import (
     _customer_uuid,
@@ -1278,4 +1280,39 @@ async def activity_suggestions(
             profile_avoided=avoided,
         )
         return {"city": city, "day": body.day, "suggestions": ranked}
+
+
+class EventExtractRequest(BaseModel):
+    message: str
+    known_slots: dict[str, Any] = Field(default_factory=dict)
+
+
+class EventExtractResponse(BaseModel):
+    slots: dict[str, Any] = Field(default_factory=dict)
+    reply: str | None = None
+    ready: bool = False
+
+
+@router.post(
+    "/extract-event",
+    response_model=EventExtractResponse,
+    dependencies=[Depends(rate_limiter("chat-extract-event", 30, 60))],
+)
+async def extract_event(
+    body: EventExtractRequest,
+    request: Request,
+    auth: dict = Depends(require_customer),
+):
+    """Runs one turn of the fully-conversational Event Hosting Assistant —
+    the model decides both what's still missing and how to ask for it, in
+    its own words; there is no fixed question script on either side of this
+    call. Uses the same free local model as the main chat endpoint.
+    `reply` is null when the assistant is temporarily unreachable (the
+    frontend shows an honest unavailable message rather than a scripted
+    fallback question)."""
+    today_iso = datetime.date.today().isoformat()
+    turn = await run_event_turn(body.message, body.known_slots, today_iso)
+    if not turn:
+        return EventExtractResponse(slots={}, reply=None, ready=False)
+    return EventExtractResponse(slots=turn["slots"], reply=turn["reply"], ready=turn["ready"])
 

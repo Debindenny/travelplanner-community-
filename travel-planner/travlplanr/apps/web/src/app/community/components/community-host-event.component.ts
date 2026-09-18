@@ -2,8 +2,11 @@ import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { CommunityEventsMockStore, CURRENT_USER_ID } from '../services/community-events-mock.store';
-import { CommunityEventCard, unsplashUrl } from '../services/community-event-view.model';
+import { CommunityEventCard, FALLBACK_IMAGE } from '../services/community-event-view.model';
+import { CommunityEventsService } from '../services/community-events.service';
+import { CommunityProfileService } from '../services/community-profile.service';
 
 type StepKind = 'text' | 'textarea' | 'date' | 'number' | 'single' | 'multi' | 'image';
 
@@ -450,6 +453,8 @@ const STEPS: StepDef[] = [
 export class CommunityHostEventComponent {
   private readonly store = inject(CommunityEventsMockStore);
   private readonly router = inject(Router);
+  private readonly eventsService = inject(CommunityEventsService);
+  private readonly profileService = inject(CommunityProfileService);
 
   @ViewChild('transcript') private transcriptRef?: ElementRef<HTMLDivElement>;
 
@@ -472,6 +477,8 @@ export class CommunityHostEventComponent {
   publishing = false;
 
   coverImageUrl: string | null = null;
+  /** The actual file behind coverImageUrl's blob: preview — uploaded for real on publish(). Never persisted to the draft (see saveDraft()/tryLoadDraft()). */
+  private coverImageFile: File | null = null;
 
   showResumePrompt = false;
   private pendingDraft: { answers: Answers; coverImageUrl: string | null } | null = null;
@@ -681,6 +688,7 @@ export class CommunityHostEventComponent {
     if (!file || !step) return;
     if (this.coverImageUrl) URL.revokeObjectURL(this.coverImageUrl);
     this.coverImageUrl = URL.createObjectURL(file);
+    this.coverImageFile = file;
     this.commitAnswer(step, 'Upload Image');
   }
 
@@ -691,6 +699,7 @@ export class CommunityHostEventComponent {
       URL.revokeObjectURL(this.coverImageUrl);
       this.coverImageUrl = null;
     }
+    this.coverImageFile = null;
     this.commitAnswer(step, 'Skip');
   }
 
@@ -797,7 +806,7 @@ export class CommunityHostEventComponent {
     return days === 1 ? '1 day' : `${days} days`;
   }
 
-  private buildEventCard(): CommunityEventCard {
+  private buildEventCard(id: string, imageUrl: string): CommunityEventCard {
     const a = this.answers;
     const start = a.startDate ? new Date(`${a.startDate}T00:00:00`) : new Date();
     const routeNote =
@@ -816,7 +825,7 @@ export class CommunityHostEventComponent {
     ].filter(Boolean);
 
     return {
-      id: `evt-${Date.now()}`,
+      id,
       title: a.journeyName.trim(),
       location: a.destination.trim(),
       time: '',
@@ -828,7 +837,7 @@ export class CommunityHostEventComponent {
       tag: 'Meetup',
       joined: false,
       followed: false,
-      imageUrl: this.coverImageUrl || unsplashUrl('1488646953014-85cb44e25828'),
+      imageUrl,
       hostId: CURRENT_USER_ID,
       hostName: 'You',
       hostRole: '',
@@ -837,15 +846,58 @@ export class CommunityHostEventComponent {
       groupMax: a.maxTravelers ? `${a.maxTravelers} max` : '',
       schedule: [],
       locationName: a.startLocation.trim() || a.destination.trim(),
-      locationNote: `Min travelers: ${a.minTravelers || '—'} · Max travelers: ${a.maxTravelers || '—'}`
+      locationNote: `Min travelers: ${a.minTravelers || '—'} · Max travelers: ${a.maxTravelers || '—'}`,
+      startDateIso: a.startDate || undefined,
+      endDateIso: a.endDate || undefined
     };
   }
 
-  publish(): void {
+  /**
+   * Publishes to the real backend (POST /community/meetups) so the event
+   * survives a refresh and is visible to other travelers — previously this
+   * only called store.addEvent(), a client-memory-only list that vanished on
+   * reload and was never visible to anyone else. The cover photo is likewise
+   * uploaded for real (POST /community/upload) instead of staying a local
+   * blob: URL, which died the same way. Mirrors the same
+   * upload-then-create-then-local-fallback pattern already used by the
+   * chat-based Event Hosting Assistant (event-host-assistant.service.ts).
+   */
+  async publish(): Promise<void> {
     if (this.publishing) return;
     this.publishing = true;
 
-    const card = this.buildEventCard();
+    let imageUrl = FALLBACK_IMAGE;
+    if (this.coverImageFile) {
+      try {
+        const uploaded = await firstValueFrom(this.profileService.uploadImage(this.coverImageFile));
+        imageUrl = uploaded.url;
+      } catch (err) {
+        console.error('Cover image upload failed — publishing without a custom photo', err);
+      }
+    }
+
+    const a = this.answers;
+    const startsAt = a.startDate ? new Date(`${a.startDate}T09:00:00`) : new Date();
+    const endsAt = a.endDate ? new Date(`${a.endDate}T18:00:00`) : undefined;
+
+    let id = `evt-${Date.now()}`;
+    try {
+      const meetup = await firstValueFrom(
+        this.eventsService.createEvent({
+          title: a.journeyName.trim(),
+          description: a.description.trim(),
+          location: a.destination.trim(),
+          image_url: imageUrl,
+          starts_at: startsAt.toISOString(),
+          ends_at: endsAt?.toISOString()
+        })
+      );
+      id = meetup.id;
+    } catch (err) {
+      console.error('Could not create the real community meetup — event will be local-only', err);
+    }
+
+    const card = this.buildEventCard(id, imageUrl);
     this.store.addEvent(card);
     this.store.setPendingToast(`"${card.title}" is live — visible to the community`);
     this.clearDraft();
