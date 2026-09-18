@@ -733,7 +733,7 @@ function toCrewMessage(m: SpaceMessage): CrewMessage {
             type="text"
             [(ngModel)]="draft"
             (keydown.enter)="sendMessage()"
-            placeholder="Message the crew…"
+            placeholder="Message the circle…"
             class="flex-1 h-11 rounded-full border border-slate-200 px-4 text-[13px] text-text-primary placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
           />
           <button

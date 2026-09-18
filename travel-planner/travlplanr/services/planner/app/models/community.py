@@ -1,8 +1,8 @@
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, Column, UniqueConstraint, Index, Float, text
+from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, Date, Column, UniqueConstraint, Index, Float, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -413,6 +413,14 @@ class CommunitySpace(Base):
     accent2: Mapped[str | None] = mapped_column(String(20), nullable=True)
     last_activity_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Crew matching — set only on a CommunitySpace produced/reused by the "Find
+    # your crew" matcher (see routers/community_crew.py); NULL on every
+    # ordinary, manually-created circle. destination_key is the normalized
+    # (lowercased/trimmed) Trip.destination string used to match travelers,
+    # since Trip has no destinationId/catalog FK to join against.
+    crew_destination_key: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    crew_start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    crew_end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
 
 class SpaceMember(Base):
@@ -424,6 +432,23 @@ class SpaceMember(Base):
     joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("space_id", "customer_id"),)
+
+
+class CrewInvitation(Base):
+    """A direct invite into a crew (CommunitySpace tagged with crew_destination_key).
+
+    No equivalent exists for ordinary circles — joining those is always
+    self-serve via SpaceMember. This is the one genuinely new piece of the
+    crew-matching feature; membership/messages reuse SpaceMember/SpaceMessage.
+    """
+    __tablename__ = "crew_invitations"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    space_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("community_spaces.id", ondelete="CASCADE"), index=True)
+    sender_customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    receiver_customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, accepted, declined
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class SpaceMessage(Base):

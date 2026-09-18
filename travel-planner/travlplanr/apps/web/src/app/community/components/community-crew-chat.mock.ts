@@ -81,7 +81,7 @@ export interface ChatCircleContext {
 }
 
 export const PARIS_CREW_CHAT_MOCK: CrewChatMock = {
-  groupName: 'Paris Crew',
+  groupName: 'Paris Circle',
   dateRange: '03–09 Jun',
   memberCount: 12,
   onlineCount: 4,
