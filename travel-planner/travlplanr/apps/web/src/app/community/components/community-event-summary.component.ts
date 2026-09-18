@@ -229,6 +229,24 @@ export class CommunityEventSummaryComponent {
       this.selectedDays = selectedDaysFor(this.event, this.selection);
       this.costs = buildEventCostBreakdown(this.selectedDays, this.event.baseFee ?? 0);
       void this.loadItinerary();
+      return;
+    }
+
+    // Not in memory yet — a direct/refreshed navigation to this route before
+    // the Community Events list has ever loaded it (same gap
+    // CommunityEventDetailViewComponent's constructor already guards
+    // against via fetchById()). Without this, `this.event` stays null
+    // forever on this page and loadItinerary() never runs, so the Itinerary
+    // Overview renders empty for anyone whose browser tab hasn't already
+    // warmed the store — regardless of whether they're the host.
+    if (id) {
+      void this.store.fetchById(id).then((ev) => {
+        this.event = ev;
+        if (!ev) return;
+        this.selectedDays = selectedDaysFor(ev, this.selection);
+        this.costs = buildEventCostBreakdown(this.selectedDays, ev.baseFee ?? 0);
+        void this.loadItinerary();
+      });
     }
   }
 
