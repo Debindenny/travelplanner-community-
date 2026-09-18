@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shared.database import Base
@@ -54,6 +54,12 @@ class EventItineraryActivity(Base):
     capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     booked_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     default_included: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    # Card-type discriminator ('flight' | 'hotel' | 'bus' | 'train' | None for
+    # a plain activity) plus its kind-specific display fields (carrier,
+    # flight number, airport codes, hotel amenities, etc.) as one flexible
+    # JSON blob — see 0038_event_itinerary_activity_kind's migration docstring.
+    kind: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    extra: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
 class EventActivitySelection(Base):

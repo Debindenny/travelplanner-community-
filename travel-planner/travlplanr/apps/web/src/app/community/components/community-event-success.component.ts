@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { CommunityEventsMockStore } from '../services/community-events-mock.store';
-import { CommunityEventCard, JourneyDay } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyDay, journeyActivityToTripSegment } from '../services/community-event-view.model';
 import { BookingSelection, BookingSummary, buildBookingSummary, selectedDaysFor } from '../services/community-event-booking.util';
 import { EventItineraryService } from '../services/event-itinerary.service';
 import { PaymentMethod } from './community-event-payment.component';
@@ -15,6 +15,9 @@ import type { ItineraryPdfData, ItineraryPdfItem } from '../../itinerary/itinera
 import { PARTNER_LOGOS } from '../../shared/data/landing.data';
 import type { DetailDay, DetailItem } from '../../itinerary/itinerary-page.component';
 import type { DetailActivity } from '../../trip/trip.service';
+import { TripDay, TripService } from '../../trip/trip.service';
+import { CommunityEventsService } from '../services/community-events.service';
+import { firstValueFrom } from 'rxjs';
 
 interface SuccessNavState extends Partial<BookingSelection> {
   totalDue?: number;
@@ -201,6 +204,15 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
               </div>
 
               <div class="bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700/80 rounded-2xl p-5 flex flex-col gap-2">
+                @if (event.tripId) {
+                  <a
+                    [routerLink]="['/itinerary', event.tripId]"
+                    class="w-full h-11 rounded-xl text-sm font-extrabold text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 no-underline"
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                    View Full Itinerary
+                  </a>
+                }
                 <button
                   type="button"
                   (click)="downloadItinerary()"
@@ -263,6 +275,8 @@ export class CommunityEventSuccessComponent {
   private readonly itineraryService = inject(EventItineraryService);
   private readonly pdfService = inject(ItineraryPdfService);
   private readonly translate = inject(TranslateService);
+  private readonly tripService = inject(TripService);
+  private readonly meetupsService = inject(CommunityEventsService);
 
   private readonly pdfExportRoot = viewChild<ElementRef<HTMLElement>>('pdfExportRoot');
   readonly pdfExportData = signal<ItineraryPdfData | null>(null);
@@ -338,6 +352,74 @@ export class CommunityEventSuccessComponent {
     this.selectedDays = selectedDaysFor(this.event, this.selection);
     this.store.markJoined(eventId);
     this.ready = true;
+    void this.publishJoinedTrip();
+    void this.persistJoinRsvp(eventId);
+  }
+
+  /**
+   * Persists the join server-side (meetup_rsvps) so the "Joined Trips" tab
+   * still shows this event after a refresh reloads the list from
+   * GET /community/meetups, whose `joined` comes from rsvp_status alone —
+   * markJoined() above only updates the in-memory card. Checks the current
+   * server-side status first: POST /rsvp *toggles* (posting "going" again
+   * un-RSVPs), so this page re-running finishLoading() on a later visit
+   * (e.g. a reload) must not flip an already-recorded RSVP back off.
+   * Best-effort: a failure here doesn't affect the already-confirmed
+   * booking/payment.
+   */
+  private async persistJoinRsvp(eventId: string): Promise<void> {
+    try {
+      const current = await firstValueFrom(this.meetupsService.getEvent(eventId));
+      if (current.rsvp_status !== 'going') {
+        await firstValueFrom(this.meetupsService.setRsvp(eventId, 'going'));
+      }
+    } catch (err) {
+      console.error('Failed to persist RSVP for joined event', err);
+    }
+  }
+
+  /** Turns the days this traveler actually joined (respecting a Partial-mode
+   * day range) into a real Trip via TripService.createFromContent() — no AI
+   * generation, no payment/paid-API calls, just writing the already-decided
+   * itinerary content — so viewing/editing it happens on the real
+   * /itinerary/:id page. Only events created through the Event Hosting
+   * Assistant carry real ISO dates (`startDateIso`/`endDateIso`); seeded demo
+   * journeys don't, so this is a no-op for those rather than guessing a date. */
+  private async publishJoinedTrip(): Promise<void> {
+    const ev = this.event;
+    if (!ev || ev.tripId || !ev.startDateIso || !ev.endDateIso || !this.selectedDays.length) return;
+    try {
+      const days: TripDay[] = this.selectedDays.map((d) => ({
+        day: d.day,
+        title: d.city,
+        activities: d.activities.map((a) => a.title)
+      }));
+      const segments = this.selectedDays.flatMap((d) => d.activities.map((a) => journeyActivityToTripSegment(a, d)));
+      const tripId = await this.tripService.createFromContent({
+        title: ev.title,
+        destination: ev.location,
+        // The event's own dates — the selected days' content (a Partial-mode
+        // subset) lives entirely in `days`/`segments` below, not derived from
+        // these, since only the whole event carries a real ISO date range.
+        startDate: ev.startDateIso,
+        endDate: ev.endDateIso,
+        travelers: 1,
+        budget: ev.price,
+        image: ev.imageUrl,
+        days,
+        segments,
+        customizations: { eventId: ev.id, hostedEvent: true, mode: this.selection.mode }
+      });
+      ev.tripId = tripId;
+      try {
+        await this.itineraryService.linkTrip(ev.id, tripId);
+      } catch {
+        // Best-effort — our mock events aren't real backend meetups, so this
+        // 404s harmlessly; the trip itself was still created successfully.
+      }
+    } catch (err) {
+      console.error('Could not publish the joined itinerary as a real trip', err);
+    }
   }
 
   get paymentMethodLabel(): string {
@@ -350,24 +432,16 @@ export class CommunityEventSuccessComponent {
     return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  /** Maps this journey's day/activity data onto the shared itinerary-timeline component's shape (see itinerary-page.component.ts DetailDay/DetailActivity). */
+  /** Maps this journey's day/activity data onto the shared itinerary-timeline
+   * component's shape via journeyActivityToTripSegment() — the same mapper
+   * used everywhere else, so a flight/hotel/transfer item shows its real
+   * card here too instead of falling back to a plain activity card. */
   private mapDays(days: JourneyDay[]): DetailDay[] {
     return days.map((d) => ({
       day: d.day,
       title: d.city,
       dateStr: d.dateLabel,
-      items: d.activities.map((a): DetailActivity => ({
-        id: a.id,
-        type: 'activity',
-        time: a.time,
-        title: a.title,
-        rating: a.rating,
-        location: d.city,
-        refundable: a.price != null ? 'Non-refundable' : 'Free cancellation',
-        image: a.image,
-        price: a.price ?? undefined,
-        duration: a.duration || undefined,
-      })),
+      items: d.activities.map((a): DetailItem => journeyActivityToTripSegment(a, d)),
     }));
   }
 

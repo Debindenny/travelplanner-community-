@@ -1,4 +1,4 @@
-import { CommunityEventCard, JourneyDay, TransportSegment } from './community-event-view.model';
+import { CommunityEventCard, JourneyDay, TransportSegment, eventDateRangeLabel } from './community-event-view.model';
 
 export type JoinMode = 'full' | 'partial';
 
@@ -60,48 +60,63 @@ export interface EventCostBreakdown {
   estimatedTotal: number;
 }
 
-const HOTEL_KEYWORDS = ['hotel', 'check-in', 'boutique', 'resort'];
+const HOTEL_KEYWORDS = ['hotel', 'check-in', 'check-out', 'boutique', 'resort'];
 const MEAL_KEYWORDS = ['dinner', 'lunch', 'breakfast', 'dining', 'restaurant', 'meal', 'cuisine'];
+const TRANSPORT_KEYWORDS = ['flight', 'train', 'bus', 'shuttle', 'transport', 'transfer', 'arrival', 'departure'];
 
-function activityCostBucket(a: { title: string; category: string }): 'accommodation' | 'food' | 'activities' {
+/** Keyword fallback — only reached for an activity with no `costCategory`
+ * (legacy/seeded/backend-loaded events that predate that field). Anything
+ * built by EventHostAssistantService.buildItineraryDays() carries its own
+ * costCategory and never needs this guess. */
+function activityCostBucket(a: { title: string; category: string }): 'accommodation' | 'food' | 'transport' | 'activities' {
   const text = `${a.title} ${a.category}`.toLowerCase();
   if (HOTEL_KEYWORDS.some((k) => text.includes(k))) return 'accommodation';
   if (MEAL_KEYWORDS.some((k) => text.includes(k))) return 'food';
+  if (TRANSPORT_KEYWORDS.some((k) => text.includes(k))) return 'transport';
   return 'activities';
 }
 
 /**
- * Approximates an event package's cost by category (Accommodation / Activities / Food /
- * Transport / Service Charges) for the pre-booking Event Summary page. There's no backend field
- * that itemizes a day's flat rate this way, so each priced activity is bucketed by keyword and
- * a day's un-itemized balance (its flat price minus what its own activities already account for)
- * folds into Accommodation, since that remainder is mostly lodging/logistics baked into the day
- * rate. `transport` is the event's flat local-transport/event-access allowance (`baseFee`).
+ * Aggregates an event's Cost Breakdown (Accommodation / Activities / Food /
+ * Transport / Service Charges) for the pre-booking Event Summary page.
+ *
+ * Pure aggregation, not inference: every activity EventHostAssistantService
+ * generates already carries a `costCategory` (see
+ * event-cost-allocation.util.ts, which resolves the whole category split
+ * from the host's budget/explicit overrides + itinerary composition at
+ * itinerary-build time) and a real, non-hardcoded `price`. This function
+ * only sums what's already tagged — activityCostBucket()'s keyword guess is
+ * a fallback for legacy/seeded/backend-loaded activities that predate the
+ * field, never the primary path.
+ *
+ * `baseFee` stays a separate flat add-on folded into `transport` — a host
+ * can still set one for guiding/transfers/group logistics on top of
+ * whatever the itinerary's own transport items already total; it's 0 for
+ * events that don't set one, so it never resurrects the old
+ * "transport = baseFee, everything else guessed" behavior.
+ *
+ * Because `day.price` is itself the sum of that day's own priced items (see
+ * buildItineraryDays()), summing over ANY subset of `selectedDays` — a
+ * partial-join range, or a multi-city day list — produces a correct
+ * proportional breakdown automatically, with no special-casing here.
  */
 export function buildEventCostBreakdown(selectedDays: JourneyDay[], baseFee: number): EventCostBreakdown {
-  let accommodation = 0;
-  let food = 0;
-  let activities = 0;
+  const totals = { accommodation: 0, activities: 0, food: 0, transport: 0 };
 
   for (const day of selectedDays) {
-    let itemized = 0;
     for (const a of day.activities) {
       if (a.price == null) continue;
-      itemized += a.price;
-      const bucket = activityCostBucket(a);
-      if (bucket === 'accommodation') accommodation += a.price;
-      else if (bucket === 'food') food += a.price;
-      else activities += a.price;
+      const bucket = a.costCategory ?? activityCostBucket(a);
+      totals[bucket] += a.price;
     }
-    accommodation += Math.max(0, day.price - itemized);
   }
 
-  const transport = baseFee;
-  const subtotal = accommodation + activities + food + transport;
+  const transport = totals.transport + baseFee;
+  const subtotal = totals.accommodation + totals.activities + totals.food + transport;
   const serviceCharges = Math.round(subtotal * 0.05);
   const estimatedTotal = subtotal + serviceCharges;
 
-  return { accommodation, activities, food, transport, serviceCharges, estimatedTotal };
+  return { accommodation: totals.accommodation, activities: totals.activities, food: totals.food, transport, serviceCharges, estimatedTotal };
 }
 
 export function buildBookingSummary(event: CommunityEventCard, selection: BookingSelection): BookingSummary {
@@ -113,15 +128,15 @@ export function buildBookingSummary(event: CommunityEventCard, selection: Bookin
   const participationLabel =
     selection.mode === 'full' ? `Full journey · ${selectedDays.length} days` : `Partial · ${selectedDays.length} days`;
 
-  let datesLabel = event.dateRangeLabel ?? '';
-  if (selectedDays.length) {
-    if (selection.mode === 'full' && event.dateRangeLabel) {
-      datesLabel = event.dateRangeLabel;
-    } else {
-      const first = selectedDays[0].dateLabel;
-      const last = selectedDays[selectedDays.length - 1].dateLabel;
-      datesLabel = first === last ? first : `${first} – ${last}`;
-    }
+  // Full journey: the event's own date range (now always computable via
+  // eventDateRangeLabel — real ISO dates when available, a pre-baked label
+  // otherwise — never blank just because dateRangeLabel wasn't set).
+  // Partial journey: the sub-range of days actually selected.
+  let datesLabel = eventDateRangeLabel(event);
+  if (selectedDays.length && selection.mode !== 'full') {
+    const first = selectedDays[0].dateLabel;
+    const last = selectedDays[selectedDays.length - 1].dateLabel;
+    datesLabel = first === last ? first : `${first} – ${last}`;
   }
 
   const nights =

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommunityEventsMockStore } from '../services/community-events-mock.store';
-import { CommunityEventCard, JourneyDay } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyDay, journeyActivityToTripSegment } from '../services/community-event-view.model';
 import {
   BookingSelection,
   EventCostBreakdown,
@@ -13,6 +13,7 @@ import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary
 import type { DetailDay, DetailItem } from '../../itinerary/itinerary-page.component';
 import type { DetailActivity } from '../../trip/trip.service';
 import { EventDayTab, EventDayTabsComponent } from './event-day-tabs.component';
+import { EventItineraryService } from '../services/event-itinerary.service';
 
 /**
  * Intermediary informational recap between the Event Detail page and the existing
@@ -50,11 +51,17 @@ import { EventDayTab, EventDayTabsComponent } from './event-day-tabs.component';
         <!-- Hero -->
         <div class="page-container mx-auto px-5 xl:px-20 pt-6">
           <div
-            class="relative w-full h-[240px] sm:h-[300px] rounded-2xl overflow-hidden bg-cover bg-center flex flex-col justify-end p-6 sm:p-8"
+            class="relative w-full h-[240px] sm:h-[300px] rounded-2xl overflow-hidden bg-cover bg-center bg-gradient-to-br from-slate-600 to-slate-800 flex flex-col justify-end p-6 sm:p-8"
             [style.background-image]="
-              'linear-gradient(0deg, rgba(11,18,32,.88) 0%, rgba(11,18,32,.2) 45%, rgba(11,18,32,.35) 100%), url(' + event.imageUrl + ')'
+              event.imageUrl
+                ? ('linear-gradient(0deg, rgba(11,18,32,.88) 0%, rgba(11,18,32,.2) 45%, rgba(11,18,32,.35) 100%), url(' + event.imageUrl + ')')
+                : null
             "
           >
+            <!-- Invisible probe: background-image has no onerror, so this shares the same
+                 URL purely to detect a failed load and clear it — otherwise a 404'd photo
+                 leaves just the darkening overlay gradient visible with nothing behind it. -->
+            <img *ngIf="event.imageUrl" [src]="event.imageUrl" (error)="onBannerImageError()" class="hidden" alt="" aria-hidden="true" />
             <h1 class="text-white text-2xl sm:text-4xl font-black leading-tight mb-2">{{ event.title }}</h1>
 
             <div class="flex items-center gap-2 text-white/90 text-xs sm:text-sm font-bold mb-3 flex-wrap">
@@ -77,6 +84,7 @@ import { EventDayTab, EventDayTabsComponent } from './event-day-tabs.component';
               <img
                 *ngIf="event.hostAvatarUrl; else heroInitials"
                 [src]="event.hostAvatarUrl"
+                (error)="onHostAvatarError()"
                 class="w-9 h-9 rounded-full object-cover border-2 border-white/50 shrink-0"
                 alt=""
               />
@@ -195,6 +203,7 @@ export class CommunityEventSummaryComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly store = inject(CommunityEventsMockStore);
+  private readonly itineraryService = inject(EventItineraryService);
 
   event: CommunityEventCard | null = null;
   selection: BookingSelection = { mode: 'full', rangeStart: null, rangeEnd: null };
@@ -219,6 +228,33 @@ export class CommunityEventSummaryComponent {
     if (this.event) {
       this.selectedDays = selectedDaysFor(this.event, this.selection);
       this.costs = buildEventCostBreakdown(this.selectedDays, this.event.baseFee ?? 0);
+      void this.loadItinerary();
+    }
+  }
+
+  /**
+   * Loads the same DB-backed itinerary (event_itinerary_days/activities) the
+   * detail/join page fetches — same pattern as
+   * CommunityEventViewComponent.loadItinerary(). Without this, `event.days`
+   * is only ever whatever happened to already be on the in-memory card (a
+   * same-session host's optimistic add, or seed data); an event reloaded
+   * from the backend meetups list carries no itinerary at all, since
+   * GET /community/meetups doesn't return one, leaving this page's
+   * Itinerary Overview empty until the traveler joins and lands on the page
+   * that does fetch it.
+   */
+  private async loadItinerary(): Promise<void> {
+    const ev = this.event;
+    if (!ev) return;
+    try {
+      const res = await this.itineraryService.getItinerary(ev.id);
+      if (res.days.length) {
+        ev.days = res.days;
+        this.selectedDays = selectedDaysFor(ev, this.selection);
+        this.costs = buildEventCostBreakdown(this.selectedDays, ev.baseFee ?? 0);
+      }
+    } catch (err) {
+      console.error('Failed to load event itinerary for summary page', err);
     }
   }
 
@@ -234,7 +270,7 @@ export class CommunityEventSummaryComponent {
   locationLabel(): string {
     const ev = this.event;
     if (!ev) return '';
-    return ev.cities?.length ? ev.cities.join(' · ') : ev.location;
+    return ev.cities?.length ? ev.cities.join(' → ') : ev.location;
   }
 
   hostInitials(): string {
@@ -249,24 +285,28 @@ export class CommunityEventSummaryComponent {
       .toUpperCase();
   }
 
-  /** Maps this journey's day/activity data onto the shared itinerary-timeline component's shape (see itinerary-page.component.ts DetailDay/DetailActivity). */
+  /** A broken/expired avatar URL (404, etc.) falls back to initials instead of a broken-image icon. */
+  onHostAvatarError(): void {
+    if (this.event) this.event.hostAvatarUrl = undefined;
+  }
+
+  /** A broken banner URL falls back to the plain gradient instead of leaving just the darkening overlay visible. */
+  onBannerImageError(): void {
+    if (this.event) this.event.imageUrl = '';
+  }
+
+  /** Maps this journey's day/activity data onto the shared itinerary-timeline
+   * component's shape via journeyActivityToTripSegment() — the exact same
+   * mapper the detail/join page and TripService.createFromContent() use, so
+   * a flight/hotel/transport segment renders as the matching card here too,
+   * instead of being flattened into a plain activity card that wouldn't
+   * match what's shown after joining. */
   private mapDays(days: JourneyDay[]): DetailDay[] {
     return days.map((d) => ({
       day: d.day,
       title: d.city,
       dateStr: d.dateLabel,
-      items: d.activities.map((a): DetailActivity => ({
-        id: a.id,
-        type: 'activity',
-        time: a.time,
-        title: a.title,
-        rating: a.rating,
-        location: d.city,
-        refundable: a.price != null ? 'Non-refundable' : 'Free cancellation',
-        image: a.image,
-        price: a.price ?? undefined,
-        duration: a.duration || undefined,
-      })),
+      items: d.activities.map((a): DetailItem => journeyActivityToTripSegment(a, d)),
     }));
   }
 

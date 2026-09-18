@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommunityEventsMockStore } from '../services/community-events-mock.store';
-import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment, journeyActivityToTripSegment } from '../services/community-event-view.model';
+import { CommunityEventCard, JourneyActivity, JourneyDay, TransportSegment, journeyActivityToTripSegment, eventDateRangeLabel } from '../services/community-event-view.model';
 import { EventItineraryService } from '../services/event-itinerary.service';
 import { AuthService } from '../../auth/auth.service';
 import { ItineraryTimelineComponent } from '../../itinerary/components/itinerary-timeline/itinerary-timeline.component';
@@ -83,11 +83,17 @@ type JoinMode = 'full' | 'partial';
         <!-- Hero -->
         <div class="page-container mx-auto px-5 xl:px-20 pt-6">
         <div
-          class="relative w-full h-[280px] sm:h-[340px] rounded-2xl overflow-hidden bg-cover bg-center flex flex-col justify-end p-6 sm:p-10"
+          class="relative w-full h-[280px] sm:h-[340px] rounded-2xl overflow-hidden bg-cover bg-center bg-gradient-to-br from-slate-600 to-slate-800 flex flex-col justify-end p-6 sm:p-10"
           [style.background-image]="
-            'linear-gradient(0deg, rgba(11,18,32,.88) 0%, rgba(11,18,32,.2) 45%, rgba(11,18,32,.35) 100%), url(' + event.imageUrl + ')'
+            event.imageUrl
+              ? ('linear-gradient(0deg, rgba(11,18,32,.88) 0%, rgba(11,18,32,.2) 45%, rgba(11,18,32,.35) 100%), url(' + event.imageUrl + ')')
+              : null
           "
         >
+          <!-- Invisible probe: background-image has no onerror, so this shares the same
+               URL purely to detect a failed load and clear it — otherwise a 404'd photo
+               leaves just the darkening overlay gradient visible with nothing behind it. -->
+          <img *ngIf="event.imageUrl" [src]="event.imageUrl" (error)="onBannerImageError(event)" class="hidden" alt="" aria-hidden="true" />
           <div class="flex items-center gap-2 mb-4">
             <span class="px-3 py-1.5 rounded-lg bg-white text-[11px] font-extrabold text-primary shrink-0">Hosted Trip</span>
             <span *ngIf="event.partialJoinAllowed" class="px-3 py-1.5 rounded-lg bg-white text-[11px] font-extrabold text-orange-500 shrink-0">
@@ -102,7 +108,7 @@ type JoinMode = 'full' | 'partial';
               <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
               </svg>
-              {{ dateRangeFor(event) }}<ng-container *ngIf="event.nights"> ({{ event.nights }} Nights)</ng-container>
+              {{ dateRangeFor(event) }}
             </span>
             <span class="text-white/50">&bull;</span>
             <span class="flex items-center gap-1.5">
@@ -117,6 +123,7 @@ type JoinMode = 'full' | 'partial';
             <img
               *ngIf="event.hostAvatarUrl; else heroInitials"
               [src]="event.hostAvatarUrl"
+              (error)="onHostAvatarError(event)"
               class="w-9 h-9 rounded-full object-cover border-2 border-white/50 shrink-0"
               alt=""
             />
@@ -188,14 +195,14 @@ type JoinMode = 'full' | 'partial';
                   [getItemKey]="activityItemKey"
                   [cityNameForAirport]="identityLabel"
                   [getAirlineIataCode]="getAirlineIataCode"
-                  [transportModeOptions]="transportModeOptions"
                   [bookedItemKeys]="bookedActivityKeys()"
+                  [includedItemKeys]="includedActivityKeys()"
                   (dayHeaderClick)="onDayHeaderClick($event)"
                   (book)="onBookActivity($event)"
+                  (toggleInclude)="onToggleInclude($event)"
                   (activitySwap)="onActivitySwap($event)"
                   (moveUp)="onMoveActivityUp($event)"
                   (moveDown)="onMoveActivityDown($event)"
-                  (transportAdd)="addTransport($event.day, $event.type)"
                 ></app-itinerary-timeline>
 
                 @if (transport.length) {
@@ -739,6 +746,8 @@ export class CommunityEventDetailViewComponent {
   transport: TransportSegment[] = [];
   /** activity.id currently mid-request (book) — disables the button so a slow tap can't double-fire. */
   activityActionInFlight: string | null = null;
+  /** activity.id currently mid-request (include/exclude toggle) — disables re-firing while the previous toggle is still in flight. */
+  includeActionInFlight: string | null = null;
 
   /** "Change activity" full-page picker (replaces the event view, same pattern as the main itinerary's swap-activity screen). */
   showChangeActivityView = false;
@@ -759,10 +768,10 @@ export class CommunityEventDetailViewComponent {
 
   /** Quick-add buttons rendered in the shared itinerary timeline's "Add to Day" panel. */
   readonly transportModeOptions: { id: 'flight' | 'train' | 'bus' | 'car'; labelKey: string }[] = [
-    { id: 'train', labelKey: 'Add Train' },
-    { id: 'flight', labelKey: 'Add Flight' },
-    { id: 'bus', labelKey: 'Add Bus' },
-    { id: 'car', labelKey: 'Add Car' }
+    { id: 'train', labelKey: 'Train' },
+    { id: 'flight', labelKey: 'Flight' },
+    { id: 'bus', labelKey: 'Bus' },
+    { id: 'car', labelKey: 'Car' }
   ];
 
   toastMessage: string | null = null;
@@ -771,6 +780,32 @@ export class CommunityEventDetailViewComponent {
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
     this.event = id ? this.store.getById(id) : null;
+
+    if (this.event) {
+      this.afterEventResolved();
+      return;
+    }
+
+    // Not in memory yet — a direct/refreshed navigation to this route before
+    // the Community Events list has ever loaded it. Fetch it directly from
+    // the backend instead of showing a false "not found" state.
+    if (id) {
+      void this.store.fetchById(id).then((ev) => {
+        this.event = ev;
+        this.afterEventResolved();
+      });
+    }
+  }
+
+  private afterEventResolved(): void {
+    // A real Trip already exists for this event (published by the host, or
+    // from a previous join) — go straight to the real itinerary page instead
+    // of this community view; there's nothing more to do here.
+    if (this.event?.tripId) {
+      this.router.navigateByUrl(`/itinerary/${this.event.tripId}`, { replaceUrl: true });
+      return;
+    }
+
     // Hosts who configured "Partial journey only" disable the Full button —
     // land on Partial instead of a mode the visitor can't actually pick.
     if (this.event?.fullJoinAllowed === false) {
@@ -795,11 +830,15 @@ export class CommunityEventDetailViewComponent {
   }
 
   dateRangeFor(ev: CommunityEventCard): string {
-    return ev.dateRangeLabel || `${ev.month} ${ev.day}`;
+    return eventDateRangeLabel(ev);
   }
 
+  /** "Chennai → Delhi → Manali" when a route trail is known, else just the
+   * destination — never transportation/booking/flight text (see
+   * community-event-view.model.ts's toEventCard(), which is the only place
+   * `cities` is populated from persisted host_preferences). */
   citiesLabel(ev: CommunityEventCard): string {
-    return ev.cities?.length ? ev.cities.join(' · ') : ev.location;
+    return ev.cities?.length ? ev.cities.join(' → ') : ev.location;
   }
 
   hostInitials(ev: CommunityEventCard): string {
@@ -810,6 +849,16 @@ export class CommunityEventDetailViewComponent {
       .slice(0, 2)
       .join('')
       .toUpperCase();
+  }
+
+  /** A broken/expired avatar URL (404, etc.) falls back to initials instead of a broken-image icon. */
+  onHostAvatarError(ev: CommunityEventCard): void {
+    ev.hostAvatarUrl = undefined;
+  }
+
+  /** A broken banner URL falls back to the plain gradient instead of leaving just the darkening overlay visible. */
+  onBannerImageError(ev: CommunityEventCard): void {
+    ev.imageUrl = '';
   }
 
   roundedRating(ev: CommunityEventCard): number {
@@ -979,6 +1028,45 @@ export class CommunityEventDetailViewComponent {
         .filter((a) => a.booked && a.id)
         .map((a) => a.id!)
     );
+  }
+
+  /** Which activities are currently opted into this traveler's plan — drives the shared timeline's include/exclude checkbox. */
+  includedActivityKeys(): Set<string> {
+    return new Set(
+      (this.event?.days ?? [])
+        .flatMap((d) => d.activities)
+        .filter((a) => a.included && a.id)
+        .map((a) => a.id!)
+    );
+  }
+
+  /** Maps the shared timeline's include/exclude checkbox back onto the underlying JourneyActivity by id. */
+  onToggleInclude(item: DetailItem): void {
+    const activity = this.findActivityById((item as DetailActivity).id);
+    if (activity) {
+      void this.setActivityIncluded(activity, !activity.included);
+    } else {
+      console.error('Toggle include: no matching JourneyActivity for item', item);
+      this.showToast("Couldn't update this activity — please refresh and try again.");
+    }
+  }
+
+  /** Persists the include/exclude toggle server-side (EventActivitySelection) — optimistic, reverted on failure. */
+  private async setActivityIncluded(activity: JourneyActivity, included: boolean): Promise<void> {
+    const ev = this.event;
+    if (!ev || !activity.id || this.includeActionInFlight) return;
+    this.includeActionInFlight = activity.id;
+    const previous = activity.included;
+    activity.included = included;
+    try {
+      await this.itineraryService.setSelection(ev.id, activity.id, included);
+      this.showToast(included ? `Added "${activity.title}" to your plan` : `Removed "${activity.title}" from your plan`);
+    } catch (err: any) {
+      activity.included = previous;
+      this.showToast(err?.error?.detail || 'Could not update this activity — please try again.');
+    } finally {
+      this.includeActionInFlight = null;
+    }
   }
 
   private findActivityById(id: string | undefined): JourneyActivity | undefined {

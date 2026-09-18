@@ -1,10 +1,16 @@
-import { Injectable, signal } from '@angular/core';
-import { CommunityEventCard, JourneyActivity, JourneyDay, unsplashUrl } from './community-event-view.model';
+import { Injectable, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { CommunityEventCard, JourneyActivity, JourneyDay, toEventCard, unsplashUrl } from './community-event-view.model';
+import { CommunityEventsService } from './community-events.service';
+import { AuthService } from '../../auth/auth.service';
 
 /**
- * Frontend-only data source for the Community Events surfaces (list, detail,
- * host wizard). No HTTP calls — everything lives in this in-memory signal so
- * the Events UI works standalone, independent of the planner backend.
+ * Data source for the Community Events surfaces (list, detail, host
+ * wizard). `community_meetups` (via CommunityEventsService) is the source of
+ * truth for which events exist — load() hydrates `events` from it on page
+ * load so hosted events survive a refresh. SEED_EVENTS is the initial value
+ * of the signal and stays on screen only as long as the backend hasn't been
+ * loaded yet (or returns nothing) — see load()'s doc comment.
  */
 
 /** Events created via the current session's own host wizard land under this id. */
@@ -483,15 +489,101 @@ const SEED_EVENTS: CommunityEventCard[] = [
 
 @Injectable({ providedIn: 'root' })
 export class CommunityEventsMockStore {
+  private readonly meetupsService = inject(CommunityEventsService);
+  private readonly auth = inject(AuthService);
+
   readonly events = signal<CommunityEventCard[]>(SEED_EVENTS);
   private pendingToast: string | null = null;
+  private loadPromise: Promise<void> | null = null;
+  /** `undefined` means "not yet observed" — distinguishes app startup (nothing to
+   * invalidate) from a real identity change (login, logout, or switching accounts). */
+  private lastAuthUserId: string | null | undefined = undefined;
 
+  constructor() {
+    // `events` caches per-viewer fields (joined, rsvp_status-derived state)
+    // baked in by toEventCard() for whoever was logged in when load() ran.
+    // Without this, switching accounts in the same tab (no full page reload)
+    // would keep showing the PREVIOUS user's "Joined Trips" under the new
+    // one, since load() is otherwise a one-shot cache that never refetches.
+    effect(() => {
+      const userId = this.auth.user()?.id ?? null;
+      if (this.lastAuthUserId !== undefined && userId !== this.lastAuthUserId) {
+        this.events.set(SEED_EVENTS);
+        this.loadPromise = null;
+      }
+      this.lastAuthUserId = userId;
+    });
+  }
+
+  /**
+   * Hydrates `events` from the real backend meetups list — call once on
+   * Community Events page load. Idempotent: only the first call hits the
+   * network, later calls return the same promise. When the backend has at
+   * least one real event, it fully replaces the seed list (backend is the
+   * source of truth); when it returns none (or the request fails), the
+   * current list — SEED_EVENTS, or whatever was already loaded — is left
+   * untouched so there's always sample content to show.
+   */
+  load(): Promise<void> {
+    if (this.loadPromise) return this.loadPromise;
+    this.loadPromise = firstValueFrom(this.meetupsService.getEvents(50, 0))
+      .then(({ meetups }) => {
+        if (!meetups.length) return;
+        const current = this.events();
+        const backendCards = meetups.map((m) => {
+          const card = toEventCard(m);
+          // An event hosted earlier this session (addEvent()) may already
+          // carry its generated day-by-day itinerary and/or linked real
+          // trip id — GET /community/meetups returns neither, so preserve
+          // them across this refresh of the list instead of losing them.
+          const existing = current.find((e) => e.id === card.id);
+          return existing ? { ...card, days: existing.days ?? card.days, tripId: existing.tripId ?? card.tripId } : card;
+        });
+        this.events.set(backendCards);
+      })
+      .catch((err) => {
+        console.error('Failed to load community events from backend — showing existing/sample data', err);
+      });
+    return this.loadPromise;
+  }
+
+  /** Synchronous in-memory lookup — the fast path for every within-session page transition. */
   getById(id: string): CommunityEventCard | null {
     return this.events().find((e) => e.id === id) ?? null;
   }
 
+  /**
+   * Async fallback for when a detail route is opened/refreshed before this
+   * event has ever been loaded into memory (e.g. a direct link, or a refresh
+   * that lands here before load() has run) — fetches the single meetup from
+   * the backend and caches it into `events` so getById() finds it from then
+   * on. Returns null when the event genuinely doesn't exist (404) or the
+   * request fails.
+   */
+  async fetchById(id: string): Promise<CommunityEventCard | null> {
+    const existing = this.getById(id);
+    if (existing) return existing;
+    try {
+      const meetup = await firstValueFrom(this.meetupsService.getEvent(id));
+      const card = toEventCard(meetup);
+      this.events.update((list) => [card, ...list]);
+      return card;
+    } catch (err) {
+      console.error(`Failed to fetch community event ${id} from backend`, err);
+      return null;
+    }
+  }
+
   addEvent(card: CommunityEventCard): void {
     this.events.update((list) => [card, ...list]);
+  }
+
+  /** Immutable partial update by id — e.g. attaching `tripId` once the linked
+   * trip is created. Reassigns the array (not just the matched object) so
+   * signal consumers actually re-render; a no-op if the id isn't currently
+   * loaded. */
+  updateEvent(id: string, patch: Partial<CommunityEventCard>): void {
+    this.events.update((list) => list.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   }
 
   /** Returns the new joined state. */

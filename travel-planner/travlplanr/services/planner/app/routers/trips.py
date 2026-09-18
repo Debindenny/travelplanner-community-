@@ -13,6 +13,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm.attributes import flag_modified
 from shared.auth_dependencies import require_customer
 from app.utils.auth import require_trip_role
+from app.utils.lock_rules import is_locked_segment
 from shared.events import DomainEvent, EventType, STREAM_PLANNER
 from shared.redis_client import emit_event
 from shared.fx import convert_response
@@ -950,7 +951,32 @@ async def update_trip(
 
         # Only operate on the fields that were explicitly provided
         provided = body.model_dump(exclude_unset=True)
-        
+
+        # Locked reservations (flights/hotels/transport, and their check-in/
+        # out/departure/arrival/transfer markers) cannot be reordered or have
+        # their content swapped — mirrors the client-side isLocked() checks in
+        # itinerary-timeline.component.ts, enforced here too in case a
+        # request reaches the API directly.
+        if "segments" in provided:
+            old_segments = trip.segments or []
+            new_segments = provided["segments"] or []
+
+            def _locked_key(s: dict) -> tuple:
+                return (
+                    s.get("id"),
+                    (s.get("type") or "").lower(),
+                    s.get("title") or s.get("model"),
+                    s.get("time"),
+                )
+
+            old_locked_keys = [_locked_key(s) for s in old_segments if is_locked_segment(s)]
+            new_locked_keys = [_locked_key(s) for s in new_segments if is_locked_segment(s)]
+            if old_locked_keys != new_locked_keys:
+                raise HTTPException(
+                    status.HTTP_403_FORBIDDEN,
+                    "Locked reservation segments (flights, hotels, transport) cannot be reordered, changed, or removed.",
+                )
+
         # Optimistic Concurrency Control (Document Version)
         if "version" in provided:
             if getattr(trip, "version", 0) != provided["version"]:
@@ -1148,6 +1174,12 @@ async def reorder_segments(
         n = len(segments)
         if body.from_index < 0 or body.from_index >= n or body.to_index < 0 or body.to_index >= n:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid segment indices")
+
+        if is_locked_segment(segments[body.from_index]):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Locked reservation segments (flights, hotels, transport) cannot be reordered.",
+            )
 
         # Reorder segment
         segment = segments.pop(body.from_index)

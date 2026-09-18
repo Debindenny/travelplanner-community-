@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
 import { CommonModule, Location } from '@angular/common';
@@ -10,6 +10,7 @@ import { CommunityProfileService, UserProfile } from '../services/community-prof
 import { CommunityFollowersModalComponent, FollowersModalMode } from './community-followers-modal.component';
 import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../shared/utils/toast.service';
+import { resolveAvatarUrl } from '../../shared/utils/avatar-url.util';
 
 type ProfileTab = 'posts' | 'trips';
 
@@ -39,13 +40,31 @@ type ProfileTab = 'posts' | 'trips';
             </div>
 
             <!-- ============ COVER BANNER ============ -->
-            <div class="relative h-48 sm:h-[220px] mx-4 sm:mx-10 rounded-[24px] overflow-hidden bg-gradient-to-br from-gray-300 via-gray-200 to-gray-300 border border-gray-200/70 shadow-sm">
+            <div
+              class="group relative h-48 sm:h-[220px] mx-4 sm:mx-10 rounded-[24px] overflow-hidden bg-gradient-to-br from-gray-300 via-gray-200 to-gray-300 border border-gray-200/70 shadow-sm bg-cover bg-center"
+              [style.background-image]="getCoverUrl(profile()?.cover) ? 'url(' + getCoverUrl(profile()?.cover) + ')' : null"
+            >
               <!-- Destination badge (top right) -->
               @if (profile()?.local_in) {
                 <span class="absolute top-4 right-4 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/95 border border-gray-200 shadow-sm backdrop-blur-sm text-xs font-semibold text-gray-800">
                   <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   {{ profile()?.local_in }}
                 </span>
+              }
+
+              @if (isSelf()) {
+                <label
+                  class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-black/55 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity shadow-sm backdrop-blur-sm"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                  {{ 'COMMUNITY.PROFILE.EDIT_COVER_HINT' | translate }}
+                  <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.COVER_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onCoverSelected($event)" [disabled]="uploadingCover()" />
+                </label>
+                @if (uploadingCover()) {
+                  <div class="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div class="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full"></div>
+                  </div>
+                }
               }
             </div>
 
@@ -343,6 +362,7 @@ type ProfileTab = 'posts' | 'trips';
                     />
 
                     <button
+                      #photoMenuTrigger
                       type="button"
                       (click)="togglePhotoMenu()"
                       [attr.aria-label]="'COMMUNITY.PROFILE.EDIT_PHOTO_ARIA_LABEL' | translate"
@@ -357,19 +377,37 @@ type ProfileTab = 'posts' | 'trips';
                     </button>
 
                     @if (showPhotoMenu()) {
-                      <div class="fixed inset-0 z-10" (click)="closePhotoMenu()"></div>
+                      <!-- position: fixed (not absolute) so this can never be clipped by an
+                           ancestor's overflow:hidden (e.g. the Photo/Name row's rounded card) —
+                           coordinates are computed from the trigger button in togglePhotoMenu(). -->
+                      <div class="fixed inset-0 z-[9998]" (click)="closePhotoMenu()"></div>
 
-                      <div class="absolute z-20 top-full right-0 mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-                        <label class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+                      <div
+                        #photoMenuPanel
+                        class="fixed z-[9999] w-44 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
+                        [style.top.px]="photoMenuPos()?.top"
+                        [style.left.px]="photoMenuPos()?.left"
+                        role="menu"
+                        [attr.aria-label]="'COMMUNITY.PROFILE.EDIT_PHOTO_ARIA_LABEL' | translate"
+                        (keydown)="onPhotoMenuKeydown($event)"
+                      >
+                        <label
+                          #changePhotoItem
+                          role="menuitem"
+                          tabindex="0"
+                          class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer outline-none"
+                          (keydown.enter)="$event.preventDefault(); changePhotoInput.click()"
+                          (keydown.space)="$event.preventDefault(); changePhotoInput.click()"
+                        >
                           {{ 'COMMUNITY.PROFILE.CHANGE_PHOTO' | translate }}
-                          <input type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onEditAvatarSelected($event)" [disabled]="editAvatarUploading()" />
+                          <input #changePhotoInput type="file" class="hidden" [attr.aria-label]="'COMMUNITY.PROFILE.AVATAR_UPLOAD_ARIA_LABEL' | translate" accept="image/jpeg,image/png,image/webp" (change)="onEditAvatarSelected($event)" [disabled]="editAvatarUploading()" />
                         </label>
                         @if (!avatarRemoved && (editForm.avatar || profile()?.avatarUrl)) {
-                          <button type="button" (click)="removeAvatar()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                          <button type="button" role="menuitem" (click)="removeAvatar()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 focus:bg-red-50 outline-none">
                             {{ 'COMMUNITY.PROFILE.REMOVE_PHOTO' | translate }}
                           </button>
                         }
-                        <button type="button" (click)="closePhotoMenu()" class="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 border-t border-gray-100">
+                        <button type="button" role="menuitem" (click)="closePhotoMenu()" class="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 focus:bg-gray-50 outline-none border-t border-gray-100">
                           {{ 'COMMUNITY.PROFILE.CANCEL' | translate }}
                         </button>
                       </div>
@@ -540,11 +578,15 @@ export class CommunityProfileComponent implements OnInit {
   showEditModal = false;
   avatarRemoved = false;
   showPhotoMenu = signal(false);
+  readonly photoMenuPos = signal<{ top: number; left: number } | null>(null);
+  @ViewChild('photoMenuTrigger') private photoMenuTriggerRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('changePhotoItem') private changePhotoItemRef?: ElementRef<HTMLElement>;
   showImagePreview = false;
 
   readonly followersModalOpen = signal(false);
   readonly followersModalMode = signal<FollowersModalMode>('followers');
   readonly uploadingAvatar = signal(false);
+  readonly uploadingCover = signal(false);
   readonly editAvatarUploading = signal(false);
   readonly saving = signal(false);
   readonly loading = signal(true);
@@ -624,13 +666,12 @@ export class CommunityProfileComponent implements OnInit {
 }
 
   getAvatarUrl(url: string | null | undefined): string {
-    if (!url) {
-      return '/assets/images/default-avatar.svg';
-    }
-    if (url.startsWith('http')) {
-      return url;
-    }
-    return `http://localhost:8080${url}`;
+    return resolveAvatarUrl(url) ?? '/assets/images/default-avatar.svg';
+  }
+
+  /** Unlike getAvatarUrl(), no forced default — an unset cover just leaves the gradient background showing. */
+  getCoverUrl(url: string | null | undefined): string | undefined {
+    return resolveAvatarUrl(url);
   }
 
   interests(): string[] {
@@ -790,11 +831,58 @@ export class CommunityProfileComponent implements OnInit {
   }
 
   togglePhotoMenu(): void {
-    this.showPhotoMenu.update(v => !v);
+    if (this.showPhotoMenu()) {
+      this.closePhotoMenu();
+      return;
+    }
+    this.computePhotoMenuPosition();
+    this.showPhotoMenu.set(true);
+    // Focus the first item once the panel has actually rendered (it's behind an @if).
+    setTimeout(() => this.changePhotoItemRef?.nativeElement.focus());
   }
 
   closePhotoMenu(): void {
+    const wasOpen = this.showPhotoMenu();
     this.showPhotoMenu.set(false);
+    if (wasOpen) this.photoMenuTriggerRef?.nativeElement.focus();
+  }
+
+  /** position:fixed placement computed from the trigger button — immune to any
+   * ancestor's overflow:hidden (unlike the previous position:absolute panel,
+   * which the Photo/Name row's rounded card clipped), and flips above the
+   * button when there isn't enough room below the viewport edge. */
+  private computePhotoMenuPosition(): void {
+    const btn = this.photoMenuTriggerRef?.nativeElement;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const menuWidth = 176; // w-44
+    const estimatedMenuHeight = 140;
+    const gap = 8;
+
+    const openUpward = window.innerHeight - rect.bottom < estimatedMenuHeight + gap && rect.top > estimatedMenuHeight;
+    const top = openUpward ? rect.top - estimatedMenuHeight - gap : rect.bottom + gap;
+    const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+
+    this.photoMenuPos.set({ top, left });
+  }
+
+  /** Roving-focus keyboard support for the photo menu (Escape closes and
+   * returns focus to the trigger; Up/Down cycle through the menu items). */
+  onPhotoMenuKeydown(event: KeyboardEvent): void {
+    const panel = event.currentTarget as HTMLElement;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closePhotoMenu();
+      return;
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const items = Array.from(panel.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    if (!items.length) return;
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    const delta = event.key === 'ArrowDown' ? 1 : -1;
+    const nextIndex = (currentIndex + delta + items.length) % items.length;
+    items[nextIndex].focus();
   }
 
   onEditAvatarSelected(event: any) {
@@ -939,6 +1027,29 @@ export class CommunityProfileComponent implements OnInit {
         },
         error: () => {
           this.toast.error(this.translate.instant('COMMUNITY.PROFILE.TOAST_AVATAR_FAILED'));
+        },
+      });
+  }
+
+  onCoverSelected(event: any) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+
+    this.uploadingCover.set(true);
+    this.profileService
+      .uploadImage(file)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap(res => this.profileService.updateProfile({ cover: res.url })),
+        finalize(() => this.uploadingCover.set(false)),
+      )
+      .subscribe({
+        next: (updated) => {
+          this.profile.update(p => (p ? { ...p, ...updated } : p));
+          this.toast.success(this.translate.instant('COMMUNITY.PROFILE.TOAST_COVER_UPDATED'));
+        },
+        error: () => {
+          this.toast.error(this.translate.instant('COMMUNITY.PROFILE.TOAST_COVER_FAILED'));
         },
       });
   }
