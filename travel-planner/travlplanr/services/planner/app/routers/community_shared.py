@@ -141,7 +141,7 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
         )
         following_map = {following_id: created_at for following_id, created_at in following_res.all()}
 
-    saved_post_ids: set[uuid.UUID] = set()
+    saved_post_ids: set[str] = set()
     if customer_id:
         default_collection_id = (
             await session.execute(
@@ -157,7 +157,7 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
                     select(CommunityCollectionItem.item_id).where(
                         CommunityCollectionItem.collection_id == default_collection_id,
                         CommunityCollectionItem.item_type == "post",
-                        CommunityCollectionItem.item_id.in_(post_ids),
+                        CommunityCollectionItem.item_id.in_([str(pid) for pid in post_ids]),
                     )
                 )
             ).scalars().all())
@@ -189,7 +189,7 @@ async def _serialize_posts(session, posts: list[CommunityPost], customer_id: uui
             "location": post.location, "destination": dest_dict, "images": post.images, "caption": post.caption,
             "likes": sum(p_reacts.values()) if p_reacts else post.likes_count, "comments": post.comments_count, "comments_count": post.comments_count,
             "views_count": post.views_count, "is_reel": getattr(post, 'is_reel', False), "video_url": getattr(post, 'video_url', None),
-            "isSaved": post.id in saved_post_ids, "saveCount": post.save_count,
+            "isSaved": str(post.id) in saved_post_ids, "saveCount": post.save_count,
             "isLiked": user_react is not None, "timeAgo": iso_utc(post.created_at), "created_at": iso_utc(post.created_at),
             "reactions": p_reacts, "user_reaction": user_react, "itinerary_id": str(post.itinerary_id) if post.itinerary_id else None,
             "itinerary": trips_dict.get(post.itinerary_id) if post.itinerary_id else None, "is_following": post.customer_id in following_map, "followed_at": iso_utc(following_map.get(post.customer_id)), "hashtags": post_hashtags_dict.get(post.id, []),

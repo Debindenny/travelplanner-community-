@@ -51,8 +51,18 @@ export class CommunityTripsComponent {
   readonly filter = signal<TripFilter>('Popular');
 
   private readonly trips = signal<CommunityTrip[]>([]);
+  readonly loadError = signal(false);
 
   constructor() {
+    this.loadTrips();
+  }
+
+  retry(): void {
+    this.loadTrips();
+  }
+
+  private loadTrips(): void {
+    this.loadError.set(false);
     this.communityPostService.getTripTemplates().subscribe({
       next: ({ items }) =>
         this.trips.set(
@@ -76,7 +86,10 @@ export class CommunityTripsComponent {
             isSaved: t.isSaved,
           })),
         ),
-      error: () => this.store.showToast('Could not load trips right now'),
+      error: () => {
+        this.loadError.set(true);
+        this.store.showToast('Could not load trips right now');
+      },
     });
   }
 

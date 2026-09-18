@@ -415,6 +415,18 @@ class CommunitySpace(Base):
     audience: Mapped[str | None] = mapped_column(String(20), nullable=True)  # everyone, women_only, men_only
     accent: Mapped[str | None] = mapped_column(String(20), nullable=True)
     accent2: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Short flavor text shown next to the member count on a circle card, e.g.
+    # "4 planning together" or "overlapping dates" — optional, most circles
+    # have none and show just the member count.
+    detail_note: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Single place name for a destination-specific circle (e.g. "Japan"),
+    # shown in the detail modal's stat grid. Null for topic/interest circles
+    # with no one destination.
+    destination: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Optional roster cap shown as a "X of Y spots taken" bar in the detail
+    # modal. Null means unbounded — most circles (especially large public
+    # ones) have no cap.
+    capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_activity_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

@@ -2,10 +2,62 @@
   <div class="circles-header">
     <div class="circles-header__row">
       <div class="circles-header__copy">
-        <h1 class="circles-header__title">Plan with a small group</h1>
-        <p class="circles-header__subtitle">Share drafts, split costs and ask the things you wouldn't post publicly.</p>
+        <h1 class="circles-header__title">Travel Circles</h1>
+        <p class="circles-header__subtitle">Find people who travel like you.</p>
       </div>
       <button type="button" class="circles-header__cta" (click)="onCreateCircle()">Create a circle</button>
+    </div>
+
+    <div class="circles-toolbar">
+      <div class="circles-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="circles-tabs__tab"
+          [class.circles-tabs__tab--active]="activeTab() === 'discover'"
+          [attr.aria-selected]="activeTab() === 'discover'"
+          (click)="activeTab.set('discover')"
+        >
+          Discover
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="circles-tabs__tab"
+          [class.circles-tabs__tab--active]="activeTab() === 'my-circles'"
+          [attr.aria-selected]="activeTab() === 'my-circles'"
+          (click)="activeTab.set('my-circles')"
+        >
+          My Circles
+        </button>
+      </div>
+
+      <app-search-field
+        class="circles-toolbar__search"
+        [value]="searchQuery()"
+        (valueChange)="searchQuery.set($event)"
+        placeholder="Search circles"
+        ariaLabel="Search circles"
+        variant="surface"
+        size="md"
+        prefixIcon="search"
+        [debounceMs]="150"
+      />
+    </div>
+
+    <div class="circles-filters" role="tablist" aria-label="Filter circles">
+      @for (option of filterOptions; track option) {
+        <button
+          type="button"
+          role="tab"
+          class="circles-filters__pill"
+          [class.circles-filters__pill--active]="activeFilter() === option"
+          [attr.aria-selected]="activeFilter() === option"
+          (click)="activeFilter.set(option)"
+        >
+          {{ option }}
+        </button>
+      }
     </div>
   </div>
 
@@ -15,10 +67,12 @@
     <p class="circles-status circles-status--error">{{ loadError() }}</p>
   } @else if (cards().length === 0) {
     <p class="circles-status">No travel circles yet. Create one to get started.</p>
+  } @else if (filteredCards().length === 0) {
+    <p class="circles-status">No circles match your search or filters.</p>
   }
 
   <div class="circle-grid">
-    @for (card of cards(); track card.id) {
+    @for (card of filteredCards(); track card.id) {
       <article class="circle-card">
         <div class="circle-card__image" [style.background-image]="'url(' + card.image + ')'">
           <div class="circle-card__image-top">
@@ -38,20 +92,19 @@
         <div class="circle-card__body">
           <p class="circle-card__description">{{ card.description }}</p>
 
-          <div class="circle-card__bottom">
-            <span class="circle-card__footer-meta">{{ card.meta }}</span>
-            <span class="circle-card__actions">
-              <button type="button" class="circle-card__view" (click)="onViewCircle(card)">View details</button>
-              <button
-                type="button"
-                class="circle-card__cta"
-                [class.circle-card__cta--active]="isMember(card.id)"
-                [class.circle-card__cta--owner]="isOwner(card)"
-                (click)="onToggleMembership(card)"
-              >
-                {{ buttonLabel(card) }}
-              </button>
-            </span>
+          <p class="circle-card__names">{{ memberNamesPreview(card) }}</p>
+
+          <div class="circle-card__actions">
+            <button type="button" class="circle-card__view" (click)="onViewCircle(card)">View details</button>
+            <button
+              type="button"
+              class="circle-card__cta"
+              [class.circle-card__cta--active]="isMember(card.id)"
+              [class.circle-card__cta--owner]="isOwner(card)"
+              (click)="onToggleMembership(card)"
+            >
+              {{ buttonLabel(card) }}
+            </button>
           </div>
         </div>
       </article>

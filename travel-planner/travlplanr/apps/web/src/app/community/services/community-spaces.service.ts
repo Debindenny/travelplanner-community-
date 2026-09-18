@@ -27,6 +27,9 @@ export interface SpaceListItem {
   audience: SpaceAudience | null;
   accent: string | null;
   accent2: string | null;
+  detailNote: string | null;
+  destination: string | null;
+  capacity: number | null;
   lastActivityAt: string | null;
   memberCount: number;
   isJoined: boolean;
@@ -68,6 +71,9 @@ function fromWire(s: any): Space {
     audience: s.audience ?? null,
     accent: s.accent ?? null,
     accent2: s.accent2 ?? null,
+    detailNote: s.detail_note ?? null,
+    destination: s.destination ?? null,
+    capacity: s.capacity ?? null,
     lastActivityAt: s.last_activity_at ?? null,
     memberCount: s.member_count ?? 0,
     isJoined: !!s.is_joined,

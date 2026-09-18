@@ -31,4 +31,36 @@ export class CircleDetailModalComponent {
   isCurrentUser(member: CircleMember): boolean {
     return !!this.currentUserName() && member.name === this.currentUserName();
   }
+
+  whoIsItFor(): string {
+    const audience = this.circle().audience;
+    if (audience === 'Women only') return 'Women only';
+    if (audience === 'Men only') return 'Men only';
+    return 'Open to everyone';
+  }
+
+  whoCanJoin(): string {
+    const visibility = this.circle().visibility;
+    if (visibility === 'Invite only') return 'Approval needed';
+    if (visibility === 'Friends') return 'Friends only';
+    return 'Anyone can join';
+  }
+
+  /** No real category field on a circle yet — invite-only circles are small
+   * crews planning one trip together (a destination); public circles are
+   * ongoing topic communities (an interest). Same heuristic the Travel
+   * Circles page's filter pills use. */
+  focus(): string {
+    return this.circle().visibility === 'Invite only' ? 'Destination circle' : 'Interest circle';
+  }
+
+  capacityPercent(): number {
+    const capacity = this.circle().capacity;
+    if (!capacity) return 0;
+    return Math.min(100, Math.round((this.circle().memberCount / capacity) * 100));
+  }
+
+  membersShownLabel(): string {
+    return `Showing ${this.circle().members.length} of ${this.circle().memberCount}`;
+  }
 }

@@ -5,6 +5,7 @@ export interface CircleMember {
   name: string;
   customer_id: string;
   location: string;
+  avatar?: string | null;
   role?: 'Host';
   joinedLabel?: string;
   route?: string;
@@ -15,7 +16,12 @@ export interface TravelCircleCard {
   id: string;
   title: string;
   meta: string;
+  memberCount: number;
+  detailNote?: string | null;
+  destination?: string | null;
+  capacity?: number | null;
   visibility: 'Public' | 'Invite only' | 'Friends';
+  audience?: 'Everyone' | 'Women only' | 'Men only';
   description: string;
   activity: string;
   cta: 'Join' | 'Request';
@@ -23,7 +29,7 @@ export interface TravelCircleCard {
   accent2: string;
   image: string;
   members: CircleMember[];
-  audience?: 'Everyone' | 'Women only' | 'Men only';
+  createdBy?: string;
   initialStatus?: 'joined' | 'owner';
 }
 
@@ -48,6 +54,8 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     id: 'tc1',
     title: 'Japan Spring 2027',
     meta: '18 members · 4 planning together',
+    memberCount: 18,
+    detailNote: '4 planning together',
     visibility: 'Invite only',
     description: 'Cherry-blossom trip planning — splitting JR passes and comparing machiya stays.',
     activity: 'Active 20m ago',
@@ -61,6 +69,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     id: 'tc2',
     title: 'Solo Women Travelers',
     meta: '2.4K members',
+    memberCount: 2400,
     visibility: 'Public',
     description: 'Safety notes, stays and meetups for women travelling alone.',
     activity: 'Active now',
@@ -74,6 +83,7 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     id: 'tc3',
     title: 'Slow Travel Europe',
     meta: '860 members',
+    memberCount: 860,
     visibility: 'Public',
     description: 'Two weeks minimum, trains over flights, one city at a time.',
     activity: 'Active 1h ago',
@@ -87,6 +97,8 @@ export const TRAVEL_CIRCLE_CARDS: TravelCircleCard[] = [
     id: 'tc4',
     title: 'Paris June Crew',
     meta: '9 members · overlapping dates',
+    memberCount: 9,
+    detailNote: 'overlapping dates',
     visibility: 'Invite only',
     description: 'Everyone here is in Paris the first week of June. Sharing a food walk and a museum day.',
     activity: 'Active 5m ago',
